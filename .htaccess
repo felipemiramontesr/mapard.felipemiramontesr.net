@@ -1,0 +1,29 @@
+# DO NOT REMOVE. CLOUDLINUX PASSENGER CONFIGURATION BEGIN
+PassengerAppRoot "/home/u701509674/domains/mapa-rd.felipemiramontesr.net/public_html"
+PassengerBaseURI "/"
+PassengerPython "/home/u701509674/virtualenv/domains/mapa-rd.felipemiramontesr.net/public_html/3.9/bin/python"
+# DO NOT REMOVE. CLOUDLINUX PASSENGER CONFIGURATION END
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # 1. API Requests -> Sent to Passenger (Python)
+    # The passenger config above handles this, but we ensure /api doesn't get rewritten to index.html
+    RewriteCond %{REQUEST_URI} ^/api
+    RewriteRule ^ - [L]
+
+    # 2. Frontend Requests (SPA) -> index.html
+    # If the file/dir doesn't exist, serve React's index.html
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_URI} !^/api
+    RewriteRule . /index.html [L]
+</IfModule>
+
+# Security Headers (NSA Level)
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-Frame-Options "DENY"
+    Header set X-XSS-Protection "1; mode=block"
+    Header set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
