@@ -1,0 +1,39 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.env
+.DS_Store
+
+# Distribution / Builds
+dist/
+build/
+*.egg-info/
+.eggs/
+
+# OSINT / Data (Do not commit sensitive scans)
+04_Data/
+*.json
+*.pdf
+*.html
+*.csv
+mapa-rd-console/04_Data/
+!mapa-rd-console/04_Data/.keep
+
+# Node.js / React
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.next/
+out/
+.vercel
+*.tsbuildinfo
+
+# IDE
+.vscode/
+.idea/
+
+# Hostinger / Public
+public_html/
