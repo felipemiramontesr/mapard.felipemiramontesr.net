@@ -1,0 +1,113 @@
+name: 🛸 NSA-Level CI/CD Pipeline
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  # ------------------------------------------------------------------
+  # STAGE 1: QUALITY GATES (Parallel)
+  # ------------------------------------------------------------------
+  quality-backend:
+    name: 🐍 Backend Quality (Ruff/Tests)
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python 3.10
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.10"
+        cache: 'pip'
+
+    - name: Install Backend Deps
+      run: |
+        python -m pip install --upgrade pip
+        pip install ruff black pytest pytest-cov
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+    - name: 🛡️ Code Style (Black)
+      run: black . --check
+
+    - name: 🛡️ Linter (Ruff)
+      run: ruff check . --select=E9,F63,F7,F82 --target-version=py310 --exit-zero
+
+    # - name: 🧪 Unit Tests (Pytest) - Uncomment when tests exist
+    #   run: pytest
+
+  quality-frontend:
+    name: ⚛️ Frontend Quality (Build Check)
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 18
+        cache: 'npm'
+        cache-dependency-path: client/package-lock.json
+
+    - name: Install Frontend Deps
+      run: |
+        cd client
+        npm ci
+
+    # - name: 🛡️ Linter (ESLint) - Uncomment if configured
+    #   run: cd client && npm run lint
+
+    - name: 🏗️ Verify Build
+      run: |
+        cd client
+        npm run build
+
+  # ------------------------------------------------------------------
+  # STAGE 2: DEPLOYMENT (Only if Quality Passes)
+  # ------------------------------------------------------------------
+  deploy:
+    name: 🚀 Deploy to Hostinger
+    needs: [quality-backend, quality-frontend] # <--- THE GUARD
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+      - name: 🚚 Get latest code
+        uses: actions/checkout@v4
+
+      - name: 🏗️ Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: 🔨 Build Frontend
+        run: |
+          cd client
+          npm ci
+          npm run build
+          cd ..
+
+      - name: 📂 Prepare Deployment Package
+        run: |
+          mkdir deploy_package
+          # Frontend (Root)
+          cp -r client/dist/* deploy_package/
+          # Backend
+          cp -r api deploy_package/
+          cp passenger_wsgi.py deploy_package/
+          cp requirements.txt deploy_package/
+          cp .htaccess deploy_package/
+          echo "📦 Package Ready."
+
+      - name: 📂 Ship it! (FTP)
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.HOSTINGER_FTP_HOST }}
+          username: ${{ secrets.HOSTINGER_FTP_USER }}
+          password: ${{ secrets.HOSTINGER_FTP_PASSWORD }}
+          local-dir: ./deploy_package/
+          server-dir: ./domains/felipemiramontesr.net/public_html/mapa-rd.felipemiramontesr.net/
+          protocol: futp
+          exclude: |
+            **/.git*
+            **/node_modules/**
