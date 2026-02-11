@@ -8,25 +8,27 @@ from typing import Optional
 from state_manager import StateManager
 from pdf_converter import PdfConverter
 
+
 class ReportGenerator:
     """
     v89: IMPACT SECTIONS + DYNAMIC MITIGATION + SPANISH + PREMIUM STYLE.
     """
+
     def __init__(self, state_manager: Optional[StateManager] = None) -> None:
         """Initialize the Report Generator.
-        
+
         Args:
             state_manager: Optional shared StateManager instance.
         """
         self.logger = logging.getLogger("ReportGenerator")
         logging.basicConfig(level=logging.INFO)
-        
+
         base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        self.templates_dir = os.path.join(base_dir, '08_Templates')
-        self.reports_dir = os.path.join(base_dir, '04_Data', 'reports')
-        self.tracking_dir = os.path.join(base_dir, '04_Data', 'tracking')
-        self.arco_root = os.path.join(base_dir, '04_Data', 'arco')
-        
+        self.templates_dir = os.path.join(base_dir, "08_Templates")
+        self.reports_dir = os.path.join(base_dir, "04_Data", "reports")
+        self.tracking_dir = os.path.join(base_dir, "04_Data", "tracking")
+        self.arco_root = os.path.join(base_dir, "04_Data", "arco")
+
         self.ensure_dirs()
         self.pdf_converter = PdfConverter()
         self.state_manager = state_manager or StateManager()
@@ -37,29 +39,36 @@ class ReportGenerator:
 
     def sanitize_filename(self, name: str) -> str:
         """Sanitize a string to be safe for filenames.
-        
+
         Args:
             name: The string to sanitize.
-            
+
         Returns:
             str: The sanitized string.
         """
         # Optimized: Normalize unicode characters to decompose accents (NFD),
         # filter non-spacing marks, and encode back to ASCII.
-        nfkd_form = unicodedata.normalize('NFKD', name)
+        nfkd_form = unicodedata.normalize("NFKD", name)
         only_ascii = "".join([c for c in nfkd_form if not unicodedata.combining(c)])
         return only_ascii.replace(" ", "_")
 
-    def _build_report_name(self, file_type: str, client_id: str, client_name: str, report_id: str, date_str: str) -> str:
+    def _build_report_name(
+        self,
+        file_type: str,
+        client_id: str,
+        client_name: str,
+        report_id: str,
+        date_str: str,
+    ) -> str:
         """Construct a standardized report filename.
-        
+
         Args:
             file_type: Prefix type (e.g., REPORTE).
             client_id: Client identifier.
             client_name: Full client name.
             report_id: Report identifier.
             date_str: Date string (YYYY-MM-DD).
-            
+
         Returns:
             str: The constructed filename.
         """
@@ -67,14 +76,23 @@ class ReportGenerator:
             clean_date = datetime.strptime(date_str, "%Y-%m-%d").strftime("%d%m%Y")
         except:
             clean_date = date_str.replace("-", "")
-        
-        r_num = report_id.split('-')[-1] if '-' in report_id else "001"
+
+        r_num = report_id.split("-")[-1] if "-" in report_id else "001"
         safe_name = self.sanitize_filename(client_name)
         return f"MAPA-RD_{client_id}_{safe_name}_{clean_date}_{r_num}"
 
-    def generate_report(self, client_name: str, report_id: str, client_id: str, findings: list, arco_data: Optional[dict] = None, is_rescue: bool = False, report_type: str = "BASELINE") -> dict:
+    def generate_report(
+        self,
+        client_name: str,
+        report_id: str,
+        client_id: str,
+        findings: list,
+        arco_data: Optional[dict] = None,
+        is_rescue: bool = False,
+        report_type: str = "BASELINE",
+    ) -> dict:
         """Generate the HTML report and return file paths.
-        
+
         Args:
             client_name: Name of the client.
             report_id: Report ID.
@@ -83,23 +101,29 @@ class ReportGenerator:
             arco_data: Optional data for ARCO rights.
             is_rescue: Whether this is a rescue report.
             report_type: Type of report (BASELINE, MONTHLY, etc).
-            
+
         Returns:
             dict: Paths to generated artifacts ("md_path", "pdf_path").
         """
-        self.logger.info(f"[*] Generating Report V89 (Impact & Timeline) for {client_name}...")
+        self.logger.info(
+            f"[*] Generating Report V89 (Impact & Timeline) for {client_name}..."
+        )
         nice_date = datetime.now().strftime("%Y-%m-%d")
 
-        full_html = self._assemble_full_html(client_name, report_id, nice_date, findings)
+        full_html = self._assemble_full_html(
+            client_name, report_id, nice_date, findings
+        )
 
-        base_name = self._build_report_name("REPORTE", client_id, client_name, report_id, nice_date)
+        base_name = self._build_report_name(
+            "REPORTE", client_id, client_name, report_id, nice_date
+        )
         html_path = os.path.join(self.reports_dir, f"{base_name}.html")
-        
-        with open(html_path, 'w', encoding='utf-8') as f:
+
+        with open(html_path, "w", encoding="utf-8") as f:
             f.write(full_html)
 
         json_path = os.path.join(self.reports_dir, f"{base_name}.json")
-        with open(json_path, 'w', encoding='utf-8') as f:
+        with open(json_path, "w", encoding="utf-8") as f:
             json.dump(findings, f, indent=2)
 
         return {"md_path": html_path, "pdf_path": html_path}
@@ -266,17 +290,21 @@ class ReportGenerator:
 
     def _assemble_full_html(self, client_name, report_id, date, findings):
         # 0. Sort by Criticality
-        risk_map = {'P0': 0, 'P1': 1, 'P2': 2, 'P3': 3}
-        findings.sort(key=lambda x: risk_map.get(x.get('risk_score', 'P3'), 99))
+        risk_map = {"P0": 0, "P1": 1, "P2": 2, "P3": 3}
+        findings.sort(key=lambda x: risk_map.get(x.get("risk_score", "P3"), 99))
 
         # 1. Logic (V79)
         scores = []
         for f in findings:
-            p = f.get('risk_score', 'P3')
-            if p == 'P0':   e, c, v = 100, 100, 100
-            elif p == 'P1': e, c, v = 100, 80, 100
-            elif p == 'P2': e, c, v = 50, 50, 100
-            else:           e, c, v = 50, 50, 50
+            p = f.get("risk_score", "P3")
+            if p == "P0":
+                e, c, v = 100, 100, 100
+            elif p == "P1":
+                e, c, v = 100, 80, 100
+            elif p == "P2":
+                e, c, v = 50, 50, 100
+            else:
+                e, c, v = 50, 50, 50
             scores.append((e + c + v) / 3)
 
         n = len(scores) if scores else 1
@@ -284,112 +312,178 @@ class ReportGenerator:
         final_score = min(round(total / n), 100)
 
         # 2. Strict Scale Logic (V90 - Orange High)
-        if final_score >= 80:    cls, ico, txt = "risk-critical", "fa-biohazard", "maximo"   # 80-100: Max (Purple)
-        elif final_score >= 60:  cls, ico, txt = "risk-critical", "fa-radiation", "critico"  # 60-79: Critical (Red)
-        elif final_score >= 40:  cls, ico, txt = "risk-high",     "fa-fire",      "alto"     # 40-59: High (Orange)
-        elif final_score >= 20:  cls, ico, txt = "risk-medium",   "fa-shield",    "medio"    # 20-39: Medium (Yellow)
-        else:                    cls, ico, txt = "risk-low",      "fa-user-shield","bajo"    # 00-19: Low (Blue)
-        
+        if final_score >= 80:
+            cls, ico, txt = (
+                "risk-critical",
+                "fa-biohazard",
+                "maximo",
+            )  # 80-100: Max (Purple)
+        elif final_score >= 60:
+            cls, ico, txt = (
+                "risk-critical",
+                "fa-radiation",
+                "critico",
+            )  # 60-79: Critical (Red)
+        elif final_score >= 40:
+            cls, ico, txt = "risk-high", "fa-fire", "alto"  # 40-59: High (Orange)
+        elif final_score >= 20:
+            cls, ico, txt = (
+                "risk-medium",
+                "fa-shield",
+                "medio",
+            )  # 20-39: Medium (Yellow)
+        else:
+            cls, ico, txt = "risk-low", "fa-user-shield", "bajo"  # 00-19: Low (Blue)
+
         color_class = f"text-{txt}"
         anim_class = f"color-cycle-{txt}"
-        
+
         # 3. Dynamic Cards & Market Logic
         cards_html = ""
         timeline_events = []
-        
+
         # Market Counters
-        market_counts = {
-            'banco': 0, 'card': 0, 'id': 0, 'pass': 0, 'email': 0
-        }
+        market_counts = {"banco": 0, "card": 0, "id": 0, "pass": 0, "email": 0}
 
         for i, f in enumerate(findings):
             # Resolve Name (Breach Title > Title > Value > ID)
-            name = f.get('breach_title') or f.get('title') or f.get('value') or f.get('finding_id', 'Desconocido')
-            name = name.replace('Breach: ', '')
-            
-            data_classes = f.get('breach_classes', [])
-            b_date = f.get('breach_date') or f.get('captured_at', 'Fecha Desconocida')
-            if 'T' in b_date: b_date = b_date.split('T')[0] # ISO to Date
-            
+            name = (
+                f.get("breach_title")
+                or f.get("title")
+                or f.get("value")
+                or f.get("finding_id", "Desconocido")
+            )
+            name = name.replace("Breach: ", "")
+
+            data_classes = f.get("breach_classes", [])
+            b_date = f.get("breach_date") or f.get("captured_at", "Fecha Desconocida")
+            if "T" in b_date:
+                b_date = b_date.split("T")[0]  # ISO to Date
+
             # --- Timeline Data ---
-            if b_date and b_date != 'Fecha Desconocida':
-                timeline_events.append({'date': b_date, 'name': name, 'desc': f.get('description', '')})
-            
+            if b_date and b_date != "Fecha Desconocida":
+                timeline_events.append(
+                    {"date": b_date, "name": name, "desc": f.get("description", "")}
+                )
+
             # --- Market Value Accumulation ---
-            if 'Saldos de cuenta' in data_classes or 'Números de cuenta bancaria' in data_classes: market_counts['banco'] += 1
-            elif 'Información de tarjeta de crédito' in data_classes: market_counts['card'] += 1
-            elif 'Identificaciones gubernamentales' in data_classes or 'Direcciones físicas' in data_classes: market_counts['id'] += 1
-            elif 'Contraseñas' in data_classes: market_counts['pass'] += 1
-            else: market_counts['email'] += 1 # Base entry fallthrough
+            if (
+                "Saldos de cuenta" in data_classes
+                or "Números de cuenta bancaria" in data_classes
+            ):
+                market_counts["banco"] += 1
+            elif "Información de tarjeta de crédito" in data_classes:
+                market_counts["card"] += 1
+            elif (
+                "Identificaciones gubernamentales" in data_classes
+                or "Direcciones físicas" in data_classes
+            ):
+                market_counts["id"] += 1
+            elif "Contraseñas" in data_classes:
+                market_counts["pass"] += 1
+            else:
+                market_counts["email"] += 1  # Base entry fallthrough
 
             # Subtitle Logic
-            if "Telegram" in name: type_lbl = "Venta de Identidades en la Dark Web"
-            elif "Banorte" in name: type_lbl = "Institución Bancaria"
-            elif "Círculo" in name or "Buró" in name: type_lbl = "Sociedad de Información Crediticia"
-            elif "Ine" in name or "Gob" in name: type_lbl = "Entidad Gubernamental"
-            else: type_lbl = "Filtración de Base de Datos"
+            if "Telegram" in name:
+                type_lbl = "Venta de Identidades en la Dark Web"
+            elif "Banorte" in name:
+                type_lbl = "Institución Bancaria"
+            elif "Círculo" in name or "Buró" in name:
+                type_lbl = "Sociedad de Información Crediticia"
+            elif "Ine" in name or "Gob" in name:
+                type_lbl = "Entidad Gubernamental"
+            else:
+                type_lbl = "Filtración de Base de Datos"
 
-            fscore = f.get('risk_score', 'P3')
-            
+            fscore = f.get("risk_score", "P3")
+
             # --- RISK VISUALS ---
-            if fscore == 'P0': 
+            if fscore == "P0":
                 c_cls, c_ico = "risk-critical", "fa-biohazard"
                 justif = "Crítico: Compromiso directo de credenciales o identidad."
-            elif fscore == 'P1': 
+            elif fscore == "P1":
                 c_cls, c_ico = "risk-high", "fa-radiation"
                 justif = "Alto: Impacto financiero probable o herramientas de ataque."
-            elif fscore == 'P2': 
+            elif fscore == "P2":
                 c_cls, c_ico = "risk-medium", "fa-shield"
                 justif = "Medio: Filtraciones confirmadas de credenciales."
-            else: 
+            else:
                 c_cls, c_ico = "risk-low", "fa-shield-halved"
                 justif = "Bajo: Exposición en servicios antiguos o de menor impacto."
 
             # --- DYNAMIC MITIGATION LOGIC (V85) ---
             steps = []
-            
+
             pwd_tips = [
                 f"<strong>Gestor de Contraseñas:</strong> Deja de reciclar claves. Usa 1Password o Bitwarden para proteger <em>{name}</em>.",
                 f"<strong>Frase de Paso:</strong> En lugar de una palabra, usa una frase de 4 palabras aleatorias para tu cuenta de <em>{name}</em>.",
-                f"<strong>Auditoría de Reutilización:</strong> Si usaste la clave de <em>{name}</em> en otro lado, cámbiala allá también."
+                f"<strong>Auditoría de Reutilización:</strong> Si usaste la clave de <em>{name}</em> en otro lado, cámbiala allá también.",
             ]
             mfa_tips = [
                 f"<strong>MFA Obligatorio:</strong> Activa autenticación de 2 pasos en <em>{name}</em> inmediatmente.",
                 "<strong>Llave de Seguridad:</strong> Si es posible, usa una YubiKey o Passkey en lugar de SMS.",
-                "<strong>Revisión de Accesos:</strong> Verifica en la configuración de seguridad qué dispositivos están conectados."
+                "<strong>Revisión de Accesos:</strong> Verifica en la configuración de seguridad qué dispositivos están conectados.",
             ]
-            
-            if any(x in data_classes for x in ['Información de tarjeta de crédito', 'Números de cuenta bancaria', 'Saldos de cuenta']):
-                steps.append("<strong>Bloqueo Financiero:</strong> Contacta a tu banco y solicita reposición de plásticos.")
-                steps.append("<strong>Alerta de Fraude:</strong> Activa notificaciones SMS para cada retiro.")
 
-            if 'Contraseñas' in data_classes:
+            if any(
+                x in data_classes
+                for x in [
+                    "Información de tarjeta de crédito",
+                    "Números de cuenta bancaria",
+                    "Saldos de cuenta",
+                ]
+            ):
+                steps.append(
+                    "<strong>Bloqueo Financiero:</strong> Contacta a tu banco y solicita reposición de plásticos."
+                )
+                steps.append(
+                    "<strong>Alerta de Fraude:</strong> Activa notificaciones SMS para cada retiro."
+                )
+
+            if "Contraseñas" in data_classes:
                 steps.append(pwd_tips[i % len(pwd_tips)])
                 steps.append(mfa_tips[i % len(mfa_tips)])
-            elif 'Pistas de contraseña' in data_classes:
-                 steps.append("<strong>Cambia tus Preguntas:</strong> Las respuestas de seguridad 'madre/mascota' ya son públicas.")
+            elif "Pistas de contraseña" in data_classes:
+                steps.append(
+                    "<strong>Cambia tus Preguntas:</strong> Las respuestas de seguridad 'madre/mascota' ya son públicas."
+                )
 
-            if 'Números de teléfono' in data_classes:
-                steps.append("<strong>Anti-Smishing:</strong> Desconfía de SMS urgentes de supuestos bancos.")
-            
-            if 'Perfiles de redes sociales' in data_classes:
-                steps.append("<strong>Privacidad:</strong> Revisa qué apps de terceros tienen acceso a tu perfil.")
-            
-            if 'Direcciones físicas' in data_classes:
-                steps.append("<strong>Entorno Físico:</strong> Ten cuidado con correspondencia o visitas no solicitadas.")
-            
+            if "Números de teléfono" in data_classes:
+                steps.append(
+                    "<strong>Anti-Smishing:</strong> Desconfía de SMS urgentes de supuestos bancos."
+                )
+
+            if "Perfiles de redes sociales" in data_classes:
+                steps.append(
+                    "<strong>Privacidad:</strong> Revisa qué apps de terceros tienen acceso a tu perfil."
+                )
+
+            if "Direcciones físicas" in data_classes:
+                steps.append(
+                    "<strong>Entorno Físico:</strong> Ten cuidado con correspondencia o visitas no solicitadas."
+                )
+
             if not steps:
-                steps.append("<strong>Rotación Preventiva:</strong> Cambia la clave por precaución.")
-                steps.append("<strong>Sesiones Activas:</strong> Cierra sesión en todos los dispositivos.")
+                steps.append(
+                    "<strong>Rotación Preventiva:</strong> Cambia la clave por precaución."
+                )
+                steps.append(
+                    "<strong>Sesiones Activas:</strong> Cierra sesión en todos los dispositivos."
+                )
 
             steps = steps[:3]
             if len(steps) < 2:
-                steps.append("<strong>Higiene Digital:</strong> Monitorea tu correo en busca de actividad inusual.")
+                steps.append(
+                    "<strong>Higiene Digital:</strong> Monitorea tu correo en busca de actividad inusual."
+                )
 
-            raw_desc = f.get('breach_desc') or f.get('snippet') or f.get('risk_rationale', '')
+            raw_desc = (
+                f.get("breach_desc") or f.get("snippet") or f.get("risk_rationale", "")
+            )
             if not raw_desc:
                 raw_desc = f"Hallazgo detectado en {name}. Entidad: {f.get('entity', 'Desconocida')}."
-            
+
             steps_html = "".join([f"<li>{s}</li>" for s in steps])
 
             cards_html += f"""
@@ -404,15 +498,27 @@ class ReportGenerator:
                 <ul class="mitigation-list">{steps_html}</ul>
             </div>
             """
-        
+
         # --- BUILD MARKET TABLE HTML ---
         market_rows = ""
         total_market_value = 0
-        
+
         # Prices
-        prices = {'banco': 150.00, 'card': 85.00, 'id': 20.00, 'pass': 5.00, 'email': 0.50}
-        labels = {'banco': 'Acceso Bancario (Log/Saldo)', 'card': 'Tarjeta de Crédito (Fullz)', 'id': 'Identidad Completa (Scan)', 'pass': 'Credenciales (Email:Pass)', 'email': 'Datos de Contacto (Lead)'}
-        
+        prices = {
+            "banco": 150.00,
+            "card": 85.00,
+            "id": 20.00,
+            "pass": 5.00,
+            "email": 0.50,
+        }
+        labels = {
+            "banco": "Acceso Bancario (Log/Saldo)",
+            "card": "Tarjeta de Crédito (Fullz)",
+            "id": "Identidad Completa (Scan)",
+            "pass": "Credenciales (Email:Pass)",
+            "email": "Datos de Contacto (Lead)",
+        }
+
         for k, v in market_counts.items():
             if v > 0:
                 subtotal = v * prices[k]
@@ -425,15 +531,15 @@ class ReportGenerator:
                     <td style="text-align:right;" class="market-price">${subtotal:.2f}</td>
                 </tr>
                 """
-        
+
         # Empty row if nothing found (unlikely in report)
         if not market_rows:
             market_rows = "<tr><td colspan='4'>No se detectaron activos monetizables directos.</td></tr>"
 
         # --- BUILD EXTRA SECTIONS HTML ---
-        
+
         # 1. Timeline
-        timeline_events.sort(key=lambda x: x['date'], reverse=True)
+        timeline_events.sort(key=lambda x: x["date"], reverse=True)
         timeline_html = ""
         for t in timeline_events:
             timeline_html += f"""
@@ -442,10 +548,10 @@ class ReportGenerator:
                 <div class="timeline-title">{t['name']}</div>
             </div>
             """
-        
+
         # 2. Hacker Path (Narrative)
         # Simplified logic: If P0 exists -> High Impact Story
-        if any(f.get('risk_score') == 'P0' for f in findings):
+        if any(f.get("risk_score") == "P0" for f in findings):
             hacker_story = """
             <div class="step"><div class="step-num">1</div><div class="step-text"><strong>Reconocimiento:</strong> El atacante compra el combo de <em>Telegram</em> y obtiene tu correo y contraseñas antiguas.</div></div>
             <div class="step"><div class="step-num">2</div><div class="step-text"><strong>Acceso Inicial:</strong> Prueba esas claves (Credential Stuffing) en servicios como <em>Dropbox</em> o <em>Adobe</em>.</div></div>

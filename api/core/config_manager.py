@@ -2,9 +2,10 @@ import os
 import json
 from typing import Any, Dict, Optional
 
+
 class ConfigManager:
     """Centralized configuration loader for MAPA-RD components.
-    
+
     This class handles:
     1. Resolving the project base directory.
     2. Loading the `03_Config/config.json` file.
@@ -23,7 +24,7 @@ class ConfigManager:
     def __init__(self) -> None:
         if not self._loaded:
             self.base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-            self.config_path = os.path.join(self.base_dir, '03_Config', 'config.json')
+            self.config_path = os.path.join(self.base_dir, "03_Config", "config.json")
             self._load_config()
             self._loaded = True
 
@@ -31,10 +32,12 @@ class ConfigManager:
         """Load configuration from file and apply defaults."""
         if os.path.exists(self.config_path):
             try:
-                with open(self.config_path, 'r', encoding='utf-8') as f:
+                with open(self.config_path, "r", encoding="utf-8") as f:
                     self._config = json.load(f)
             except (json.JSONDecodeError, IOError) as e:
-                print(f"[!] Warning: ConfigManager failed to load {self.config_path}: {e}")
+                print(
+                    f"[!] Warning: ConfigManager failed to load {self.config_path}: {e}"
+                )
                 self._config = {}
         else:
             self._config = {}

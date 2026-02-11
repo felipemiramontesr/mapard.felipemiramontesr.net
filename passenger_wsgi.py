@@ -3,7 +3,7 @@ import os
 
 # 1. Add the current directory to sys.path so we can import 'api'
 sys.path.append(os.getcwd())
-sys.path.append(os.path.join(os.getcwd(), 'api'))
+sys.path.append(os.path.join(os.getcwd(), "api"))
 
 # 2. Point to the FastAPI app
 # In Hostinger/Passenger, the callable usually needs to be named 'application'

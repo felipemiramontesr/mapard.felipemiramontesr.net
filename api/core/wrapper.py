@@ -15,18 +15,19 @@ except ImportError:
     # Fallback for dev/mock mode if 07_Src isn't fully copied
     Orchestrator = None
 
+
 class BackgroundScanRunner:
     def __init__(self, job_id: str, target_email: str, target_name: str):
         self.job_id = job_id
         self.email = target_email
         self.name = target_name
         self.logs = []
-        
+
     def log(self, message: str, type: str = "info"):
         entry = {
             "timestamp": datetime.now().strftime("%H:%M:%S"),
             "message": message,
-            "type": type
+            "type": type,
         }
         self.logs.append(entry)
         # Real-time DB update for frontend polling
@@ -49,14 +50,14 @@ class BackgroundScanRunner:
             # 1. Initialize Engine
             self.log("Booting OSINT Engine (SpiderFoot + HIBP)...", "info")
             # Here we would instantiate the real Orchestrator
-            # orch = Orchestrator() 
+            # orch = Orchestrator()
             # But the Orchestrator runs SUBPROCESSES, which is risky on Hostinger.
             # We need to selectively call modules.
-            
+
             # --- MOCKING THE HEAVY LIFTING FOR PHASE 2 INITIAL DEPLOY ---
             # To ensure stability first, we simulate the heavy scan
             await self._run_mock()
-            
+
         except Exception as e:
             self.log(f"CRITICAL ERROR: {str(e)}", "error")
             update_job_status(self.job_id, "FAILED")
@@ -68,12 +69,12 @@ class BackgroundScanRunner:
             ("Querying HaveIBeenPwned API...", 1),
             ("Analyzing 4 Found Breaches...", 3),
             ("Requesting Dark Web Metadata...", 2),
-            ("Generating PDF Report...", 2)
+            ("Generating PDF Report...", 2),
         ]
-        
+
         for msg, delay in steps:
             await asyncio.sleep(delay)
             self.log(msg, "info")
-            
+
         self.log("Scan Complete. PDF Generated.", "success")
         update_job_status(self.job_id, "COMPLETED", result_path="/reports/mock.pdf")
