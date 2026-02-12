@@ -4,7 +4,7 @@
 ![CI/CD](https://github.com/felipemiramontesr/mapard.felipemiramontesr.net/actions/workflows/ci-cd.yml/badge.svg)
 eScript + Vite
 
-> Last Deployed: 2026-02-11
+> Last Deployed: 2026-02-11 (Secrets Refresh)
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
