@@ -56,4 +56,14 @@ try {
     echo "[X] DB Connection FAILED: " . $e->getMessage() . "\n";
 }
 
+// 6. Test FPDF
+echo "\n<strong>FPDF Test:</strong>\n";
+try {
+    require_once(__DIR__ . '/fpdf.php');
+    $pdf = new FPDF();
+    echo "[v] Successfully instantiated FPDF class\n";
+} catch (Throwable $e) {
+    echo "[X] FPDF Crash: " . $e->getMessage() . "\n";
+}
+
 echo "</pre>";
