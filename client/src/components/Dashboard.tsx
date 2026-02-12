@@ -117,8 +117,8 @@ const Dashboard: React.FC = () => {
                                 // If we mount /api/reports, the URL should be /api/reports/mock.pdf
 
                                 // Quick fix: user wrapper returns "/reports/mock.pdf", but that might not map to /api/reports unless we proxy/rewrite.
-                                // Let's force the correct path for now based on our knowledge.
-                                link.href = `/api${jobData.result_url}`;
+                                // Backend returns full path: /api/reports/report_...pdf
+                                link.href = jobData.result_url;
                                 link.download = `MAPA-RD_REPORT_${job_id}.pdf`;
                                 document.body.appendChild(link);
                                 link.click();

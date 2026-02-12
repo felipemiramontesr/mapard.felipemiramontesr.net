@@ -160,14 +160,16 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
             }
 
             // Step 2: Simulated Breaches (Mock for now, but dynamic text)
-            addLog($logs, "Querying Breach Databases...", "info");
+            addLog($logs, "Querying Breach Databases (Have I Been Pwned)...", "info");
+            addLog($logs, "NOTICE: HIBP API Key missing. Running in SIMULATION MODE for demonstration.", "warning");
+
             // Randomize findings to make it feel "real"
             $breachCount = rand(0, 5);
             if ($breachCount > 0) {
-                addLog($logs, "CRITICAL: Found $breachCount compromised credentials.", "error");
+                addLog($logs, "CRITICAL: Found $breachCount compromised credentials (SIMULATED).", "error");
                 $findings[] = "Breach Analysis: $breachCount potential leaks identified.";
             } else {
-                addLog($logs, "No public breaches found.", "success");
+                addLog($logs, "No public breaches found (SIMULATED).", "success");
                 $findings[] = "Breach Analysis: Clean.";
             }
 
