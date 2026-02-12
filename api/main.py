@@ -27,13 +27,31 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-from fastapi.staticfiles import StaticFiles
+from fastapi import HTTPException
+from fastapi.responses import Response
+
+# Remove StaticFiles to avoid 'aiofiles' dependency crash
+# from fastapi.staticfiles import StaticFiles 
+# app.mount("/api/reports", StaticFiles(directory="api/reports"), name="reports")
+
 from api.routes import scans
 
-# Mount Reports Directory for Downloads
-# Ensure the directory exists to avoid errors on startup
-os.makedirs("api/reports", exist_ok=True)
-app.mount("/api/reports", StaticFiles(directory="api/reports"), name="reports")
+# Manual Report Serving (Sync) to bypass missing async libs in Hostinger
+@app.get("/api/reports/{filename}")
+def get_report(filename: str):
+    # Basic path traversal security
+    if ".." in filename or "/" in filename:
+        raise HTTPException(status_code=400, detail="Invalid filename")
+        
+    file_path = os.path.join("api/reports", filename)
+    
+    if not os.path.exists(file_path):
+        raise HTTPException(status_code=404, detail="Report not found")
+        
+    with open(file_path, "rb") as f:
+        content = f.read()
+        
+    return Response(content=content, media_type="application/pdf")
 
 app.include_router(scans.router, prefix="/api")
 
