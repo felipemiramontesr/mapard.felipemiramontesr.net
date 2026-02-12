@@ -85,20 +85,34 @@ jobs:
           cd client
           npm ci
           npm run build
-          cd ..
+          cd   ..
 
-      - name: 📂 Prepare Deployment Package
+      # ------------------------------------------------------------------
+      # 3. BUILD & PREPARE DEPLOYMENT PACKAGE
+      # ------------------------------------------------------------------
+      - name: Create Deployment Package
         run: |
           mkdir deploy_package
-          # Frontend (Root)
+          
+          # Copy Frontend Build
           cp -r client/dist/* deploy_package/
-          # Backend
-          cp -r api deploy_package/
-          cp passenger_wsgi.py deploy_package/
-          cp requirements.txt deploy_package/
-          cp .htaccess deploy_package/
-          echo "📦 Package Ready."
+          
+          # Copy PHP Backend
+          mkdir -p deploy_package/api
+          cp api/index.php deploy_package/api/
+          # Ensure reports directory exists
+          mkdir -p deploy_package/api/reports
+          cp api/reports/mock.pdf deploy_package/api/reports/ || true
 
+          # Copy Server Config
+          cp .htaccess deploy_package/
+          
+          echo "✅ Deployment package created with PHP Backend + React Frontend"
+          ls -R deploy_package
+
+      # ------------------------------------------------------------------
+      # 4. DEPLOY TO HOSTINGER (FTPS)
+      # ------------------------------------------------------------------
       - name: 📂 Ship it! (FTP)
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
@@ -110,6 +124,7 @@ jobs:
           protocol: ftps
           port: 21
           timeout: 30000
+
           exclude: |
             **/.git*
             **/node_modules/**
