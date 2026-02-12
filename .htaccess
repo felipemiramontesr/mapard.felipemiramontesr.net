@@ -1,8 +1,8 @@
 
 # DO NOT REMOVE. CLOUDLINUX PASSENGER CONFIGURATION BEGIN
-PassengerAppRoot "/home/u701509674/domains/felipemiramontesr.net/public_html/mapard.felipemiramontesr.net"
-PassengerBaseURI "/"
-PassengerPython "/home/u701509674/virtualenv/domains/felipemiramontesr.net/public_html/mapard.felipemiramontesr.net/3.9/bin/python"
+# PassengerAppRoot "/home/u701509674/domains/felipemiramontesr.net/public_html/mapard.felipemiramontesr.net"
+# PassengerBaseURI "/"
+# PassengerPython "/home/u701509674/virtualenv/domains/felipemiramontesr.net/public_html/mapard.felipemiramontesr.net/3.9/bin/python"
 # DO NOT REMOVE. CLOUDLINUX PASSENGER CONFIGURATION END
 
 
