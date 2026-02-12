@@ -1,14 +1,20 @@
 import sys
 import os
+import traceback
 
-# 1. Add the current directory to sys.path so we can import 'api'
+# 1. Add current directories
 sys.path.append(os.getcwd())
 sys.path.append(os.path.join(os.getcwd(), "api"))
 
-# 2. Point to the FastAPI app
-# In Hostinger/Passenger, the callable usually needs to be named 'application'
-from api.main import app as application
-
-# 3. Optional: Middleware for debugging if needed
-# from werkzeug.debug import DebuggedApplication
-# application = DebuggedApplication(application, evalex=True)
+try:
+    # 2. Try to import the FastAPI app
+    from api.main import app as application
+except Exception as e:
+    # 3. Fallback for Debugging (Instead of 503)
+    error_msg = f"Startup Error:\n{traceback.format_exc()}"
+    
+    def application(environ, start_response):
+        status = '200 OK'
+        response_headers = [('Content-type', 'text/plain')]
+        start_response(status, response_headers)
+        return [error_msg.encode()]
