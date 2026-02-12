@@ -31,7 +31,8 @@ register_shutdown_function(function () {
     }
 });
 
-$dbPath = __DIR__ . '/mapard.sqlite';
+// Version 2 DB to ensure 'domain' column exists
+$dbPath = __DIR__ . '/mapard_v2.sqlite';
 
 try {
     // Check Writable
