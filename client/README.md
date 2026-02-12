@@ -1,4 +1,8 @@
-# React + TypeScript + Vite
+# Mapa-RD Web App 🕵️‍♂️
+> Enterprise OSINT Intelligence Gathering Platform.
+
+![CI/CD](https://github.com/felipemiramontesr/mapard.felipemiramontesr.net/actions/workflows/ci-cd.yml/badge.svg)
+eScript + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
