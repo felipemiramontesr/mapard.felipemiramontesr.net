@@ -74,7 +74,12 @@ const Dashboard: React.FC = () => {
             const pollInterval = setInterval(async () => {
                 try {
                     const statusRes = await fetch(`/api/scan/${job_id}`);
-                    if (!statusRes.ok) return;
+                    if (!statusRes.ok) {
+                        const errText = await statusRes.text();
+                        console.error("Polling Error:", errText);
+                        addLog(`POLLING ERROR (${statusRes.status}): ${errText.substring(0, 150)}`, 'error');
+                        return; // Keep polling? Maybe it's transient.
+                    }
 
                     const jobData = await statusRes.json();
 
