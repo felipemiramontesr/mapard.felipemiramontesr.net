@@ -10,3 +10,4 @@ dnspython==2.5.0
 beautifulsoup4==4.12.3
 networkx==3.2.1
 email-validator==2.1.0.post1
+aiofiles==23.2.1
