@@ -159,18 +159,42 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
                 }
             }
 
-            // Step 2: Simulated Breaches (Mock for now, but dynamic text)
-            addLog($logs, "Querying Breach Databases (Have I Been Pwned)...", "info");
-            addLog($logs, "NOTICE: HIBP API Key missing. Running in SIMULATION MODE for demonstration.", "warning");
+            // Step 2: HIBP Breach Check (Real API)
+            $hibpApiKey = '011373b46b674891b6f19772c2205772';
+            $targetEmail = $job['email'];
+            addLog($logs, "Querying Have I Been Pwned for $targetEmail...", "info");
 
-            // Randomize findings to make it feel "real"
-            $breachCount = rand(0, 5);
-            if ($breachCount > 0) {
-                addLog($logs, "CRITICAL: Found $breachCount compromised credentials (SIMULATED).", "error");
-                $findings[] = "Breach Analysis: $breachCount potential leaks identified.";
+            $ch = curl_init("https://haveibeenpwned.com/api/v3/breachedaccount/" . urlencode($targetEmail) . "?truncateResponse=false");
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                "hibp-api-key: $hibpApiKey",
+                "user-agent: MAPA-RD-OSINT-AGENT"
+            ]);
+
+            $response = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $curlError = curl_error($ch);
+            curl_close($ch);
+
+            if ($httpCode === 200) {
+                $breaches = json_decode($response, true);
+                $count = count($breaches);
+                addLog($logs, "CRITICAL: Found $count compromised credentials.", "error");
+                foreach ($breaches as $b) {
+                    $findings[] = "Breach: " . $b['Name'] . " (" . $b['BreachDate'] . ") - classes: " . implode(", ", array_slice($b['DataClasses'], 0, 3));
+                }
+            } elseif ($httpCode === 404) {
+                addLog($logs, "No public breaches found for this email.", "success");
+                $findings[] = "Breach Analysis: Clean (No public leaks found).";
+            } elseif ($httpCode === 429) {
+                addLog($logs, "HIBP Rate Limit Exceeded. Skipping breach check.", "warning");
+                $findings[] = "Breach Analysis: Skipped (Rate Limit).";
+            } elseif ($httpCode === 401) {
+                addLog($logs, "HIBP API Key Invalid. Checking configuration.", "error");
+                $findings[] = "Breach Analysis: Failed (Auth Error).";
             } else {
-                addLog($logs, "No public breaches found (SIMULATED).", "success");
-                $findings[] = "Breach Analysis: Clean.";
+                addLog($logs, "HIBP API Error ($httpCode): " . ($curlError ?: 'Unknown'), "error");
+                $findings[] = "Breach Analysis: Failed (API Error $httpCode).";
             }
 
             // Step 3: Complete & Generate PDF
