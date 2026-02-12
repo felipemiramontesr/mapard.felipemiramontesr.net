@@ -1,7 +1,12 @@
 <IfModule mod_rewrite.c>
     RewriteEngine On
 
+    # 0. Prevent Loop: If it's already index.php, stop.
+    RewriteRule ^api/index\.php$ - [L]
+
     # 1. API Requests -> Sent to PHP Router
+    # Only rewrite if it's NOT a real file
+    RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_URI} ^/api
     RewriteRule ^api/.* api/index.php [L,QSA]
 
