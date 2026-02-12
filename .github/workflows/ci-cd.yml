@@ -106,7 +106,7 @@ jobs:
           username: ${{ secrets.FTP_USER }}
           password: ${{ secrets.FTP_PASSWORD }}
           local-dir: ./deploy_package/
-          server-dir: ./domains/felipemiramontesr.net/public_html/mapard.felipemiramontesr.net/
+          server-dir: ./
           protocol: ftp
           exclude: |
             **/.git*
