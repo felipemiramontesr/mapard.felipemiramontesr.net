@@ -99,7 +99,8 @@ jobs:
           
           # Copy PHP Backend
           mkdir -p deploy_package/api
-          cp api/index.php deploy_package/api/
+          cp api/*.php deploy_package/api/
+          
           # Ensure reports directory exists
           mkdir -p deploy_package/api/reports
           cp api/reports/mock.pdf deploy_package/api/reports/ || true
