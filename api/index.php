@@ -11,6 +11,7 @@ if (!file_exists($fpdfPath)) {
     echo json_encode(["error" => "Critical Dependency Missing: fpdf.php not found in " . __DIR__]);
     exit;
 }
+define('FPDF_FONTPATH', __DIR__ . '/font/');
 require($fpdfPath);
 
 // api/index.php - Real OSINT Engine

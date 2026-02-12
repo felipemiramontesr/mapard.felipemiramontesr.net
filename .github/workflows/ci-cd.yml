@@ -101,6 +101,10 @@ jobs:
           mkdir -p deploy_package/api
           cp api/*.php deploy_package/api/
           
+          # Copy FPDF Fonts
+          mkdir -p deploy_package/api/font
+          cp api/font/*.php deploy_package/api/font/
+          
           # Ensure reports directory exists
           mkdir -p deploy_package/api/reports
           cp api/reports/mock.pdf deploy_package/api/reports/ || true
