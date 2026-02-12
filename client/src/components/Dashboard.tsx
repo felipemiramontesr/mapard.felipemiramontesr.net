@@ -128,10 +128,15 @@ const Dashboard: React.FC = () => {
                 }
             }, 2000); // Poll every 2s
 
-        } catch (e) {
+        } catch (e: any) {
             console.error(e);
-            // FALLBACK TO SIMULATION
-            runMockSimulation(data);
+            // DEBUG MODE: Show actual error instead of Mock
+            // runMockSimulation(data); 
+            addLog(`CRITICAL BACKEND ERROR: ${e.message}`, 'error');
+            if (e.message.includes('500')) {
+                addLog("Server Internal Error. Check api/debug.php", 'error');
+            }
+            setIsScanning(false);
         }
     };
 
