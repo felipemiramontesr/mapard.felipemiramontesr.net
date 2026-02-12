@@ -1,5 +1,17 @@
 <?php
-require('fpdf.php');
+// Enable Error Reporting for Debugging (Return JSON, not HTML)
+ini_set('display_errors', 0); // Hide HTML errors
+ini_set('log_errors', 1);
+error_reporting(E_ALL);
+
+// Robust Include
+$fpdfPath = __DIR__ . '/fpdf.php';
+if (!file_exists($fpdfPath)) {
+    http_response_code(500);
+    echo json_encode(["error" => "Critical Dependency Missing: fpdf.php not found in " . __DIR__]);
+    exit;
+}
+require($fpdfPath);
 
 // api/index.php - Real OSINT Engine
 
@@ -8,9 +20,25 @@ header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type");
 header("Content-Type: application/json");
 
+// Register Shutdown Function to catch Fatal Errors
+register_shutdown_function(function () {
+    $error = error_get_last();
+    if ($error && ($error['type'] === E_ERROR || $error['type'] === E_PARSE)) {
+        http_response_code(500);
+        header('Content-Type: application/json');
+        echo json_encode(["error" => "Fatal PHP Error", "details" => $error]);
+        exit;
+    }
+});
+
 $dbPath = __DIR__ . '/mapard.sqlite';
 
 try {
+    // Check Writable
+    if (!is_writable(__DIR__)) {
+        throw new Exception("Directory " . __DIR__ . " is not writable. Cannot create DB.");
+    }
+
     $pdo = new PDO("sqlite:$dbPath");
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     $pdo->exec("CREATE TABLE IF NOT EXISTS scans (
@@ -19,13 +47,13 @@ try {
         domain TEXT,
         status TEXT,
         result_path TEXT,
-        logs TEXT,
+        logs TEXT, 
         findings TEXT,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )");
-} catch (PDOException $e) {
+} catch (Exception $e) {
     http_response_code(500);
-    echo json_encode(["error" => "DB Error"]);
+    echo json_encode(["error" => "Database Init Failed: " . $e->getMessage()]);
     exit;
 }
 
