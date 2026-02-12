@@ -1,8 +1,4 @@
-# DO NOT REMOVE. CLOUDLINUX PASSENGER CONFIGURATION BEGIN
-PassengerAppRoot "/home/u701509674/domains/mapa-rd.felipemiramontesr.net/public_html"
-PassengerBaseURI "/"
-PassengerPython "/home/u701509674/virtualenv/domains/mapa-rd.felipemiramontesr.net/public_html/3.9/bin/python"
-# DO NOT REMOVE. CLOUDLINUX PASSENGER CONFIGURATION END
+
 
 <IfModule mod_rewrite.c>
     RewriteEngine On
