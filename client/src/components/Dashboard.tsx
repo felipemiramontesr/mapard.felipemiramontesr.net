@@ -23,32 +23,90 @@ const Dashboard: React.FC = () => {
         }]);
     };
 
-    const handleStartScan = async (data: { name: string; email: string }) => {
+    const handleStartScan = async (data: { name: string; email: string; domain?: string }) => {
         setIsScanning(true);
         setLogs([]);
+        addLog(`Initiating connection to MAPA-RD Graph...`, 'info');
 
-        // MOCK SIMULATION FOR PHASE 1
-        const steps = [
-            { msg: `Initializing MAPA-RD protocol for target: ${data.email}...`, t: 500 },
-            { msg: "Connecting to SpiderFoot Engine...", t: 1500 },
-            { msg: "Module: haveibeenpwned loaded.", t: 2000 },
-            { msg: "Searching public breaches...", t: 2500, type: 'warning' },
-            { msg: "Found 3 potential credential leaks.", t: 3500, type: 'error' },
-            { msg: "Analyzing Dark Web marketplaces...", t: 4500 },
-            { msg: "Calculating Risk Score...", t: 5500 },
-            { msg: "Generating PDF Report...", t: 6500 },
-            { msg: "SCAN COMPLETE. Report ready for download.", t: 7500, type: 'success' }
-        ];
+        try {
+            // 1. Start Scan
+            const response = await fetch('/api/scan', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
 
-        for (const step of steps) {
-            setTimeout(() => {
-                addLog(step.msg, (step.type as Log['type']) || 'info');
-            }, step.t);
-        }
+            if (!response.ok) throw new Error('Failed to start scan');
+            const { job_id } = await response.json();
+            addLog(`Scan Job Created: ${job_id}`, 'success');
 
-        setTimeout(() => {
+            // 2. Poll for Status
+            const pollInterval = setInterval(async () => {
+                try {
+                    const statusRes = await fetch(`/api/scan/${job_id}`);
+                    if (!statusRes.ok) return;
+
+                    const jobData = await statusRes.json();
+
+                    // Update Logs (Diffing logic could be better, but replacing for now is safe)
+                    // In a real app we'd append only new ones. For now, trusting backend array.
+                    // However, backend sends "logs" as a list of dicts.
+                    // We map them to our frontend format.
+                    if (jobData.logs && Array.isArray(jobData.logs)) {
+                        // We reconstruct logs from backend source of truth
+                        const backendLogs = jobData.logs.map((l: any, idx: number) => ({
+                            id: idx, // Simple index as ID
+                            message: l.message,
+                            type: l.type as Log['type'],
+                            timestamp: l.timestamp
+                        }));
+                        setLogs(backendLogs);
+                    }
+
+                    if (jobData.status === 'COMPLETED') {
+                        clearInterval(pollInterval);
+                        setIsScanning(false);
+                        addLog('Scan Complete. Report ready.', 'success');
+
+                        // AUTO DOWNLOAD TRIGGER (Optional) or show button
+                        if (jobData.result_url) {
+                            // Small delay to ensure FS sync
+                            setTimeout(() => {
+                                const link = document.createElement('a');
+                                // Construct URL. If result_url is relative like /reports/mock.pdf, api/reports mount handles it?
+                                // Backend wrapper says: result_path="/reports/mock.pdf"
+                                // Main.py mounts /api/reports.
+                                // So we need to be careful with paths.
+                                // Let's assume wrapper returns "mock.pdf" or we fix the path.
+                                // Actually wrapper.py line 80: result_path="/reports/mock.pdf"
+                                // If we mount /api/reports, the URL should be /api/reports/mock.pdf
+
+                                // Quick fix: user wrapper returns "/reports/mock.pdf", but that might not map to /api/reports unless we proxy/rewrite.
+                                // Let's force the correct path for now based on our knowledge.
+                                link.href = `/api${jobData.result_url}`;
+                                link.download = `MAPA-RD_REPORT_${job_id}.pdf`;
+                                document.body.appendChild(link);
+                                link.click();
+                                document.body.removeChild(link);
+                                addLog(`Downloading Report: ${link.href}`, 'info');
+                            }, 1000);
+                        }
+                    } else if (jobData.status === 'FAILED') {
+                        clearInterval(pollInterval);
+                        setIsScanning(false);
+                        addLog('Scan Failed. Check system logs.', 'error');
+                    }
+
+                } catch (e) {
+                    console.error("Polling error", e);
+                }
+            }, 2000); // Poll every 2s
+
+        } catch (e) {
+            console.error(e);
+            addLog('Connection failed. Backend offline?', 'error');
             setIsScanning(false);
-        }, 8000);
+        }
     };
 
     return (

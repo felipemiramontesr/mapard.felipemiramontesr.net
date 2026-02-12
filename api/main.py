@@ -27,7 +27,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+from fastapi.staticfiles import StaticFiles
 from api.routes import scans
+
+# Mount Reports Directory for Downloads
+# Ensure the directory exists to avoid errors on startup
+os.makedirs("api/reports", exist_ok=True)
+app.mount("/api/reports", StaticFiles(directory="api/reports"), name="reports")
 
 app.include_router(scans.router, prefix="/api")
 
