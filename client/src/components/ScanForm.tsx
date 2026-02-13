@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Mail, Globe, User } from 'lucide-react';
+import { Search, Mail, Globe, User, Rocket } from 'lucide-react';
 
 interface ScanFormProps {
     onScan: (data: { name: string; email: string; domain: string }) => void;
@@ -76,7 +76,7 @@ const ScanForm: React.FC<ScanFormProps> = ({ onScan, isLoading }) => {
                 <button
                     type="submit"
                     disabled={isLoading}
-                    className="btn-ops w-full flex items-center justify-center gap-3 group mt-4 h-14 md:h-12 text-sm md:text-base touch-manipulation" // Taller touch target on mobile
+                    className="btn-ops w-full flex items-center justify-center gap-3 group mt-4 h-14 md:h-12 text-sm md:text-base touch-manipulation hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 ease-out"
                 >
                     {isLoading ? (
                         <span className="animate-pulse flex items-center gap-2">
@@ -85,8 +85,8 @@ const ScanForm: React.FC<ScanFormProps> = ({ onScan, isLoading }) => {
                         </span>
                     ) : (
                         <>
-                            <Search className="w-4 h-4 group-hover:scale-110 transition-transform" />
-                            EJECUTAR PROTOCOLO OSINT
+                            <Rocket className="w-4 h-4 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform duration-300" />
+                            INICIAR
                         </>
                     )}
                 </button>
