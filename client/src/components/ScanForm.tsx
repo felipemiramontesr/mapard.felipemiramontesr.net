@@ -19,7 +19,6 @@ const ScanForm: React.FC<ScanFormProps> = ({ onScan, isLoading }) => {
 
 
     return (
-    return (
         <div className="ops-card max-w-2xl mx-auto transform transition-all hover:scale-[1.005] w-full">
             <div className="absolute top-0 right-0 p-2 opacity-50">
                 <div className="w-16 h-16 border-t-2 border-r-2 border-ops-accent rounded-tr-xl"></div>

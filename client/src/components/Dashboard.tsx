@@ -119,7 +119,6 @@ const Dashboard: React.FC = () => {
     };
 
     return (
-    return (
         <div className="w-full max-w-4xl mx-auto relative flex flex-col items-center justify-center">
             {/* Title Section: Visible but Scaled Down for Micro-Tactical Mobile View */}
             <div className="text-center mb-2 md:mb-10 relative z-10 px-4 w-full block">
