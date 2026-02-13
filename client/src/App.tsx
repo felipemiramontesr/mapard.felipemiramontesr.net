@@ -1,10 +1,18 @@
 import { Shield } from 'lucide-react';
 import Dashboard from './components/Dashboard';
-import { useEffect } from 'react';
+import MatrixLoader from './components/MatrixLoader';
+import { useEffect, useState } from 'react';
 import { StatusBar } from '@capacitor/status-bar';
 
 function App() {
+  const [isLoading, setIsLoading] = useState(true);
+
   useEffect(() => {
+    // Fake loading time for splash effect
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 2500); // 2.5 seconds loading
+
     const enableImmersive = async () => {
       try {
         await StatusBar.setOverlaysWebView({ overlay: true });
@@ -14,7 +22,13 @@ function App() {
       }
     };
     enableImmersive();
+
+    return () => clearTimeout(timer);
   }, []);
+
+  if (isLoading) {
+    return <MatrixLoader />;
+  }
 
   return (
     <div className="min-h-screen w-full flex flex-col relative bg-ops-bg selection:bg-ops-accent selection:text-black overflow-x-hidden overflow-y-auto">
