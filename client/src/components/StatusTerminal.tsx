@@ -32,6 +32,7 @@ const StatusTerminal: React.FC<StatusTerminalProps> = ({ logs, isVisible, onRese
         <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
+            // FORCED UPDATE: Re-triggering build for button styles
             className="ops-card mt-4 sm:mt-8 font-mono text-xs border-ops-cyan shadow-none flex flex-col h-[65vh] md:h-[600px] w-full max-w-full overflow-hidden relative bg-black"
         >
             {/* Header Fijo */}
