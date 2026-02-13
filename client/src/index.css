@@ -7,7 +7,7 @@
 @layer base {
   body {
     @apply bg-ops-bg text-ops-text font-sans antialiased overflow-x-hidden min-h-screen relative;
-    background: radial-gradient(circle at 50% 0%, #1a1f3a 0%, #0a0e27 80%);
+    background: #000000;
   }
 
   /* Scanline Effect (CRT Texture) */
