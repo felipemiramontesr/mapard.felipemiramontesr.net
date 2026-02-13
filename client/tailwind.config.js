@@ -8,30 +8,36 @@ export default {
   theme: {
     extend: {
       colors: {
-        cyber: {
-          dark: "#0a0e27",
-          darker: "#050714",
-          light: "#1a234a",
-          accent: "#00f0ff", // Neon Cyan
-          danger: "#ff2a2a", // Critical Red
-          warning: "#ff9f43", // High Orange
-          success: "#00ff85", // Secure Green
-          text: "#e8e8e8",
-          muted: "#8a9fca",
+        ops: {
+          bg: "#0a0e27", // Dark Navy
+          bg_alt: "#1a1f3a", // Lighter Navy
+          text: "#e8e8e8", // White Bone
+          text_dim: "#c5cae0", // Blueish Gray
+          accent: "#8a9fca", // Lavender Blue (Tactical)
+          border: "#4a5578", // UI Border
+          success: "#00ff85", // Keep the vivid green for success
+          warning: "#ff9f43",
+          danger: "#ff2a2a",
         }
       },
       fontFamily: {
-        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+        sans: ['-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
         mono: ['"JetBrains Mono"', 'monospace'],
       },
       animation: {
-        'scan': 'scan 2s linear infinite',
+        'scan': 'scan 4s linear infinite',
+        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
       },
       keyframes: {
         scan: {
-          '0%': { top: '0%' },
-          '100%': { top: '100%' },
+          '0%': { top: '0%', opacity: '0' },
+          '10%': { opacity: '1' },
+          '90%': { opacity: '1' },
+          '100%': { top: '100%', opacity: '0' },
         }
+      },
+      backgroundImage: {
+        'ops-gradient': 'linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%)',
       }
     },
   },
