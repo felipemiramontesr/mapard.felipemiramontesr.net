@@ -200,26 +200,136 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
             // Step 3: Complete & Generate PDF
             addLog($logs, "Generating Intelligence Report...", "info");
 
+            // --- INTEL DOSSIER GENERATION LOGIC ---
+
+            // 1. KNOWLEDGE BASE (STATIC)
+            $glossary = [
+                "Data Breach" => "Incidente de seguridad donde informacion confidencial es accedida sin autorizacion.",
+                "Stealer Log" => "Registros extraidos por malware (InfoStealers) desde dispositivos infectados.",
+                "Combo List" => "Listas de credenciales (email:pass) recopiladas de multiples brechas para ataques de relleno.",
+                "Plaintext Password" => "Contrasenas almacenadas sin cifrado, legibles directamente por atacantes."
+            ];
+
+            $mitigationProtocols = [
+                "1. CAMBIO INMEDIATO DE CREDENCIALES" => "Rote todas las contrasenas expuestas. Use frases de paso largas (+16 caracteres).",
+                "2. AUTENTICACION MULTI-FACTOR (2FA)" => "Active 2FA en todos los servicios criticos. Evite SMS, prefiera Apps o Llaves U2F.",
+                "3. GESTOR DE CONTRASENAS" => "Utilice Bitwarden o 1Password para generar y guardar claves unicas por sitio.",
+                "4. MONITORIZACION ACTIVA" => "Mantenga alertas de identidad en servicios como HaveIBeenPwned o Google Dark Web Report."
+            ];
+
+            // 2. RISK MAPPING (DYNAMIC)
+            $riskScore = 0;
+            $riskAnalysis = [];
+
+            if (!empty($findings)) {
+                $riskScore += 10; // Base risk for having any finding
+
+                // Analyze raw breaches for keywords
+                if (count($findings) > 5) {
+                    $riskScore += 40;
+                    $riskAnalysis[] = "ALTA EXPOSICION: El objetivo aparece en multiples filtraciones, indicando una huella digital comprometida a largo plazo.";
+                } else {
+                    $riskScore += 20;
+                    $riskAnalysis[] = "EXPOSICION MODERADA: Credenciales comprometidas en incidentes aislados.";
+                }
+
+                $riskAnalysis[] = "VECTORES DETECTADOS: Email y Contrasenas potenciales. Esto facilita ataques de Credential Stuffing contra sistemas corporativos.";
+            } else {
+                $riskAnalysis[] = "BAJA EXPOSICION: No se detectaron brechas publicas mayores vinculadas directamente.";
+            }
+
+            $riskLevel = $riskScore > 40 ? "CRITICO" : ($riskScore > 10 ? "MEDIO" : "BAJO");
+
+
             // PDF GENERATION
             $pdf = new FPDF();
             $pdf->AddPage();
-            $pdf->SetFont('Arial', 'B', 16);
-            $pdf->Cell(0, 10, 'MAPA-RD INTEL DOSSIER', 0, 1, 'C');
-            $pdf->SetFont('Arial', '', 12);
-            $pdf->Ln(10);
-            $pdf->Cell(0, 10, 'Target: ' . $job['email'], 0, 1);
-            $pdf->Cell(0, 10, 'Date: ' . date('Y-m-d H:i:s'), 0, 1);
-            $pdf->Ln(10);
-            $pdf->SetFont('Arial', 'B', 14);
-            $pdf->Cell(0, 10, 'Intelligence Findings:', 0, 1);
-            $pdf->SetFont('Arial', '', 12);
 
+            // -- HEADER --
+            $pdf->SetFont('Courier', 'B', 16);
+            $pdf->Cell(0, 10, 'CONFIDENTIAL // EYES ONLY', 0, 1, 'C');
+            $pdf->SetLineWidth(0.5);
+            $pdf->Line(10, 20, 200, 20);
+            $pdf->Ln(5);
+
+            $pdf->SetFont('Arial', 'B', 24);
+            $pdf->Cell(0, 15, 'MAPA-RD INTEL DOSSIER', 0, 1, 'L');
+
+            $pdf->SetFont('Courier', '', 10);
+            $pdf->Cell(0, 5, 'TARGET: ' . strtoupper($job['email']), 0, 1);
+            $pdf->Cell(0, 5, 'REF ID: ' . $jobId, 0, 1);
+            $pdf->Cell(0, 5, 'DATE:   ' . date('Y-m-d H:i:s T'), 0, 1);
+            $pdf->Cell(0, 5, 'RISK LEVEL: ' . $riskLevel, 0, 1);
+            $pdf->Ln(10);
+
+            // -- EXECUTIVE SUMMARY --
+            $pdf->SetFillColor(0, 0, 0);
+            $pdf->SetTextColor(255, 255, 255);
+            $pdf->SetFont('Arial', 'B', 12);
+            $pdf->Cell(0, 8, ' 1. RESUMEN EJECUTIVO DE AMENAZA', 1, 1, 'L', true);
+            $pdf->SetTextColor(0, 0, 0);
+            $pdf->SetFont('Arial', '', 10);
+            $pdf->Ln(2);
+            foreach ($riskAnalysis as $analysis) {
+                $pdf->MultiCell(0, 5, "- " . iconv('UTF-8', 'windows-1252', $analysis)); // Handle basic encoding
+                $pdf->Ln(1);
+            }
+            $pdf->Ln(5);
+
+            // -- FINDINGS --
+            $pdf->SetFillColor(0, 0, 0);
+            $pdf->SetTextColor(255, 255, 255);
+            $pdf->SetFont('Arial', 'B', 12);
+            $pdf->Cell(0, 8, ' 2. EVIDENCIA DE COMPROMISO (RAW INTEL)', 1, 1, 'L', true);
+            $pdf->SetTextColor(0, 0, 0);
+            $pdf->SetFont('Courier', '', 9);
+            $pdf->Ln(2);
             foreach ($findings as $f) {
-                $pdf->Cell(0, 10, '- ' . $f, 0, 1);
+                // Formatting finding text
+                $pdf->Cell(0, 5, '> ' . substr($f, 0, 90), 0, 1);
+            }
+            if (empty($findings)) {
+                $pdf->Cell(0, 5, '> NO DATA FOUND.', 0, 1);
+            }
+            $pdf->Ln(8);
+
+            // -- GLOSSARY --
+            $pdf->SetFillColor(0, 0, 0);
+            $pdf->SetTextColor(255, 255, 255);
+            $pdf->SetFont('Arial', 'B', 12);
+            $pdf->Cell(0, 8, ' 3. GLOSARIO TACTICO OPERATIVO', 1, 1, 'L', true);
+            $pdf->SetTextColor(0, 0, 0);
+            $pdf->SetFont('Arial', '', 9);
+            $pdf->Ln(2);
+            foreach ($glossary as $term => $def) {
+                $pdf->SetFont('Arial', 'B', 9);
+                $pdf->Cell(40, 5, $term . ':', 0, 0);
+                $pdf->SetFont('Arial', '', 9);
+                $pdf->MultiCell(0, 5, iconv('UTF-8', 'windows-1252', $def));
+                $pdf->Ln(1);
+            }
+            $pdf->Ln(5);
+
+            // -- MITIGATION --
+            $pdf->SetFillColor(0, 0, 0);
+            $pdf->SetTextColor(255, 255, 255);
+            $pdf->SetFont('Arial', 'B', 12);
+            $pdf->Cell(0, 8, ' 4. PROTOCOLO DE MITIGACION', 1, 1, 'L', true);
+            $pdf->SetTextColor(0, 0, 0);
+            $pdf->SetFont('Arial', '', 9);
+            $pdf->Ln(2);
+            foreach ($mitigationProtocols as $title => $step) {
+                $pdf->SetFont('Arial', 'B', 9);
+                $pdf->Cell(0, 5, iconv('UTF-8', 'windows-1252', $title), 0, 1);
+                $pdf->SetFont('Arial', '', 9);
+                $pdf->MultiCell(0, 5, iconv('UTF-8', 'windows-1252', $step));
+                $pdf->Ln(2);
             }
 
+
             $pdf->Ln(10);
-            $pdf->MultiCell(0, 10, " CONFIDENTIALITY NOTICE:\n This document contains sensitive intelligence data.\n Generated by MAPA-RD Platform.");
+            $pdf->SetFont('Courier', 'I', 8);
+            $pdf->MultiCell(0, 4, "AVISO LEGAL:\nEste reporte es generado automaticamente para fines de auditoria de seguridad.\nEl usuario es responsable de custodiar esta informacion sensible.\nGenerado por MAPA-RD Engine v2.1 (Black Ops Level).");
 
             $reportName = 'report_' . $jobId . '.pdf';
             $reportsDir = __DIR__ . '/reports';
