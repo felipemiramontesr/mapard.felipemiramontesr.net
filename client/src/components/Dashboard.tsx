@@ -21,6 +21,7 @@ const Dashboard: React.FC = () => {
     const [logs, setLogs] = useState<Log[]>([]);
     const [isScanning, setIsScanning] = useState(false);
     const [viewMode, setViewMode] = useState<'form' | 'terminal'>('form');
+    const [resultUrl, setResultUrl] = useState<string | null>(null);
 
     const addLog = (message: string, type: Log['type'] = 'info') => {
         setLogs(prev => [...prev, {
@@ -33,6 +34,7 @@ const Dashboard: React.FC = () => {
 
     const handleStartScan = async (data: { name: string; email: string; domain?: string }) => {
         setIsScanning(true);
+        setResultUrl(null);
         setViewMode('terminal'); // SWAP TO TERMINAL
         setLogs([]);
         addLog(`Initiating connection to MAPA-RD Graph...`, 'info');
@@ -86,30 +88,9 @@ const Dashboard: React.FC = () => {
                         setIsScanning(false);
                         addLog('Scan Complete. Report ready.', 'success');
 
-                        // AUTO DOWNLOAD / OPEN
                         if (jobData.result_url) {
-                            setTimeout(async () => {
-                                if (Capacitor.isNativePlatform()) {
-                                    // Native: Open in System Browser (Chrome/Firefox/Samsung)
-                                    // Ensure URL is absolute
-                                    let fullUrl = jobData.result_url;
-                                    if (fullUrl && !fullUrl.startsWith('http')) {
-                                        fullUrl = `${API_BASE}${fullUrl.startsWith('/') ? '' : '/'}${fullUrl}`;
-                                    }
-
-                                    await Browser.open({ url: fullUrl });
-                                    addLog(`Opening Report in Browser...`, 'info');
-                                } else {
-                                    // Web: Direct Download
-                                    const link = document.createElement('a');
-                                    link.href = jobData.result_url;
-                                    link.download = `MAPA-RD_REPORT_${job_id}.pdf`;
-                                    document.body.appendChild(link);
-                                    link.click();
-                                    document.body.removeChild(link);
-                                    addLog(`Downloading Report: ${link.href}`, 'info');
-                                }
-                            }, 1000);
+                            setResultUrl(jobData.result_url);
+                            addLog('Dossier generated. Waiting for manual download.', 'info');
                         }
                     } else if (jobData.status === 'FAILED') {
                         clearInterval(pollInterval);
@@ -135,6 +116,7 @@ const Dashboard: React.FC = () => {
     const handleReset = () => {
         setViewMode('form');
         setLogs([]);
+        setResultUrl(null);
     };
 
     return (
