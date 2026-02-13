@@ -17,7 +17,7 @@ export default {
           // FORCED CYAN PROTOCOL
           accent: "#00f3ff", // RADIOACTIVE CYAN (Overrides Lavender)
           cyan: "#00f3ff",   // Explicit Cyan
-          radioactive: "#00f3ff", // Maps "Radioactive" logic to Cyan
+          radioactive: "#39ff14", // RADIOACTIVE GREEN (Neon)
           border: "#4a5578", // UI Border (Blueish)
 
           success: "#00f3ff", // Success is now Cyan too for uniformity
