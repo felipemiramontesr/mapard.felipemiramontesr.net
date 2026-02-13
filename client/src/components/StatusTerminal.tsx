@@ -88,10 +88,10 @@ const StatusTerminal: React.FC<StatusTerminalProps> = ({ logs, isVisible, onRese
                             e.stopPropagation();
                             onReset();
                         }}
-                        className="w-full py-3 bg-ops-cyan text-black font-bold tracking-[0.2em] hover:bg-ops-cyan/80 transition-all uppercase text-sm flex items-center justify-center gap-2 cursor-pointer shadow-[0_0_15px_rgba(0,243,255,0.3)]"
+                        className="w-full py-3 bg-ops-cyan text-black font-bold tracking-[0.15em] hover:bg-ops-cyan/80 transition-all uppercase text-xs sm:text-sm flex items-center justify-center gap-3 shadow-[0_0_15px_rgba(0,243,255,0.3)] active:scale-[0.98]"
                     >
                         <Terminal className="w-4 h-4" />
-                        EJECUTAR NUEVO ANÁLISIS
+                        EJECUTAR ANÁLISIS
                     </button>
 
                     {resultUrl && (
@@ -124,10 +124,10 @@ const StatusTerminal: React.FC<StatusTerminalProps> = ({ logs, isVisible, onRese
                                     alert("Error al abrir documento: " + JSON.stringify(err));
                                 }
                             }}
-                            className="w-full py-3 border border-ops-radioactive text-ops-radioactive font-bold tracking-[0.2em] hover:bg-ops-radioactive/10 transition-all uppercase text-sm flex items-center justify-center gap-2 cursor-pointer shadow-[0_0_10px_rgba(57,255,20,0.2)]"
+                            className="w-full py-3 border border-ops-radioactive text-ops-radioactive font-bold tracking-[0.15em] hover:bg-ops-radioactive/10 transition-all uppercase text-xs sm:text-sm flex items-center justify-center gap-3 shadow-[0_0_10px_rgba(57,255,20,0.2)] active:scale-[0.98]"
                         >
                             <Download className="w-4 h-4" />
-                            DESCARGAR DOSSIER DE INTELIGENCIA
+                            DESCARGAR DOSSIER
                         </button>
                     )}
                 </div>
