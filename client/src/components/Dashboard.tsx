@@ -151,13 +151,13 @@ const Dashboard: React.FC = () => {
 
     return (
         <div className="max-w-4xl mx-auto">
-            <div className="text-center mb-12">
-                <h1 className="text-4xl md:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-cyber-muted mb-4">
-                    INTELIGENCIA DIGITAL
+            <div className="text-center mb-12 relative z-10">
+                <h1 className="text-5xl md:text-6xl font-bold text-white tracking-widest uppercase mb-4 drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]">
+                    M.A.P.A - RD
                 </h1>
-                <p className="text-cyber-muted max-w-2xl mx-auto">
-                    Plataforma de vigilancia pasiva y detecciÃ³n de vulnerabilidades.
-                    Genera reportes ejecutivos de exposiciÃ³n en minutos.
+                <div className="w-24 h-1 bg-ops-accent mx-auto mb-6"></div>
+                <p className="text-ops-text_dim max-w-2xl mx-auto font-mono text-sm tracking-wide">
+                    // PLATAFORMA DE INTELIGENCIA TÁCTICA Y VIGILANCIA PASIVA //
                 </p>
             </div>
 

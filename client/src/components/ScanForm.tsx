@@ -18,18 +18,25 @@ const ScanForm: React.FC<ScanFormProps> = ({ onScan, isLoading }) => {
     };
 
     return (
-        <div className="glass-panel p-8 max-w-2xl mx-auto transform transition-all hover:scale-[1.01]">
-            <h2 className="text-2xl font-bold mb-6 text-center text-white">INICIAR ESCANEO DE INTELIGENCIA</h2>
+    return (
+        <div className="ops-card max-w-2xl mx-auto transform transition-all hover:scale-[1.005]">
+            <div className="absolute top-0 right-0 p-2 opacity-50">
+                <div className="w-16 h-16 border-t-2 border-r-2 border-ops-accent rounded-tr-xl"></div>
+            </div>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <h2 className="text-xl font-bold mb-8 text-center text-white tracking-[0.2em] uppercase border-b border-white/10 pb-4">
+                // INICIAR SECUENCIA DE INTELIGENCIA
+            </h2>
+
+            <form onSubmit={handleSubmit} className="space-y-6 relative z-10">
                 <div>
-                    <label className="block text-sm font-mono text-cyber-muted mb-2">NOMBRE DEL OBJETIVO</label>
-                    <div className="relative">
-                        <User className="absolute left-3 top-3 text-cyber-muted w-5 h-5" />
+                    <label className="block text-xs font-mono text-ops-accent mb-2 tracking-wider">TARGET_NAME</label>
+                    <div className="relative group">
+                        <User className="absolute left-3 top-3 text-ops-border w-5 h-5 group-focus-within:text-ops-accent transition-colors" />
                         <input
                             type="text"
-                            className="input-field pl-10"
-                            placeholder="Ej. Felipe Miramontes"
+                            className="input-field pl-10 bg-black/20 focus:bg-ops-bg_alt/80"
+                            placeholder="IMPUT_OBJETIVO"
                             value={name}
                             onChange={(e) => setName(e.target.value)}
                         />
@@ -38,27 +45,27 @@ const ScanForm: React.FC<ScanFormProps> = ({ onScan, isLoading }) => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                        <label className="block text-sm font-mono text-cyber-muted mb-2">CORREO ELECTRÓNICO (REQUIRED)</label>
-                        <div className="relative">
-                            <Mail className="absolute left-3 top-3 text-cyber-muted w-5 h-5" />
+                        <label className="block text-xs font-mono text-ops-accent mb-2 tracking-wider">EMAIL_ADDRESS (REQUIRED)</label>
+                        <div className="relative group">
+                            <Mail className="absolute left-3 top-3 text-ops-border w-5 h-5 group-focus-within:text-ops-accent transition-colors" />
                             <input
                                 type="email"
                                 required
-                                className="input-field pl-10 border-cyber-accent/30"
-                                placeholder="target@example.com"
+                                className="input-field pl-10"
+                                placeholder="target@domain.com"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                             />
                         </div>
                     </div>
                     <div>
-                        <label className="block text-sm font-mono text-cyber-muted mb-2">DOMINIO (OPCIONAL)</label>
-                        <div className="relative">
-                            <Globe className="absolute left-3 top-3 text-cyber-muted w-5 h-5" />
+                        <label className="block text-xs font-mono text-ops-accent mb-2 tracking-wider">DOMAIN_URL (OPTIONAL)</label>
+                        <div className="relative group">
+                            <Globe className="absolute left-3 top-3 text-ops-border w-5 h-5 group-focus-within:text-ops-accent transition-colors" />
                             <input
                                 type="text"
                                 className="input-field pl-10"
-                                placeholder="empresa.com"
+                                placeholder="www.domain.com"
                                 value={domain}
                                 onChange={(e) => setDomain(e.target.value)}
                             />
@@ -69,19 +76,23 @@ const ScanForm: React.FC<ScanFormProps> = ({ onScan, isLoading }) => {
                 <button
                     type="submit"
                     disabled={isLoading}
-                    className="btn-primary w-full flex items-center justify-center gap-2 group"
+                    className="btn-ops w-full flex items-center justify-center gap-3 group mt-4 h-12"
                 >
                     {isLoading ? (
-                        <span className="animate-pulse">INICIALIZANDO PROTOCOLO...</span>
+                        <span className="animate-pulse flex items-center gap-2">
+                            <div className="w-2 h-2 bg-ops-accent animate-ping rounded-full" />
+                            ESTABLECIENDO ENLACE...
+                        </span>
                     ) : (
                         <>
-                            <Search className="w-5 h-5 group-hover:rotate-90 transition-transform" />
-                            EJECUTAR OSINT
+                            <Search className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                            EJECUTAR PROTOCOLO OSINT
                         </>
                     )}
                 </button>
             </form>
         </div>
+    );
     );
 };
 
