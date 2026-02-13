@@ -1,8 +1,9 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import ScanForm from './ScanForm';
 import StatusTerminal from './StatusTerminal';
 import { format } from 'date-fns';
 import { Capacitor } from '@capacitor/core';
+import { Browser } from '@capacitor/browser';
 
 // Native App needs absolute URL. Web uses relative (proxy).
 const API_BASE = Capacitor.isNativePlatform()
@@ -85,17 +86,23 @@ const Dashboard: React.FC = () => {
                         setIsScanning(false);
                         addLog('Scan Complete. Report ready.', 'success');
 
-                        // AUTO DOWNLOAD TRIGGER (Optional) or show button
+                        // AUTO DOWNLOAD / OPEN
                         if (jobData.result_url) {
-                            // Small delay to ensure FS sync
-                            setTimeout(() => {
-                                const link = document.createElement('a');
-                                link.href = jobData.result_url;
-                                link.download = `MAPA-RD_REPORT_${job_id}.pdf`;
-                                document.body.appendChild(link);
-                                link.click();
-                                document.body.removeChild(link);
-                                addLog(`Downloading Report: ${link.href}`, 'info');
+                            setTimeout(async () => {
+                                if (Capacitor.isNativePlatform()) {
+                                    // Native: Open in System Browser (Chrome/Firefox/Samsung)
+                                    await Browser.open({ url: jobData.result_url });
+                                    addLog(`Opening Report in Browser...`, 'info');
+                                } else {
+                                    // Web: Direct Download
+                                    const link = document.createElement('a');
+                                    link.href = jobData.result_url;
+                                    link.download = `MAPA-RD_REPORT_${job_id}.pdf`;
+                                    document.body.appendChild(link);
+                                    link.click();
+                                    document.body.removeChild(link);
+                                    addLog(`Downloading Report: ${link.href}`, 'info');
+                                }
                             }, 1000);
                         }
                     } else if (jobData.status === 'FAILED') {
