@@ -91,7 +91,13 @@ const Dashboard: React.FC = () => {
                             setTimeout(async () => {
                                 if (Capacitor.isNativePlatform()) {
                                     // Native: Open in System Browser (Chrome/Firefox/Samsung)
-                                    await Browser.open({ url: jobData.result_url });
+                                    // Ensure URL is absolute
+                                    let fullUrl = jobData.result_url;
+                                    if (fullUrl && !fullUrl.startsWith('http')) {
+                                        fullUrl = `${API_BASE}${fullUrl.startsWith('/') ? '' : '/'}${fullUrl}`;
+                                    }
+
+                                    await Browser.open({ url: fullUrl });
                                     addLog(`Opening Report in Browser...`, 'info');
                                 } else {
                                     // Web: Direct Download

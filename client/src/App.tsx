@@ -17,7 +17,7 @@ function App() {
   }, []);
 
   return (
-    <div className="h-screen w-screen overflow-hidden flex flex-col relative bg-ops-bg selection:bg-ops-accent selection:text-black">
+    <div className="min-h-screen w-full flex flex-col relative bg-ops-bg selection:bg-ops-accent selection:text-black overflow-x-hidden overflow-y-auto">
       {/* Background Grid/Effect */}
       <div className="absolute inset-0 z-0 pointer-events-none bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-ops-bg_alt via-ops-bg to-black opacity-80" />
 
@@ -36,8 +36,8 @@ function App() {
         </div>
       </header>
 
-      {/* Main Content (Centered, Strict No Scroll) */}
-      <main className="flex-grow relative z-10 flex flex-col justify-center items-center p-4 overflow-hidden">
+      {/* Main Content (Centered, Allow Scroll) */}
+      <main className="flex-grow relative z-10 flex flex-col justify-center items-center p-4">
         <Dashboard />
       </main>
 
