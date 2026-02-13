@@ -1,0 +1,11 @@
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <!-- Tactical Hexagon Background -->
+    <path d="M16 2L28.1244 9V23L16 30L3.87564 23V9L16 2Z" fill="#0A0E27" stroke="#8A9FCA" stroke-width="2"/>
+    
+    <!-- Central Reticle/Eye -->
+    <circle cx="16" cy="16" r="6" stroke="#00F3FF" stroke-width="2"/>
+    <circle cx="16" cy="16" r="2" fill="#00F3FF"/>
+    
+    <!-- Radar Sweep Effect (Opactity) -->
+    <path d="M16 16L22 10" stroke="#00F3FF" stroke-width="1" opacity="0.5"/>
+</svg>
