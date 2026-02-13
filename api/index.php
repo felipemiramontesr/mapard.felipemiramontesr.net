@@ -310,12 +310,16 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
                 function Footer()
                 {
                     $this->SetY(-15);
-                    $this->SetFont('Helvetica', '', 7);
+                    $this->SetFont('Helvetica', '', 8); // Slightly larger for readability
                     $this->SetTextColor(128, 128, 128);
+
+                    // Left: Confidencial
                     $this->SetX(10);
-                    $this->Cell(0, 10, 'CONFIDENCIAL', 0, 0, 'L');
+                    $this->Cell(0, 10, 'Confidencial', 0, 0, 'L');
+
+                    // Right: Página X de N
                     $this->SetX(-30);
-                    $this->Cell(0, 10, 'PAGINA ' . $this->PageNo() . ' DE {nb}', 0, 0, 'R');
+                    $this->Cell(0, 10, text_sanitize('Página ' . $this->PageNo() . ' de {nb}'), 0, 0, 'R');
                 }
 
                 function CheckPageSpace($h)
