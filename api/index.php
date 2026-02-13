@@ -192,14 +192,13 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
                 $count = count($breaches);
                 addLog($logs, "CRITICAL: Found $count compromised credentials.", "error");
                 foreach ($breaches as $b) {
-                    // Store detailed object for PDF
                     $breachData[] = [
                         'name' => $b['Name'],
                         'date' => $b['BreachDate'],
                         'classes' => $b['DataClasses'],
-                        'description' => strip_tags($b['Description']) // Clean HTML
+                        'description' => strip_tags($b['Description'])
                     ];
-                    $findings[] = "Breach: " . $b['Name']; // Simple string for logs/db
+                    $findings[] = "Breach: " . $b['Name'];
                 }
             } elseif ($httpCode === 404) {
                 addLog($logs, "No public breaches found for this email.", "success");
@@ -218,12 +217,10 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
             // Step 3: Complete & Generate PDF
             addLog($logs, "Generating Intelligence Report...", "info");
 
-            // --- PROFESSIONAL SPANISH SEMANTICS (v6) ---
+            // --- PROFESSIONAL SPANISH (v7 - ZERO ENGLISH) ---
 
-            // Helper for CP1252 (Windows Latin 1) to support accents perfectly
             function text_sanitize($str)
             {
-                // Remove HTML entities first
                 $str = html_entity_decode($str, ENT_QUOTES | ENT_XML1, 'UTF-8');
                 return iconv('UTF-8', 'windows-1252//TRANSLIT', $str);
             }
@@ -242,6 +239,41 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
                 "4. Vigilancia Activa" => "Mantenga un monitoreo continuo de sus activos digitales mediante servicios de alertas de identidad y dark web."
             ];
 
+            // EXTENDED DICTIONARY
+            function translate_data_class($class)
+            {
+                $map = [
+                    'Email addresses' => 'Correos electrónicos',
+                    'Passwords' => 'Contraseñas',
+                    'Usernames' => 'Nombres de usuario',
+                    'IP addresses' => 'Direcciones IP',
+                    'Names' => 'Nombres completos',
+                    'Phone numbers' => 'Teléfonos',
+                    'Physical addresses' => 'Direcciones físicas',
+                    'Dates of birth' => 'Fechas de nacimiento',
+                    'Geographic locations' => 'Ubicación geográfica',
+                    'Social security numbers' => 'Números de Seguro Social',
+                    'Credit card numbers' => 'Tarjetas de crédito',
+                    'Bank account numbers' => 'Cuentas bancarias',
+                    'Job titles' => 'Puestos laborales',
+                    'Social media profiles' => 'Perfiles sociales',
+                    'Genders' => 'Género',
+                    'Password hints' => 'Pistas de contraseña',
+                    'Spoken languages' => 'Idiomas',
+                    'Time zones' => 'Zona horaria',
+                    'Device information' => 'Información de dispositivo',
+                    'Browser user agent details' => 'Detalles de navegador',
+                    'Employers' => 'Empleadores'
+                ];
+                return $map[$class] ?? $class;
+            }
+
+            // TACTICAL TEMPLATE GENERATOR
+            function generate_spanish_description($name, $date)
+            {
+                return "Se ha verificado un incidente de seguridad que afectó a la plataforma/servicio \"$name\". El evento fue registrado originalmente el $date. Esta brecha resultó en la exfiltración y exposición pública de activos digitales críticos asociados a los usuarios registrados.";
+            }
+
             // Risk Scoring
             $riskScore = 0;
             if (!empty($breachData)) {
@@ -253,21 +285,17 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
             }
             $riskLevel = $riskScore > 60 ? "CRÍTICO" : ($riskScore > 20 ? "ALTO" : "BAJO");
 
-            // PDF CLASS - STYLE GUIDE ALIGNED
+            // PDF CLASS
             class PDF extends FPDF
             {
                 function Header()
                 {
-                    // STYLE GUIDE: Header Background (Navy #0a0e27)
                     $this->SetFillColor(10, 14, 39);
                     $this->Rect(0, 0, 210, 40, 'F');
-
-                    // STYLE GUIDE: Accent Line (Lavender #8a9fca)
                     $this->SetDrawColor(138, 159, 202);
                     $this->SetlineWidth(0.5);
                     $this->Line(0, 39.5, 210, 39.5);
 
-                    // Title
                     $this->SetTextColor(255, 255, 255);
                     $this->SetFont('Helvetica', 'B', 16);
                     $this->SetXY(12, 12);
@@ -275,7 +303,6 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
 
                     $this->SetFont('Helvetica', '', 8);
                     $this->SetXY(12, 20);
-                    // STYLE GUIDE: Subtitle Accent (Lavender)
                     $this->SetTextColor(138, 159, 202);
                     $this->Cell(0, 5, 'MOTOR DE INTELIGENCIA DE SEGURIDAD', 0, 1, 'L');
                 }
@@ -285,12 +312,8 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
                     $this->SetY(-15);
                     $this->SetFont('Helvetica', '', 7);
                     $this->SetTextColor(128, 128, 128);
-
-                    // Left: CONFIDENCIAL
                     $this->SetX(10);
                     $this->Cell(0, 10, 'CONFIDENCIAL', 0, 0, 'L');
-
-                    // Right: PAGINA X DE N
                     $this->SetX(-30);
                     $this->Cell(0, 10, 'PAGINA ' . $this->PageNo() . ' DE {nb}', 0, 0, 'R');
                 }
@@ -299,7 +322,7 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
                 {
                     if ($this->GetY() + $h > $this->PageBreakTrigger) {
                         $this->AddPage($this->CurOrientation);
-                        $this->SetY(50); // HARD RESET Y AFTER PAGE BREAK
+                        $this->SetY(50);
                     }
                 }
 
@@ -307,16 +330,12 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
                 {
                     $this->CheckPageSpace(25);
                     if ($this->GetY() < 50)
-                        $this->SetY(50); // Safety Barrier
+                        $this->SetY(50);
 
                     $this->Ln(5);
-                    // STYLE GUIDE: H2 Uppercase, Medium Weight (Simulated)
                     $this->SetFont('Helvetica', 'B', 11);
-                    // STYLE GUIDE: Navy Text (#1a1f3a)
                     $this->SetTextColor(26, 31, 58);
                     $this->Cell(0, 8, text_sanitize($title), 0, 1, 'L');
-
-                    // STYLE GUIDE: Separator Line (Border UI #4a5578)
                     $this->SetDrawColor(74, 85, 120);
                     $this->Line($this->GetX(), $this->GetY(), $this->GetX() + 190, $this->GetY());
                     $this->Ln(8);
@@ -324,75 +343,56 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
 
                 function BreachCard($name, $date, $classes, $description)
                 {
-                    $descHeight = ceil(strlen($description) / 100) * 4;
-                    // Extra space for headers/padding
+                    // GENERATE TEMPLATE DESCRIPTION (IGNORE ENGLISH RAW INPUT)
+                    $spanishDesc = generate_spanish_description($name, $date);
+
+                    $descHeight = ceil(strlen($spanishDesc) / 100) * 4;
                     $cardHeight = 35 + $descHeight;
 
                     $this->CheckPageSpace($cardHeight);
                     if ($this->GetY() < 50)
-                        $this->SetY(50); // Safety Barrier
+                        $this->SetY(50);
 
-                    // STYLE GUIDE: Card Background (Glassmorphism Simulation)
                     $this->SetFillColor(249, 249, 252);
-                    $this->SetDrawColor(138, 159, 202); // Lavender Border
+                    $this->SetDrawColor(138, 159, 202);
                     $this->SetLineWidth(0.1);
 
-                    // Draw Card Box
                     $x = $this->GetX();
                     $y = $this->GetY();
                     $w = 190;
 
                     $this->Rect($x, $y, $w, $cardHeight, 'DF');
 
-                    // Inside Card Padding
                     $this->SetXY($x + 5, $y + 5);
 
-                    // Header (Source of Incident)
                     $this->SetFont('Helvetica', 'B', 10);
-                    $this->SetTextColor(26, 31, 58); // Navy
+                    $this->SetTextColor(26, 31, 58);
                     $this->Cell(0, 6, text_sanitize("Fuente del Incidente: " . $name), 0, 1, 'L');
 
-                    // Subheader (Date)
                     $this->SetX($x + 5);
                     $this->SetFont('Helvetica', '', 8);
-                    $this->SetTextColor(107, 116, 144); // Text Tertiary
+                    $this->SetTextColor(107, 116, 144);
                     $this->Cell(0, 5, text_sanitize("Fecha de Detección: " . $date), 0, 1);
 
-                    // Data Classes highlight
                     $this->SetX($x + 5);
-                    $this->SetTextColor(90, 111, 160); // Primary Button Color
+                    $this->SetTextColor(90, 111, 160);
 
-                    // Translation map for common data classes
-                    $translatedClasses = array_map(function ($c) {
-                        $map = [
-                            'Email addresses' => 'Correos electrónicos',
-                            'Passwords' => 'Contraseñas',
-                            'Usernames' => 'Nombres de usuario',
-                            'IP addresses' => 'Direcciones IP',
-                            'Names' => 'Nombres completos',
-                            'Phone numbers' => 'Teléfonos',
-                            'Physical addresses' => 'Direcciones físicas',
-                            'Dates of birth' => 'Fechas de nacimiento'
-                        ];
-                        return $map[$c] ?? $c; // Return translation or original
-                    }, $classes);
-
+                    // TRANSLATE CLASSES
+                    $translatedClasses = array_map('translate_data_class', $classes);
                     $classesStr = "Activos Comprometidos: " . implode(", ", $translatedClasses);
                     $this->MultiCell(180, 5, text_sanitize($classesStr));
 
-                    // Divider
                     $this->Ln(2);
                     $this->SetDrawColor(200, 200, 220);
                     $this->Line($x + 5, $this->GetY(), $x + 185, $this->GetY());
                     $this->Ln(3);
 
-                    // Description
                     $this->SetX($x + 5);
                     $this->SetFont('Helvetica', '', 9);
-                    $this->SetTextColor(26, 31, 58); // Primary Text
-                    $this->MultiCell(180, 4, text_sanitize(strip_tags($description)));
+                    $this->SetTextColor(26, 31, 58);
+                    // USE SPANISH DESC
+                    $this->MultiCell(180, 4, text_sanitize($spanishDesc));
 
-                    // Reset position after card
                     $this->SetY($y + $cardHeight + 5);
                 }
             }
@@ -404,14 +404,13 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
 
             $pdf->AddPage();
 
-            // -- INFO TARGET --
             $pdf->SetY(50);
 
             $pdf->SetFont('Helvetica', 'B', 9);
-            $pdf->SetTextColor(107, 116, 144); // Tertiary
+            $pdf->SetTextColor(107, 116, 144);
             $pdf->Cell(35, 6, text_sanitize('Objetivo del Análisis:'), 0, 0);
             $pdf->SetFont('Helvetica', 'B', 10);
-            $pdf->SetTextColor(26, 31, 58); // Primary
+            $pdf->SetTextColor(26, 31, 58);
             $pdf->Cell(0, 6, $job['email'], 0, 1);
 
             $pdf->SetFont('Helvetica', 'B', 9);
@@ -425,11 +424,10 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
             $pdf->SetTextColor(107, 116, 144);
             $pdf->Cell(35, 6, text_sanitize('Nivel de Riesgo:'), 0, 0);
             $pdf->SetFont('Helvetica', 'B', 10);
-            $pdf->SetTextColor(200, 50, 50); // Warning/Error color
+            $pdf->SetTextColor(200, 50, 50);
             $pdf->Cell(0, 6, text_sanitize($riskLevel), 0, 1);
             $pdf->SetTextColor(0);
 
-            // -- 1. EVIDENCIA DE COMPROMISO --
             $pdf->SectionTitle("1. Evidencia de Compromiso (Inteligencia Cruda)");
 
             if (empty($breaches)) {
@@ -441,23 +439,19 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
                 }
             }
 
-            // -- 2. GLOSARIO TACTICO --
             $pdf->CheckPageSpace(60);
             $pdf->SectionTitle("2. Glosario Táctico");
             foreach ($glossary as $term => $def) {
                 $pdf->CheckPageSpace(20);
                 $pdf->SetFont('Helvetica', 'B', 9);
-                // STYLE GUIDE: Lavender Accent
                 $pdf->SetTextColor(138, 159, 202);
                 $pdf->Cell(40, 5, text_sanitize($term . ":"), 0, 0);
                 $pdf->SetFont('Helvetica', '', 9);
-                // STYLE GUIDE: Secondary Text
                 $pdf->SetTextColor(107, 116, 144);
                 $pdf->MultiCell(0, 5, text_sanitize($def));
                 $pdf->Ln(2);
             }
 
-            // -- 3. PROTOCOLO DE MITIGACION --
             $pdf->CheckPageSpace(60);
             if (!empty($breaches)) {
                 $pdf->SectionTitle("3. Protocolo de Mitigación");
@@ -465,7 +459,6 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
                 foreach ($mitigationProtocols as $title => $step) {
                     $pdf->CheckPageSpace(25);
 
-                    // Card style for steps
                     $thisY = $pdf->GetY();
                     $pdf->SetFillColor(249, 249, 252);
                     $pdf->SetDrawColor(138, 159, 202);
@@ -473,11 +466,11 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
 
                     $pdf->SetXY(15, $thisY + 2);
                     $pdf->SetFont('Helvetica', 'B', 9);
-                    $pdf->SetTextColor(26, 31, 58); // Navy
+                    $pdf->SetTextColor(26, 31, 58);
                     $pdf->Cell(0, 6, text_sanitize($title), 0, 1);
 
                     $pdf->SetXY(15, $thisY + 8);
-                    $pdf->SetTextColor(107, 116, 144); // Tertiary
+                    $pdf->SetTextColor(107, 116, 144);
                     $pdf->SetFont('Helvetica', '', 8);
                     $pdf->MultiCell(180, 5, text_sanitize($step));
 
@@ -485,7 +478,6 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
                 }
             }
 
-            // -- DISCLAIMER --
             $pdf->Ln(10);
             $pdf->SetDrawColor(200);
             $pdf->Line(10, $pdf->GetY(), 200, $pdf->GetY());
