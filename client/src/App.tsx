@@ -11,7 +11,7 @@ function App() {
     // Fake loading time for splash effect
     const timer = setTimeout(() => {
       setIsLoading(false);
-    }, 5000); // 5 seconds loading
+    }, 8000); // 8 seconds loading
 
     const enableImmersive = async () => {
       try {
