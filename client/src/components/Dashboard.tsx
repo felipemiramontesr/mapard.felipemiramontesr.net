@@ -13,6 +13,7 @@ interface Log {
 const Dashboard: React.FC = () => {
     const [logs, setLogs] = useState<Log[]>([]);
     const [isScanning, setIsScanning] = useState(false);
+    const [viewMode, setViewMode] = useState<'form' | 'terminal'>('form');
 
     const addLog = (message: string, type: Log['type'] = 'info') => {
         setLogs(prev => [...prev, {
@@ -23,34 +24,9 @@ const Dashboard: React.FC = () => {
         }]);
     };
 
-    //     const runMockSimulation = (data: { email: string }) => {
-    //         addLog("Backend unreachable. Initiating OFF-GRID SIMULATION protocol...", "warning");
-    // 
-    //         const steps = [
-    //             { msg: `Target confirmed: ${data.email}`, t: 1000 },
-    //             { msg: "Bypassing server connection... Running local heuristics.", t: 2000 },
-    //             { msg: "Querying public breach databases (Simulated)...", t: 3000, type: 'warning' },
-    //             { msg: "Found 4 compromised credentials.", t: 4500, type: 'error' },
-    //             { msg: "Analyzing Dark Web metadata...", t: 6000 },
-    //             { msg: "Generating Risk Report...", t: 7500 },
-    //             { msg: "SCAN COMPLETE. Risk Level: HIGH.", t: 8500, type: 'success' }
-    //         ];
-    // 
-    //         steps.forEach(step => {
-    //             setTimeout(() => {
-    //                 addLog(step.msg, (step.type as Log['type']) || 'info');
-    //             }, step.t);
-    //         });
-    // 
-    //         setTimeout(() => {
-    //             setIsScanning(false);
-    //             // Simulate Download Link
-    //             addLog("Report ready for download (Mock).", "success");
-    //         }, 9000);
-    //     };
-
     const handleStartScan = async (data: { name: string; email: string; domain?: string }) => {
         setIsScanning(true);
+        setViewMode('terminal'); // SWAP TO TERMINAL
         setLogs([]);
         addLog(`Initiating connection to MAPA-RD Graph...`, 'info');
 
@@ -108,16 +84,6 @@ const Dashboard: React.FC = () => {
                             // Small delay to ensure FS sync
                             setTimeout(() => {
                                 const link = document.createElement('a');
-                                // Construct URL. If result_url is relative like /reports/mock.pdf, api/reports mount handles it?
-                                // Backend wrapper says: result_path="/reports/mock.pdf"
-                                // Main.py mounts /api/reports.
-                                // So we need to be careful with paths.
-                                // Let's assume wrapper returns "mock.pdf" or we fix the path.
-                                // Actually wrapper.py line 80: result_path="/reports/mock.pdf"
-                                // If we mount /api/reports, the URL should be /api/reports/mock.pdf
-
-                                // Quick fix: user wrapper returns "/reports/mock.pdf", but that might not map to /api/reports unless we proxy/rewrite.
-                                // Backend returns full path: /api/reports/report_...pdf
                                 link.href = jobData.result_url;
                                 link.download = `MAPA-RD_REPORT_${job_id}.pdf`;
                                 document.body.appendChild(link);
@@ -139,8 +105,6 @@ const Dashboard: React.FC = () => {
 
         } catch (e: any) {
             console.error(e);
-            // DEBUG MODE: Show actual error instead of Mock
-            // runMockSimulation(data); 
             addLog(`CRITICAL BACKEND ERROR: ${e.message}`, 'error');
             if (e.message.includes('500')) {
                 addLog("Server Internal Error. Check api/debug.php", 'error');
@@ -149,21 +113,36 @@ const Dashboard: React.FC = () => {
         }
     };
 
+    const handleReset = () => {
+        setViewMode('form');
+        setLogs([]);
+    };
+
     return (
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-4xl mx-auto relative min-h-[600px]">
             <div className="text-center mb-12 relative z-10">
-                <h1 className="text-5xl md:text-6xl font-bold text-white tracking-widest uppercase mb-4 drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]">
-                    M.A.P.A - RD
+                <h1 className="text-5xl md:text-6xl font-black text-white tracking-widest uppercase mb-4 drop-shadow-[0_0_15px_rgba(255,255,255,0.15)]">
+                    MAPARD
                 </h1>
-                <div className="w-24 h-1 bg-ops-accent mx-auto mb-6"></div>
-                <p className="text-ops-text_dim max-w-2xl mx-auto font-mono text-sm tracking-wide">
-                    // PLATAFORMA DE INTELIGENCIA TÁCTICA Y VIGILANCIA PASIVA //
+                <div className="w-32 h-1 bg-ops-radioactive/50 mx-auto mb-6 shadow-[0_0_10px_#39ff14]"></div>
+                <p className="text-ops-text_dim max-w-2xl mx-auto font-mono text-sm tracking-[0.2em] uppercase">
+                    INTELIGENCIA TÁCTICA Y VIGILANCIA PASIVA
                 </p>
             </div>
 
-            <ScanForm onScan={handleStartScan} isLoading={isScanning} />
-
-            <StatusTerminal logs={logs} isVisible={logs.length > 0} />
+            {viewMode === 'form' ? (
+                <div className="animate-[fadeIn_0.5s_ease-out]">
+                    <ScanForm onScan={handleStartScan} isLoading={isScanning} />
+                </div>
+            ) : (
+                <div className="animate-[slideUp_0.5s_ease-out]">
+                    <StatusTerminal
+                        logs={logs}
+                        isVisible={true}
+                        onReset={!isScanning ? handleReset : undefined}
+                    />
+                </div>
+            )}
         </div>
     );
 };
