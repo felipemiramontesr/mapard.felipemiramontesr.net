@@ -31,12 +31,12 @@ const StatusTerminal: React.FC<StatusTerminalProps> = ({ logs, isVisible, onRese
             animate={{ opacity: 1, y: 0 }}
             className="ops-card mt-8 font-mono text-xs overflow-hidden border-ops-cyan shadow-none"
         >
-            <div className="bg-ops-bg_alt/90 px-4 py-2 flex items-center justify-between border-b border-white/5 mb-2">
+            <div className="bg-ops-bg_alt/90 px-3 sm:px-4 py-2 flex items-center justify-between border-b border-white/5 mb-2">
                 <div className="flex items-center gap-2 text-ops-cyan animate-pulse">
-                    <Activity className="w-4 h-4" />
-                    <span className="tracking-widest font-bold">SYSTEM_LOG - LIVE_FEED</span>
+                    <Activity className="w-3 h-3 sm:w-4 sm:h-4" />
+                    <span className="tracking-widest font-bold text-[10px] sm:text-xs">SYSTEM_LOG :: LIVE</span>
                 </div>
-                <div className="flex gap-1.5">
+                <div className="flex gap-1.5 hidden sm:flex">
                     <div className="w-2 h-2 rounded-none bg-ops-danger" />
                     <div className="w-2 h-2 rounded-none bg-ops-warning" />
                     <div className="w-2 h-2 rounded-none bg-ops-cyan" />
