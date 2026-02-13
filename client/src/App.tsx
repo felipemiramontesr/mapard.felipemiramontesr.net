@@ -1,15 +1,29 @@
 import { Shield } from 'lucide-react';
 import Dashboard from './components/Dashboard';
+import { useEffect } from 'react';
+import { StatusBar } from '@capacitor/status-bar';
 
 function App() {
+  useEffect(() => {
+    const enableImmersive = async () => {
+      try {
+        await StatusBar.setOverlaysWebView({ overlay: true });
+        await StatusBar.hide();
+      } catch (e) {
+        console.log('Non-native env or StatusBar error', e);
+      }
+    };
+    enableImmersive();
+  }, []);
+
   return (
     <div className="h-screen w-screen overflow-hidden flex flex-col relative bg-ops-bg selection:bg-ops-accent selection:text-black">
       {/* Background Grid/Effect */}
       <div className="absolute inset-0 z-0 pointer-events-none bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-ops-bg_alt via-ops-bg to-black opacity-80" />
 
       {/* Header (Fixed) */}
-      <header className="border-b border-white/10 bg-ops-bg/80 backdrop-blur-xl relative z-50 h-16 flex-none shadow-2xl">
-        <div className="max-w-7xl mx-auto px-4 h-full flex items-center justify-between">
+      <header className="border-b border-white/10 bg-ops-bg/80 backdrop-blur-xl relative z-50 flex-none shadow-2xl pt-[env(safe-area-inset-top)] transition-all duration-300">
+        <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2 sm:gap-3">
             <Shield className="w-6 h-6 sm:w-8 sm:h-8 text-ops-cyan animate-pulse drop-shadow-[0_0_8px_rgba(0,243,255,0.5)]" />
             <span className="text-xl sm:text-2xl font-black tracking-widest text-white drop-shadow-md">MAPARD</span>

@@ -2,6 +2,12 @@
 import ScanForm from './ScanForm';
 import StatusTerminal from './StatusTerminal';
 import { format } from 'date-fns';
+import { Capacitor } from '@capacitor/core';
+
+// Native App needs absolute URL. Web uses relative (proxy).
+const API_BASE = Capacitor.isNativePlatform()
+    ? 'https://mapard.felipemiramontesr.net'
+    : '';
 
 interface Log {
     id: number;
@@ -32,7 +38,7 @@ const Dashboard: React.FC = () => {
 
         try {
             // 1. Start Scan
-            const response = await fetch('/api/scan', {
+            const response = await fetch(`${API_BASE}/api/scan`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
@@ -49,7 +55,7 @@ const Dashboard: React.FC = () => {
             // 2. Poll for Status
             const pollInterval = setInterval(async () => {
                 try {
-                    const statusRes = await fetch(`/api/scan/${job_id}`);
+                    const statusRes = await fetch(`${API_BASE}/api/scan/${job_id}`);
                     if (!statusRes.ok) {
                         const errText = await statusRes.text();
                         console.error("Polling Error:", errText);
