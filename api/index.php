@@ -284,7 +284,14 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
                     $this->SetY(-15);
                     $this->SetFont('Helvetica', '', 7);
                     $this->SetTextColor(128, 128, 128);
-                    $this->Cell(0, 10, 'CONFIDENCIAL // PAGINA ' . $this->PageNo(), 0, 0, 'C');
+
+                    // Left: CONFIDENCIAL
+                    $this->SetX(10);
+                    $this->Cell(0, 10, 'CONFIDENCIAL', 0, 0, 'L');
+
+                    // Right: PAGINA X DE N
+                    $this->SetX(-30);
+                    $this->Cell(0, 10, 'PAGINA ' . $this->PageNo() . ' DE {nb}', 0, 0, 'R');
                 }
 
                 function CheckPageSpace($h)
@@ -376,6 +383,7 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
             }
 
             $pdf = new PDF();
+            $pdf->AliasNbPages(); // Enable {nb} for total page count
             $pdf->SetMargins(10, 50, 10); // INCREASED MARGIN TO 50mm (Header is 40mm)
             $pdf->SetAutoPageBreak(true, 20);
 
