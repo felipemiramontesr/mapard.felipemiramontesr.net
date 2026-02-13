@@ -22,8 +22,8 @@ function App() {
         </div>
       </header>
 
-      {/* Main Content (Centered, Internal Scroll if needed) */}
-      <main className="flex-grow relative z-10 flex flex-col justify-center items-center p-4 overflow-y-auto custom-scrollbar">
+      {/* Main Content (Centered, Strict No Scroll) */}
+      <main className="flex-grow relative z-10 flex flex-col justify-center items-center p-4 overflow-hidden">
         <Dashboard />
       </main>
 

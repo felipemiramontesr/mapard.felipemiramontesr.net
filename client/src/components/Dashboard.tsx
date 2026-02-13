@@ -119,8 +119,10 @@ const Dashboard: React.FC = () => {
     };
 
     return (
+    return (
         <div className="w-full max-w-4xl mx-auto relative flex flex-col items-center justify-center">
-            <div className="text-center mb-6 md:mb-10 relative z-10 px-4 w-full">
+            {/* Title Section: Hidden on mobile to fit 100vh strict mode. The Header already says MAPARD. */}
+            <div className="text-center mb-0 md:mb-10 relative z-10 px-4 w-full hidden md:block">
                 <h1 className="text-4xl sm:text-5xl md:text-6xl font-black text-white tracking-widest uppercase mb-2 md:mb-4 drop-shadow-[0_0_15px_rgba(255,255,255,0.15)] break-words">
                     MAPARD
                 </h1>
