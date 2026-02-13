@@ -291,13 +291,17 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
                 {
                     if ($this->GetY() + $h > $this->PageBreakTrigger) {
                         $this->AddPage($this->CurOrientation);
+                        $this->SetY(50); // HARD RESET Y AFTER PAGE BREAK
                     }
                 }
 
                 function SectionTitle($title)
                 {
-                    $this->CheckPageSpace(20);
-                    $this->Ln(8);
+                    $this->CheckPageSpace(25);
+                    if ($this->GetY() < 50)
+                        $this->SetY(50); // Safety Barrier
+
+                    $this->Ln(5);
                     // STYLE GUIDE: H2 Uppercase, Medium Weight (Simulated)
                     $this->SetFont('Helvetica', 'B', 11);
                     // STYLE GUIDE: Navy Text (#1a1f3a)
@@ -307,7 +311,7 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
                     // STYLE GUIDE: Separator Line (Border UI #4a5578)
                     $this->SetDrawColor(74, 85, 120);
                     $this->Line($this->GetX(), $this->GetY(), $this->GetX() + 190, $this->GetY());
-                    $this->Ln(5);
+                    $this->Ln(8);
                 }
 
                 function BreachCard($name, $date, $classes, $description)
@@ -317,6 +321,8 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
                     $cardHeight = 35 + $descHeight;
 
                     $this->CheckPageSpace($cardHeight);
+                    if ($this->GetY() < 50)
+                        $this->SetY(50); // Safety Barrier checks
 
                     // STYLE GUIDE: Card Background (Glassmorphism Simulation on Print)
                     // Very light blue/gray (#f9f9fc)
@@ -370,13 +376,13 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
             }
 
             $pdf = new PDF();
-            $pdf->SetMargins(10, 45, 10);
+            $pdf->SetMargins(10, 50, 10); // INCREASED MARGIN TO 50mm (Header is 40mm)
             $pdf->SetAutoPageBreak(true, 20);
 
             $pdf->AddPage();
 
             // -- INFO TARGET --
-            $pdf->SetY(45);
+            $pdf->SetY(50); // FORCE Y=50
 
             $pdf->SetFont('Helvetica', 'B', 9);
             $pdf->SetTextColor(107, 116, 144); // Tertiary
