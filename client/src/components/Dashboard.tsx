@@ -3,7 +3,6 @@ import ScanForm from './ScanForm';
 import StatusTerminal from './StatusTerminal';
 import { format } from 'date-fns';
 import { Capacitor } from '@capacitor/core';
-import { Browser } from '@capacitor/browser';
 
 // Native App needs absolute URL. Web uses relative (proxy).
 const API_BASE = Capacitor.isNativePlatform()
