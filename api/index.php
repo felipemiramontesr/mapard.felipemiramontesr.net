@@ -337,7 +337,7 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
 
 
             $pdf->Ln(10);
-            $pdf->SetFont('Helvetica', 'I', 8);
+            $pdf->SetFont('Helvetica', '', 8);
             $pdf->MultiCell(0, 4, "AVISO LEGAL:\nEste reporte es generado automaticamente para fines de auditoria de seguridad.\nEl usuario es responsable de custodiar esta informacion sensible.\nGenerado por MAPA-RD Engine v2.1 (Black Ops Level).");
 
             $reportName = 'report_' . $jobId . '.pdf';
