@@ -16,6 +16,7 @@ export default {
           accent: "#8a9fca", // Lavender Blue (Tactical)
           border: "#4a5578", // UI Border
           success: "#00ff85", // Keep the vivid green for success
+          radioactive: "#39ff14", // TERMINAL GREEN
           warning: "#ff9f43",
           danger: "#ff2a2a",
         }
