@@ -119,22 +119,22 @@ const Dashboard: React.FC = () => {
     };
 
     return (
-        <div className="max-w-4xl mx-auto relative min-h-[600px]">
-            <div className="text-center mb-8 md:mb-12 relative z-10 px-4">
-                <h1 className="text-4xl sm:text-5xl md:text-6xl font-black text-white tracking-widest uppercase mb-4 drop-shadow-[0_0_15px_rgba(255,255,255,0.15)] break-words">
+        <div className="w-full max-w-4xl mx-auto relative flex flex-col items-center justify-center">
+            <div className="text-center mb-6 md:mb-10 relative z-10 px-4 w-full">
+                <h1 className="text-4xl sm:text-5xl md:text-6xl font-black text-white tracking-widest uppercase mb-2 md:mb-4 drop-shadow-[0_0_15px_rgba(255,255,255,0.15)] break-words">
                     MAPARD
                 </h1>
-                <p className="text-ops-text_dim max-w-2xl mx-auto font-mono text-[10px] sm:text-xs md:text-sm tracking-[0.15em] sm:tracking-[0.2em] uppercase leading-relaxed">
+                <p className="text-ops-text_dim max-w-2xl mx-auto font-mono text-[10px] sm:text-xs md:text-sm tracking-[0.15em] sm:tracking-[0.2em] uppercase leading-relaxed text-white/60">
                     INTELIGENCIA TÁCTICA Y VIGILANCIA PASIVA
                 </p>
             </div>
 
             {viewMode === 'form' ? (
-                <div className="animate-[fadeIn_0.5s_ease-out]">
+                <div className="animate-[fadeIn_0.5s_ease-out] w-full px-4">
                     <ScanForm onScan={handleStartScan} isLoading={isScanning} />
                 </div>
             ) : (
-                <div className="animate-[slideUp_0.5s_ease-out]">
+                <div className="animate-[slideUp_0.5s_ease-out] w-full px-4 h-[60vh] md:h-[500px]">
                     <StatusTerminal
                         logs={logs}
                         isVisible={true}
