@@ -91,7 +91,7 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
 
         $jobId = uniqid('job_', true);
         $initialLogs = json_encode([
-            ["message" => "Initializing Real-Time OSINT Protocol...", "type" => "info", "timestamp" => date('c')]
+            ["message" => "Initializing MAPA-RD Protocol...", "type" => "info", "timestamp" => date('c')]
         ]);
 
         $stmt = $pdo->prepare("INSERT INTO scans (job_id, email, domain, status, logs) VALUES (?, ?, ?, 'RUNNING', ?)");
@@ -218,10 +218,9 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
             // Step 3: Complete & Generate PDF
             addLog($logs, "Generating Intelligence Report...", "info");
 
-            // --- PROFESSIONAL INTEL REPORT GENERATION ---
+            // --- PROFESSIONAL STYLE GUIDE REPORT (v5) ---
 
-            // 1. KNOWLEDGE BASE (Generic, Professional Spanish)
-            // Use ISO-8859-1 (Latin1) directly for FPDF compatibility to Fix 'Ñ'
+            // Helpers
             function utf8_to_iso($str)
             {
                 return iconv('UTF-8', 'ISO-8859-1//TRANSLIT', $str);
@@ -241,7 +240,7 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
                 "4. VIGILANCIA ACTIVA" => "Mantenga un monitoreo continuo de sus activos digitales mediante servicios de alertas de identidad y dark web."
             ];
 
-            // 2. RISK ANALYSIS
+            // Risk Scoring
             $riskScore = 0;
             if (!empty($breachData)) {
                 $riskScore += 20;
@@ -252,110 +251,158 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
             }
             $riskLevel = $riskScore > 60 ? "CRITICO" : ($riskScore > 20 ? "ALTO" : "BAJO");
 
-            // PDF CLASS
+            // PDF CLASS - STYLE GUIDE ALIGNED
             class PDF extends FPDF
             {
                 function Header()
                 {
-                    // Navy Background Header
-                    $this->SetFillColor(10, 14, 39); // #0a0e27
+                    // STYLE GUIDE: Header Background (Navy #0a0e27)
+                    $this->SetFillColor(10, 14, 39);
                     $this->Rect(0, 0, 210, 40, 'F');
 
-                    // Cyan Line
-                    $this->SetDrawColor(0, 243, 255); // #00f3ff
-                    $this->SetLineWidth(0.5);
-                    $this->Line(0, 39, 210, 39);
+                    // STYLE GUIDE: Accent Line (Lavender #8a9fca) NOT CYAN
+                    $this->SetDrawColor(138, 159, 202);
+                    $this->SetlineWidth(0.5);
+                    $this->Line(0, 39.5, 210, 39.5);
 
                     // Title
                     $this->SetTextColor(255, 255, 255);
-                    $this->SetFont('Helvetica', 'B', 20);
-                    $this->SetXY(10, 10);
-                    $this->Cell(0, 10, 'MAPA-RD // INTEL DOSSIER', 0, 1, 'L');
+                    $this->SetFont('Helvetica', 'B', 16);
+                    $this->SetXY(12, 12);
+                    // Corrected Title
+                    $this->Cell(0, 10, 'MAPARD - DOSSIER DE INTELIGENCIA', 0, 1, 'L');
 
                     $this->SetFont('Helvetica', '', 8);
-                    $this->SetXY(10, 22);
-                    $this->Cell(0, 5, 'BLACK-OPS LEVEL OSINT ENGINE', 0, 1, 'L');
+                    $this->SetXY(12, 20);
+                    // STYLE GUIDE: Subtitle Accent (Lavender #8a9fca)
+                    $this->SetTextColor(138, 159, 202);
+                    $this->Cell(0, 5, 'MOTOR DE INTELIGENCIA NIVEL BLACK-OPS', 0, 1, 'L');
                 }
 
                 function Footer()
                 {
                     $this->SetY(-15);
-                    $this->SetFont('Helvetica', '', 8);
+                    $this->SetFont('Helvetica', '', 7);
                     $this->SetTextColor(128, 128, 128);
-                    $this->Cell(0, 10, 'CONFIDENTIAL // PAGE ' . $this->PageNo(), 0, 0, 'C');
+                    $this->Cell(0, 10, 'CONFIDENCIAL // PAGINA ' . $this->PageNo(), 0, 0, 'C');
+                }
+
+                function CheckPageSpace($h)
+                {
+                    if ($this->GetY() + $h > $this->PageBreakTrigger) {
+                        $this->AddPage($this->CurOrientation);
+                    }
                 }
 
                 function SectionTitle($title)
                 {
-                    $this->Ln(10);
-                    $this->SetFillColor(10, 14, 39); // Navy
-                    $this->SetTextColor(0, 243, 255); // Cyan
-                    $this->SetFont('Helvetica', 'B', 12);
-                    $this->Cell(0, 8, '  ' . strtoupper(utf8_to_iso($title)), 0, 1, 'L', true);
-                    $this->SetTextColor(0, 0, 0);
+                    $this->CheckPageSpace(20);
+                    $this->Ln(8);
+                    // STYLE GUIDE: H2 Uppercase, Medium Weight (Simulated)
+                    $this->SetFont('Helvetica', 'B', 11);
+                    // STYLE GUIDE: Navy Text (#1a1f3a)
+                    $this->SetTextColor(26, 31, 58);
+                    $this->Cell(0, 8, iconv('UTF-8', 'ISO-8859-1//TRANSLIT', strtoupper($title)), 0, 1, 'L');
+
+                    // STYLE GUIDE: Separator Line (Border UI #4a5578)
+                    $this->SetDrawColor(74, 85, 120);
+                    $this->Line($this->GetX(), $this->GetY(), $this->GetX() + 190, $this->GetY());
                     $this->Ln(5);
                 }
 
-                // Card for Breach Findings
                 function BreachCard($name, $date, $classes, $description)
                 {
-                    $this->SetDrawColor(200, 200, 200);
-                    $this->SetFillColor(250, 250, 250);
-                    $this->SetLineWidth(0.2);
+                    $descHeight = ceil(strlen($description) / 100) * 4;
+                    // Extra space for headers/padding
+                    $cardHeight = 35 + $descHeight;
 
-                    // Draw box background manually if needed or just use MultiCell
-                    // Simple approach: Box around content
-                    $start_y = $this->GetY();
+                    $this->CheckPageSpace($cardHeight);
 
+                    // STYLE GUIDE: Card Background (Glassmorphism Simulation on Print)
+                    // Very light blue/gray (#f9f9fc)
+                    $this->SetFillColor(249, 249, 252);
+                    $this->SetDrawColor(138, 159, 202); // Lavender Border
+                    $this->SetLineWidth(0.1);
+
+                    // Draw Card Box
+                    $x = $this->GetX();
+                    $y = $this->GetY();
+                    $w = 190; // Page width - strict margins
+
+                    // Draw Rect
+                    $this->Rect($x, $y, $w, $cardHeight, 'DF');
+
+                    // Inside Card Padding
+                    $this->SetXY($x + 5, $y + 5);
+
+                    // Header
                     $this->SetFont('Helvetica', 'B', 10);
-                    $this->SetTextColor(10, 14, 39); // Navy
-                    $this->Cell(0, 6, utf8_to_iso("BRECHA DETECTADA: " . $name), 0, 1, 'L');
+                    $this->SetTextColor(26, 31, 58); // Navy
+                    $this->Cell(0, 6, iconv('UTF-8', 'ISO-8859-1//TRANSLIT', "BRECHA: " . $name), 0, 1, 'L');
 
+                    // Subheader (Date)
+                    $this->SetX($x + 5);
                     $this->SetFont('Helvetica', '', 8);
-                    $this->SetTextColor(100, 100, 100);
+                    $this->SetTextColor(107, 116, 144); // Text Tertiary (#6b7490)
                     $this->Cell(0, 5, "FECHA: " . $date, 0, 1);
-                    $this->Cell(0, 5, utf8_to_iso("DATOS EXPUESTOS: " . implode(", ", array_slice($classes, 0, 6))), 0, 1);
 
-                    $this->Ln(1);
-                    // Description wrapped
-                    $this->SetFont('Helvetica', '', 8);
-                    $this->SetTextColor(50, 50, 50);
-                    $this->MultiCell(0, 4, utf8_to_iso(substr($description, 0, 300) . "..."));
+                    // Data Classes highlight
+                    $this->SetX($x + 5);
+                    $this->SetTextColor(90, 111, 160); // Primary Button Color approx for emphasis
+                    $classesStr = "DATOS: " . implode(", ", $classes);
+                    $this->MultiCell(180, 5, iconv('UTF-8', 'ISO-8859-1//TRANSLIT', $classesStr));
 
-                    // Cyan bottom border for the card
+                    // Divider
                     $this->Ln(2);
-                    $this->SetDrawColor(0, 243, 255); // Cyan
-                    $this->Line(10, $this->GetY(), 200, $this->GetY());
-                    $this->Ln(5);
+                    $this->SetDrawColor(200, 200, 220);
+                    $this->Line($x + 5, $this->GetY(), $x + 185, $this->GetY());
+                    $this->Ln(3);
+
+                    // Description
+                    $this->SetX($x + 5);
+                    $this->SetFont('Helvetica', '', 9);
+                    $this->SetTextColor(26, 31, 58); // Primary Text
+                    $this->MultiCell(180, 4, iconv('UTF-8', 'ISO-8859-1//TRANSLIT', strip_tags($description)));
+
+                    // Reset position after card
+                    $this->SetY($y + $cardHeight + 5);
                 }
             }
 
             $pdf = new PDF();
-            $pdf->AddPage();
-            $pdf->SetMargins(10, 40, 10); // Adjust for custom header
+            $pdf->SetMargins(10, 45, 10);
             $pdf->SetAutoPageBreak(true, 20);
+
+            $pdf->AddPage();
 
             // -- INFO TARGET --
             $pdf->SetY(45);
+
+            $pdf->SetFont('Helvetica', 'B', 9);
+            $pdf->SetTextColor(107, 116, 144); // Tertiary
+            $pdf->Cell(25, 6, 'OBJETIVO:', 0, 0);
             $pdf->SetFont('Helvetica', 'B', 10);
-            $pdf->Cell(30, 6, 'TARGET:', 0, 0);
-            $pdf->SetFont('Helvetica', '', 10);
+            $pdf->SetTextColor(26, 31, 58); // Primary
             $pdf->Cell(0, 6, $job['email'], 0, 1);
 
-            $pdf->SetFont('Helvetica', 'B', 10);
-            $pdf->Cell(30, 6, 'REF ID:', 0, 0);
+            $pdf->SetFont('Helvetica', 'B', 9);
+            $pdf->SetTextColor(107, 116, 144);
+            $pdf->Cell(25, 6, 'ID REF:', 0, 0);
             $pdf->SetFont('Helvetica', '', 10);
+            $pdf->SetTextColor(26, 31, 58);
             $pdf->Cell(0, 6, $jobId, 0, 1);
 
+            $pdf->SetFont('Helvetica', 'B', 9);
+            $pdf->SetTextColor(107, 116, 144);
+            $pdf->Cell(25, 6, 'RIESGO:', 0, 0);
             $pdf->SetFont('Helvetica', 'B', 10);
-            $pdf->Cell(30, 6, 'RIESGO:', 0, 0);
-            $pdf->SetFont('Helvetica', 'B', 10);
-            $pdf->SetTextColor(255, 0, 0);
+            $pdf->SetTextColor(200, 50, 50); // Warning/Error color
             $pdf->Cell(0, 6, $riskLevel, 0, 1);
             $pdf->SetTextColor(0);
 
             // -- 1. EVIDENCIA DE COMPROMISO --
-            $pdf->SectionTitle("1. EVIDENCIA DE COMPROMISO (RAW INTEL)");
+            // STYLE GUIDE: H2 Uppercase
+            $pdf->SectionTitle("1. EVIDENCIA DE COMPROMISO (INTELIGENCIA CRUDA)");
 
             if (empty($breaches)) {
                 $pdf->SetFont('Helvetica', '', 9);
@@ -367,28 +414,47 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
             }
 
             // -- 2. GLOSARIO TACTICO --
+            $pdf->CheckPageSpace(60);
             $pdf->SectionTitle("2. GLOSARIO TACTICO");
             foreach ($glossary as $term => $def) {
+                $pdf->CheckPageSpace(20);
                 $pdf->SetFont('Helvetica', 'B', 9);
+                // STYLE GUIDE: Lavender Accent for Terms (#8a9fca)
+                $pdf->SetTextColor(138, 159, 202);
                 $pdf->Cell(40, 5, utf8_to_iso($term . ":"), 0, 0);
                 $pdf->SetFont('Helvetica', '', 9);
+                // STYLE GUIDE: Secondary Text (#c5cae0 approx on white -> #6b7490)
+                $pdf->SetTextColor(107, 116, 144);
                 $pdf->MultiCell(0, 5, utf8_to_iso($def));
                 $pdf->Ln(2);
             }
 
             // -- 3. PROTOCOLO DE MITIGACION --
+            // STYLE GUIDE: List components
+            $pdf->CheckPageSpace(60);
             if (!empty($breaches)) {
                 $pdf->SectionTitle("3. PROTOCOLO DE MITIGACION");
-                $pdf->SetFont('Helvetica', '', 9);
+
                 foreach ($mitigationProtocols as $title => $step) {
+                    $pdf->CheckPageSpace(25);
+
+                    // Card style for steps
+                    $thisY = $pdf->GetY();
+                    $pdf->SetFillColor(249, 249, 252);
+                    $pdf->SetDrawColor(138, 159, 202);
+                    $pdf->Rect(10, $thisY, 190, 20, 'DF');
+
+                    $pdf->SetXY(15, $thisY + 2);
                     $pdf->SetFont('Helvetica', 'B', 9);
-                    $pdf->SetTextColor(10, 14, 39); // Navy
+                    $pdf->SetTextColor(26, 31, 58); // Navy
                     $pdf->Cell(0, 6, utf8_to_iso($title), 0, 1);
 
-                    $pdf->SetTextColor(50, 50, 50);
-                    $pdf->SetFont('Helvetica', '', 9);
-                    $pdf->MultiCell(0, 5, utf8_to_iso($step));
-                    $pdf->Ln(3);
+                    $pdf->SetXY(15, $thisY + 8);
+                    $pdf->SetTextColor(107, 116, 144); // Tertiary
+                    $pdf->SetFont('Helvetica', '', 8);
+                    $pdf->MultiCell(180, 5, utf8_to_iso($step));
+
+                    $pdf->SetY($thisY + 24);
                 }
             }
 
@@ -398,7 +464,7 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
             $pdf->Line(10, $pdf->GetY(), 200, $pdf->GetY());
             $pdf->Ln(5);
             $pdf->SetFont('Helvetica', '', 7);
-            $pdf->SetTextColor(100);
+            $pdf->SetTextColor(150);
             $pdf->MultiCell(0, 3, utf8_to_iso("AVISO LEGAL:\nEste documento contiene inteligencia recolectada de fuentes de acceso publico (OSINT). Su proposito es estrictamente para auditoria de seguridad y concientizacion. La generacion de este reporte no implica intrusion activa ni acceso no autorizado a sistemas. El usuario final es responsable de la custodia de esta informacion."));
 
             $reportName = 'report_' . $jobId . '.pdf';
