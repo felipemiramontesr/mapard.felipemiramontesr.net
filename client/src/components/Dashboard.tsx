@@ -124,7 +124,6 @@ const Dashboard: React.FC = () => {
                 <h1 className="text-5xl md:text-6xl font-black text-white tracking-widest uppercase mb-4 drop-shadow-[0_0_15px_rgba(255,255,255,0.15)]">
                     MAPARD
                 </h1>
-                <div className="w-32 h-1 bg-ops-radioactive/50 mx-auto mb-6 shadow-[0_0_10px_#39ff14]"></div>
                 <p className="text-ops-text_dim max-w-2xl mx-auto font-mono text-sm tracking-[0.2em] uppercase">
                     INTELIGENCIA TÁCTICA Y VIGILANCIA PASIVA
                 </p>

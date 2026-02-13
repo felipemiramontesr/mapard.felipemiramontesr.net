@@ -25,7 +25,7 @@ const ScanForm: React.FC<ScanFormProps> = ({ onScan, isLoading }) => {
             </div>
 
             <h2 className="text-xl font-bold mb-8 text-center text-white tracking-[0.2em] uppercase border-b border-white/10 pb-4">
-                // INICIAR SECUENCIA DE VIGILANCIA
+                INICIAR SECUENCIA DE VIGILANCIA
             </h2>
 
             <form onSubmit={handleSubmit} className="space-y-6 relative z-10">
