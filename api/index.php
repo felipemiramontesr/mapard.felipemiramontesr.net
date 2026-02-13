@@ -143,8 +143,10 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
                 $logs[] = ["message" => $msg, "type" => $type, "timestamp" => date('c')];
             }
 
-            // Step 1: DNS Recon
-            if ($domain) {
+            // Step 1: DNS Recon (Smart Filtered)
+            $publicProviders = ['gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com', 'icloud.com', 'protonmail.com', 'proton.me', 'live.com'];
+
+            if ($domain && !in_array(strtolower($domain), $publicProviders)) {
                 // Check if dns_get_record function exists
                 if (!function_exists('dns_get_record')) {
                     addLog($logs, "DNS functions disabled on this server.", "warning");
@@ -166,6 +168,8 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
                         addLog($logs, "No DNS records found for $domain.", "warning");
                     }
                 }
+            } else {
+                addLog($logs, "Skipping DNS Recon for public provider ($domain).", "info");
             }
 
             // Step 2: HIBP Breach Check (Real API)
