@@ -7,6 +7,10 @@ export default {
   ],
   theme: {
     extend: {
+      screens: {
+        'tall': { 'raw': '(min-height: 700px)' },
+        'xtall': { 'raw': '(min-height: 900px)' }, // For Pro Max / Desktop
+      },
       colors: {
         ops: {
           bg: "#0a0e27", // Dark Navy

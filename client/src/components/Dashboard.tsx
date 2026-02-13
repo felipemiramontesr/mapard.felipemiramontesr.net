@@ -119,13 +119,15 @@ const Dashboard: React.FC = () => {
     };
 
     return (
-        <div className="w-full max-w-4xl mx-auto relative flex flex-col items-center justify-center">
-            {/* Title Section: Visible but Scaled Down for Micro-Tactical Mobile View */}
-            <div className="text-center mb-2 md:mb-10 relative z-10 px-4 w-full block">
-                <h1 className="text-3xl sm:text-5xl md:text-6xl font-black text-white tracking-widest uppercase mb-1 md:mb-4 drop-shadow-[0_0_15px_rgba(255,255,255,0.15)] break-words">
+        <div className="w-full max-w-4xl mx-auto relative flex flex-col items-center justify-center h-full">
+            {/* Title Section: Responsive Vertical Sizing */}
+            {/* Mobile Compact (Default): text-3xl, mb-2 */}
+            {/* Mobile Tall (>700px): text-5xl, mb-8 */}
+            <div className="text-center mb-2 tall:mb-8 md:mb-10 relative z-10 px-4 w-full block">
+                <h1 className="text-3xl tall:text-5xl md:text-6xl font-black text-white tracking-widest uppercase mb-1 tall:mb-4 md:mb-4 drop-shadow-[0_0_15px_rgba(255,255,255,0.15)] break-words transition-all duration-300">
                     MAPARD
                 </h1>
-                <p className="text-ops-text_dim max-w-2xl mx-auto font-mono text-[8px] sm:text-xs md:text-sm tracking-[0.15em] sm:tracking-[0.2em] uppercase leading-relaxed text-white/60">
+                <p className="text-ops-text_dim max-w-2xl mx-auto font-mono text-[8px] tall:text-[10px] sm:text-xs md:text-sm tracking-[0.15em] sm:tracking-[0.2em] uppercase leading-relaxed text-white/60 transition-all duration-300">
                     INTELIGENCIA TÁCTICA Y VIGILANCIA PASIVA
                 </p>
             </div>
