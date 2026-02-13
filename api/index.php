@@ -439,22 +439,10 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
                 }
             }
 
-            $pdf->CheckPageSpace(60);
-            $pdf->SectionTitle("2. Glosario Táctico");
-            foreach ($glossary as $term => $def) {
-                $pdf->CheckPageSpace(20);
-                $pdf->SetFont('Helvetica', 'B', 9);
-                $pdf->SetTextColor(138, 159, 202);
-                $pdf->Cell(40, 5, text_sanitize($term . ":"), 0, 0);
-                $pdf->SetFont('Helvetica', '', 9);
-                $pdf->SetTextColor(107, 116, 144);
-                $pdf->MultiCell(0, 5, text_sanitize($def));
-                $pdf->Ln(2);
-            }
-
+            // -- 2. PROTOCOLO DE MITIGACION --
             $pdf->CheckPageSpace(60);
             if (!empty($breaches)) {
-                $pdf->SectionTitle("3. Protocolo de Mitigación");
+                $pdf->SectionTitle("2. Protocolo de Mitigación");
 
                 foreach ($mitigationProtocols as $title => $step) {
                     $pdf->CheckPageSpace(25);
@@ -476,6 +464,20 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
 
                     $pdf->SetY($thisY + 24);
                 }
+            }
+
+            // -- 3. GLOSARIO TACTICO --
+            $pdf->CheckPageSpace(60);
+            $pdf->SectionTitle("3. Glosario Táctico");
+            foreach ($glossary as $term => $def) {
+                $pdf->CheckPageSpace(20);
+                $pdf->SetFont('Helvetica', 'B', 9);
+                $pdf->SetTextColor(138, 159, 202);
+                $pdf->Cell(40, 5, text_sanitize($term . ":"), 0, 0);
+                $pdf->SetFont('Helvetica', '', 9);
+                $pdf->SetTextColor(107, 116, 144);
+                $pdf->MultiCell(0, 5, text_sanitize($def));
+                $pdf->Ln(2);
             }
 
             $pdf->Ln(10);
