@@ -91,7 +91,7 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
 
         $jobId = uniqid('job_', true);
         $initialLogs = json_encode([
-            ["message" => "Iniciando Protocolo MAPA-RD...", "type" => "info", "timestamp" => date('c')]
+            ["message" => "Iniciando Protocolo MAPARD...", "type" => "info", "timestamp" => date('c')]
         ]);
 
         $stmt = $pdo->prepare("INSERT INTO scans (job_id, email, domain, status, logs) VALUES (?, ?, ?, 'RUNNING', ?)");
@@ -177,7 +177,7 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($ch, CURLOPT_HTTPHEADER, [
                 "hibp-api-key: $hibpApiKey",
-                "user-agent: MAPA-RD-OSINT-AGENT"
+                "user-agent: MAPARD-OSINT-AGENT"
             ]);
 
             $response = curl_exec($ch);

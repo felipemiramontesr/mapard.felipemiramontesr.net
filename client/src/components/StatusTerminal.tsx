@@ -114,7 +114,7 @@ const StatusTerminal: React.FC<StatusTerminalProps> = ({ logs, isVisible, onRese
                                     } else {
                                         const link = document.createElement('a');
                                         link.href = resultUrl;
-                                        link.download = `MAPA-RD_DOSSIER.pdf`;
+                                        link.download = `MAPARD_DOSSIER.pdf`;
                                         document.body.appendChild(link);
                                         link.click();
                                         document.body.removeChild(link);

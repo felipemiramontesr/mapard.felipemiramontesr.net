@@ -13,8 +13,9 @@ class QCManager:
     """
 
     # Strict v2.3 naming pattern
-    # Format: MAPA-RD - TYPE - IDCLIENTE - NOMBRE - IDREPORTE - FECHA
-    NAMING_PATTERN = r"^MAPA-RD - (DATOS_CLIENTE|ONBOARDING|INTAKE|REPORTE|ARCO|QC|METADATA) - (\d+) - ([A-Za-z0-9_-]+) - (R-[0-9A-Za-z-]+|I-[0-9A-Za-z-]+) - (\d{4}-\d{2}-\d{2})$"
+    # Strict v2.3 naming pattern (Hybrid: Supports legacy MAPA-RD and new MAPARD)
+    # Format: (MAPARD|MAPA-RD) - TYPE - IDCLIENTE - NOMBRE - IDREPORTE - FECHA
+    NAMING_PATTERN = r"^(MAPARD|MAPA-RD) - (DATOS_CLIENTE|ONBOARDING|INTAKE|REPORTE|ARCO|QC|METADATA) - (\d+) - ([A-Za-z0-9_-]+) - (R-[0-9A-Za-z-]+|I-[0-9A-Za-z-]+) - (\d{4}-\d{2}-\d{2})$"
 
     def __init__(self, state_manager: Any):
         """Initialize the QC manager linked to the state system."""

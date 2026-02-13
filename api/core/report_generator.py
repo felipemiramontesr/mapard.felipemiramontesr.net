@@ -79,7 +79,7 @@ class ReportGenerator:
 
         r_num = report_id.split("-")[-1] if "-" in report_id else "001"
         safe_name = self.sanitize_filename(client_name)
-        return f"MAPA-RD_{client_id}_{safe_name}_{clean_date}_{r_num}"
+        return f"MAPARD_{client_id}_{safe_name}_{clean_date}_{r_num}"
 
     def generate_report(
         self,

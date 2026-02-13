@@ -77,8 +77,8 @@ class ClientManager:
         numeric_id = self.registry["next_global_client_id"]
         client_id = f"C{numeric_id:03d}"
 
-        # Folder Name: MAPA-RD-Nombre-ID
-        folder_name = f"MAPA-RD-{normalized_name}-{client_id}"
+        # Folder Name: MAPARD-Nombre-ID
+        folder_name = f"MAPARD-{normalized_name}-{client_id}"
         client_dir = os.path.join(self.BASE_PATH, folder_name)
 
         # Create Directory

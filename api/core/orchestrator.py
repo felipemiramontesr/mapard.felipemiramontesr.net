@@ -113,7 +113,7 @@ class Orchestrator:
             return []
 
         url = f"https://haveibeenpwned.com/api/v3/breachedaccount/{email}?truncateResponse=false"
-        headers = {"hibp-api-key": api_key, "user-agent": "MAPA-RD-Orchestrator"}
+        headers = {"hibp-api-key": api_key, "user-agent": "MAPARD-Orchestrator"}
 
         print(f"[*] Fetching HIBP breaches for {email}...")
         try:

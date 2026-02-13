@@ -36,7 +36,7 @@ const Dashboard: React.FC = () => {
         setResultUrl(null);
         setViewMode('terminal'); // SWAP TO TERMINAL
         setLogs([]);
-        addLog(`Initiating connection to MAPA-RD Graph...`, 'info');
+        addLog(`Initiating connection to MAPARD Graph...`, 'info');
 
         try {
             // 1. Start Scan
