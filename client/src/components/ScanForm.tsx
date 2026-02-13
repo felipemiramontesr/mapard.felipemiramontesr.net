@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Mail, Globe, User, Rocket } from 'lucide-react';
+import { Mail, Globe, User, Rocket } from 'lucide-react';
 
 interface ScanFormProps {
     onScan: (data: { name: string; email: string; domain: string }) => void;
