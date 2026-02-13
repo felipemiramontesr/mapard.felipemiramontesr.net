@@ -20,6 +20,11 @@ const config: CapacitorConfig = {
             androidScaleType: "CENTER_CROP",
             splashFullScreen: true,
             splashImmersive: true
+        },
+        Keyboard: {
+            resize: "body",
+            style: "DARK",
+            resizeOnFullScreen: true
         }
     }
 };
