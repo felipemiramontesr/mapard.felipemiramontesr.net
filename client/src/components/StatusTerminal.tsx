@@ -1,6 +1,8 @@
 import React, { useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Terminal, Activity, ShieldAlert } from 'lucide-react';
+import { Terminal, Activity, ShieldAlert, Download } from 'lucide-react';
+import { Capacitor } from '@capacitor/core';
+import { Browser } from '@capacitor/browser';
 
 interface Log {
     id: number;
@@ -13,9 +15,10 @@ interface StatusTerminalProps {
     logs: Log[];
     isVisible: boolean;
     onReset?: () => void;
+    resultUrl?: string | null;
 }
 
-const StatusTerminal: React.FC<StatusTerminalProps> = ({ logs, isVisible, onReset }) => {
+const StatusTerminal: React.FC<StatusTerminalProps> = ({ logs, isVisible, onReset, resultUrl }) => {
     const endRef = useRef<HTMLDivElement>(null);
     const isCompleted = logs.some(l => l.message.includes('Scan Complete') || l.message.includes('Scan Failed'));
 
@@ -29,7 +32,7 @@ const StatusTerminal: React.FC<StatusTerminalProps> = ({ logs, isVisible, onRese
         <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="ops-card mt-8 font-mono text-xs border-ops-cyan shadow-none flex flex-col max-h-[80vh]"
+            className="ops-card mt-8 font-mono text-xs border-ops-cyan shadow-none flex flex-col h-full"
         >
             <div className="bg-ops-bg_alt/90 px-3 sm:px-4 py-2 flex items-center justify-between border-b border-white/5 mb-2 flex-none">
                 <div className="flex items-center gap-2 text-ops-cyan animate-pulse">
@@ -81,6 +84,36 @@ const StatusTerminal: React.FC<StatusTerminalProps> = ({ logs, isVisible, onRese
                         <Terminal className="w-4 h-4" />
                         EJECUTAR NUEVO ANÁLISIS
                     </button>
+
+                    {resultUrl && (
+                        <button
+                            onClick={async (e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+
+                                // Logic copied from previous auto-download
+                                if (Capacitor.isNativePlatform()) {
+                                    const API_BASE = 'https://mapard.felipemiramontesr.net'; // Hardcoded backup or passed prop
+                                    let fullUrl = resultUrl;
+                                    if (fullUrl && !fullUrl.startsWith('http')) {
+                                        fullUrl = `${API_BASE}${fullUrl.startsWith('/') ? '' : '/'}${fullUrl}`;
+                                    }
+                                    await Browser.open({ url: fullUrl });
+                                } else {
+                                    const link = document.createElement('a');
+                                    link.href = resultUrl;
+                                    link.download = `MAPA-RD_DOSSIER.pdf`;
+                                    document.body.appendChild(link);
+                                    link.click();
+                                    document.body.removeChild(link);
+                                }
+                            }}
+                            className="w-full mt-3 py-3 border border-ops-radioactive/50 text-ops-radioactive font-bold tracking-[0.2em] hover:bg-ops-radioactive/10 transition-all uppercase text-sm flex items-center justify-center gap-2 cursor-pointer active:scale-95"
+                        >
+                            <Download className="w-4 h-4" />
+                            DESCARGAR DOSSIER
+                        </button>
+                    )}
                 </motion.div>
             )}
         </motion.div>
