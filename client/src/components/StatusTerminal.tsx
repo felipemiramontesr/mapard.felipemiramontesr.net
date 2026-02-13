@@ -48,23 +48,32 @@ const StatusTerminal: React.FC<StatusTerminalProps> = ({ logs, isVisible, onRese
             </div>
 
             {/* Area de scroll para logs (Flex Grow) */}
-            <div className="flex-grow overflow-y-auto p-4 space-y-1 font-mono custom-scrollbar bg-black/50 relative">
+            <div className="flex-grow overflow-y-auto p-4 space-y-2 font-mono custom-scrollbar bg-black/50 relative">
                 <AnimatePresence>
-                    {logs.map((log) => (
-                        <motion.div
-                            key={log.id}
-                            initial={{ opacity: 0, x: -10 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            className={`flex gap-3 break-all whitespace-pre-wrap ${log.type === 'error' ? 'text-ops-danger font-bold' :
-                                log.type === 'success' ? 'text-ops-cyan font-bold' :
-                                    log.type === 'warning' ? 'text-ops-warning' : 'text-ops-text_dim'
-                                }`}
-                        >
-                            <span className="opacity-40 text-[10px] pt-0.5 flex-none">[{log.timestamp}] ::</span>
-                            <span className={log.type === 'info' ? 'text-opacity-80' : ''}>{log.message}</span>
-                            {log.type === 'error' && <ShieldAlert className="w-3 h-3 inline ml-1 flex-none" />}
-                        </motion.div>
-                    ))}
+                    {logs.map((log) => {
+                        // Format timestamp: 2026-02-13T07:10:07+00:00 -> 07:10:07
+                        const timeStr = log.timestamp.includes('T')
+                            ? log.timestamp.split('T')[1].split('.')[0].split('+')[0]
+                            : log.timestamp;
+
+                        return (
+                            <motion.div
+                                key={log.id}
+                                initial={{ opacity: 0, x: -10 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                className={`flex items-start gap-2 text-[10px] sm:text-xs ${log.type === 'error' ? 'text-ops-danger font-bold' :
+                                    log.type === 'success' ? 'text-ops-cyan font-bold' :
+                                        log.type === 'warning' ? 'text-ops-warning' : 'text-ops-text_dim'
+                                    }`}
+                            >
+                                <span className="opacity-40 font-mono whitespace-nowrap pt-[2px]">[{timeStr}]</span>
+                                <span className={`flex-1 break-words ${log.type === 'info' ? 'text-opacity-80' : ''}`}>
+                                    {log.message}
+                                    {log.type === 'error' && <ShieldAlert className="w-3 h-3 inline ml-1 align-text-bottom" />}
+                                </span>
+                            </motion.div>
+                        );
+                    })}
                 </AnimatePresence>
                 <div ref={endRef} />
             </div>
