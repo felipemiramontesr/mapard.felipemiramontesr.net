@@ -13,10 +13,14 @@ export default {
           bg_alt: "#1a1f3a", // Lighter Navy
           text: "#e8e8e8", // White Bone
           text_dim: "#c5cae0", // Blueish Gray
-          accent: "#8a9fca", // Lavender Blue (Tactical)
-          border: "#4a5578", // UI Border
-          success: "#00ff85", // Keep the vivid green for success
-          radioactive: "#39ff14", // TERMINAL GREEN
+
+          // FORCED CYAN PROTOCOL
+          accent: "#00f3ff", // RADIOACTIVE CYAN (Overrides Lavender)
+          cyan: "#00f3ff",   // Explicit Cyan
+          radioactive: "#00f3ff", // Maps "Radioactive" logic to Cyan
+          border: "#4a5578", // UI Border (Blueish)
+
+          success: "#00f3ff", // Success is now Cyan too for uniformity
           warning: "#ff9f43",
           danger: "#ff2a2a",
         }

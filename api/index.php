@@ -11,7 +11,7 @@ if (!file_exists($fpdfPath)) {
     echo json_encode(["error" => "Critical Dependency Missing: fpdf.php not found in " . __DIR__]);
     exit;
 }
-define('FPDF_FONTPATH', __DIR__ . '/font/');
+define('FPDF_FONTPATH', __DIR__ . '/font/'); // Ensure trailing slash
 require($fpdfPath);
 
 // api/index.php - Real OSINT Engine
@@ -211,7 +211,7 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
             ];
 
             $mitigationProtocols = [
-                "1. CAMBIO INMEDIATO DE CREDENCIALES" => "Rote todas las contrasenas expuestas. Use frases de paso largas (+16 caracteres).",
+                "1. CAMBIO INMEDIATO DE CREDENCIALES" => "Rote todas las contrasenias expuestas. Use frases de paso largas (+16 caracteres).",
                 "2. AUTENTICACION MULTI-FACTOR (2FA)" => "Active 2FA en todos los servicios criticos. Evite SMS, prefiera Apps o Llaves U2F.",
                 "3. GESTOR DE CONTRASENAS" => "Utilice Bitwarden o 1Password para generar y guardar claves unicas por sitio.",
                 "4. MONITORIZACION ACTIVA" => "Mantenga alertas de identidad en servicios como HaveIBeenPwned o Google Dark Web Report."
@@ -222,9 +222,8 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
             $riskAnalysis = [];
 
             if (!empty($findings)) {
-                $riskScore += 10; // Base risk for having any finding
+                $riskScore += 10; // Base risk
 
-                // Analyze raw breaches for keywords
                 if (count($findings) > 5) {
                     $riskScore += 40;
                     $riskAnalysis[] = "ALTA EXPOSICION: El objetivo aparece en multiples filtraciones, indicando una huella digital comprometida a largo plazo.";
@@ -233,7 +232,7 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
                     $riskAnalysis[] = "EXPOSICION MODERADA: Credenciales comprometidas en incidentes aislados.";
                 }
 
-                $riskAnalysis[] = "VECTORES DETECTADOS: Email y Contrasenas potenciales. Esto facilita ataques de Credential Stuffing contra sistemas corporativos.";
+                $riskAnalysis[] = "VECTORES DETECTADOS: Email y Contrasenias potenciales. Esto facilita ataques de Credential Stuffing contra sistemas corporativos.";
             } else {
                 $riskAnalysis[] = "BAJA EXPOSICION: No se detectaron brechas publicas mayores vinculadas directamente.";
             }
@@ -241,21 +240,22 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
             $riskLevel = $riskScore > 40 ? "CRITICO" : ($riskScore > 10 ? "MEDIO" : "BAJO");
 
 
-            // PDF GENERATION
+            // PDF GENERATION (STRICT HELVETICA ONLY)
+            // Error Fix: courier and arial are missing, using helvetica only.
             $pdf = new FPDF();
             $pdf->AddPage();
 
             // -- HEADER --
-            $pdf->SetFont('Courier', 'B', 16);
+            $pdf->SetFont('Helvetica', 'B', 16);
             $pdf->Cell(0, 10, 'CONFIDENTIAL // EYES ONLY', 0, 1, 'C');
             $pdf->SetLineWidth(0.5);
             $pdf->Line(10, 20, 200, 20);
             $pdf->Ln(5);
 
-            $pdf->SetFont('Arial', 'B', 24);
+            $pdf->SetFont('Helvetica', 'B', 24);
             $pdf->Cell(0, 15, 'MAPA-RD INTEL DOSSIER', 0, 1, 'L');
 
-            $pdf->SetFont('Courier', '', 10);
+            $pdf->SetFont('Helvetica', '', 10);
             $pdf->Cell(0, 5, 'TARGET: ' . strtoupper($job['email']), 0, 1);
             $pdf->Cell(0, 5, 'REF ID: ' . $jobId, 0, 1);
             $pdf->Cell(0, 5, 'DATE:   ' . date('Y-m-d H:i:s T'), 0, 1);
@@ -265,13 +265,14 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
             // -- EXECUTIVE SUMMARY --
             $pdf->SetFillColor(0, 0, 0);
             $pdf->SetTextColor(255, 255, 255);
-            $pdf->SetFont('Arial', 'B', 12);
+            $pdf->SetFont('Helvetica', 'B', 12);
             $pdf->Cell(0, 8, ' 1. RESUMEN EJECUTIVO DE AMENAZA', 1, 1, 'L', true);
             $pdf->SetTextColor(0, 0, 0);
-            $pdf->SetFont('Arial', '', 10);
+            $pdf->SetFont('Helvetica', '', 10);
             $pdf->Ln(2);
             foreach ($riskAnalysis as $analysis) {
-                $pdf->MultiCell(0, 5, "- " . iconv('UTF-8', 'windows-1252', $analysis)); // Handle basic encoding
+                // Formatting UTF8 for FPDF (Latin1)
+                $pdf->MultiCell(0, 5, "- " . iconv('UTF-8', 'windows-1252//TRANSLIT', $analysis));
                 $pdf->Ln(1);
             }
             $pdf->Ln(5);
@@ -279,13 +280,12 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
             // -- FINDINGS --
             $pdf->SetFillColor(0, 0, 0);
             $pdf->SetTextColor(255, 255, 255);
-            $pdf->SetFont('Arial', 'B', 12);
+            $pdf->SetFont('Helvetica', 'B', 12);
             $pdf->Cell(0, 8, ' 2. EVIDENCIA DE COMPROMISO (RAW INTEL)', 1, 1, 'L', true);
             $pdf->SetTextColor(0, 0, 0);
-            $pdf->SetFont('Courier', '', 9);
+            $pdf->SetFont('Helvetica', '', 9);
             $pdf->Ln(2);
             foreach ($findings as $f) {
-                // Formatting finding text
                 $pdf->Cell(0, 5, '> ' . substr($f, 0, 90), 0, 1);
             }
             if (empty($findings)) {
@@ -296,16 +296,16 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
             // -- GLOSSARY --
             $pdf->SetFillColor(0, 0, 0);
             $pdf->SetTextColor(255, 255, 255);
-            $pdf->SetFont('Arial', 'B', 12);
+            $pdf->SetFont('Helvetica', 'B', 12);
             $pdf->Cell(0, 8, ' 3. GLOSARIO TACTICO OPERATIVO', 1, 1, 'L', true);
             $pdf->SetTextColor(0, 0, 0);
-            $pdf->SetFont('Arial', '', 9);
+            $pdf->SetFont('Helvetica', '', 9);
             $pdf->Ln(2);
             foreach ($glossary as $term => $def) {
-                $pdf->SetFont('Arial', 'B', 9);
+                $pdf->SetFont('Helvetica', 'B', 9);
                 $pdf->Cell(40, 5, $term . ':', 0, 0);
-                $pdf->SetFont('Arial', '', 9);
-                $pdf->MultiCell(0, 5, iconv('UTF-8', 'windows-1252', $def));
+                $pdf->SetFont('Helvetica', '', 9);
+                $pdf->MultiCell(0, 5, iconv('UTF-8', 'windows-1252//TRANSLIT', $def));
                 $pdf->Ln(1);
             }
             $pdf->Ln(5);
@@ -313,22 +313,22 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
             // -- MITIGATION --
             $pdf->SetFillColor(0, 0, 0);
             $pdf->SetTextColor(255, 255, 255);
-            $pdf->SetFont('Arial', 'B', 12);
+            $pdf->SetFont('Helvetica', 'B', 12);
             $pdf->Cell(0, 8, ' 4. PROTOCOLO DE MITIGACION', 1, 1, 'L', true);
             $pdf->SetTextColor(0, 0, 0);
-            $pdf->SetFont('Arial', '', 9);
+            $pdf->SetFont('Helvetica', '', 9);
             $pdf->Ln(2);
             foreach ($mitigationProtocols as $title => $step) {
-                $pdf->SetFont('Arial', 'B', 9);
-                $pdf->Cell(0, 5, iconv('UTF-8', 'windows-1252', $title), 0, 1);
-                $pdf->SetFont('Arial', '', 9);
-                $pdf->MultiCell(0, 5, iconv('UTF-8', 'windows-1252', $step));
+                $pdf->SetFont('Helvetica', 'B', 9);
+                $pdf->Cell(0, 5, iconv('UTF-8', 'windows-1252//TRANSLIT', $title), 0, 1);
+                $pdf->SetFont('Helvetica', '', 9);
+                $pdf->MultiCell(0, 5, iconv('UTF-8', 'windows-1252//TRANSLIT', $step));
                 $pdf->Ln(2);
             }
 
 
             $pdf->Ln(10);
-            $pdf->SetFont('Courier', 'I', 8);
+            $pdf->SetFont('Helvetica', 'I', 8);
             $pdf->MultiCell(0, 4, "AVISO LEGAL:\nEste reporte es generado automaticamente para fines de auditoria de seguridad.\nEl usuario es responsable de custodiar esta informacion sensible.\nGenerado por MAPA-RD Engine v2.1 (Black Ops Level).");
 
             $reportName = 'report_' . $jobId . '.pdf';
