@@ -39,7 +39,11 @@
 
   /* TACTICAL BUTTONS */
   .btn-ops {
-    @apply px-6 py-2 bg-ops-bg_alt border border-ops-border text-ops-accent font-mono font-bold tracking-widest uppercase text-sm transition-all duration-300 hover:bg-ops-accent/10 hover:border-ops-accent hover:shadow-[0_0_15px_rgba(138, 159, 202, 0.25)] disabled:opacity-50 disabled:cursor-not-allowed relative overflow-hidden;
+    @apply px-6 py-2 bg-ops-bg_alt border border-ops-border text-ops-accent font-mono font-bold tracking-widest uppercase text-sm transition-all duration-300 hover:bg-ops-accent/10 hover:border-ops-accent disabled:opacity-50 disabled:cursor-not-allowed relative overflow-hidden;
+  }
+
+  .btn-ops:hover {
+    box-shadow: 0 0 15px rgba(138, 159, 202, 0.25);
   }
 
   /* GLASS PANELS with HUD CORNERS */
