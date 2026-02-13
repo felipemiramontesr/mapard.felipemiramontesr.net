@@ -11,8 +11,6 @@ if (!file_exists($fpdfPath)) {
     echo json_encode(["error" => "Critical Dependency Missing: fpdf.php not found in " . __DIR__]);
     exit;
 }
-    exit;
-}
 
 // FIX: Use realpath to resolve symlinks or relative path issues
 $fontDir = __DIR__ . '/font';
@@ -20,7 +18,7 @@ if (is_dir($fontDir)) {
     define('FPDF_FONTPATH', realpath($fontDir) . '/');
 } else {
     // Fallback or error
-    define('FPDF_FONTPATH', __DIR__ . '/font/'); 
+    define('FPDF_FONTPATH', __DIR__ . '/font/');
 }
 
 require($fpdfPath);
