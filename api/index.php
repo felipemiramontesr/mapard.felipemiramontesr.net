@@ -214,7 +214,24 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
                 $findings[] = "Breach Analysis: Failed (API Error $httpCode).";
             }
 
-            // Step 3: Complete & Generate PDF
+            // Step 3: Gemini AI Intelligence (Project CORTEX)
+            $aiIntel = null;
+            if (!empty($breaches)) {
+                require_once __DIR__ . '/services/GeminiService.php';
+                addLog($logs, "Invoking CORTEX Neural Engine (Gemini 2.0)...", "info");
+                $gemini = new GeminiService();
+                $aiIntel = $gemini->analyzeBreach($breachData);
+
+                if ($aiIntel) {
+                    addLog($logs, "Threat Analysis Complete. Level: " . $aiIntel['threat_level'], "success");
+                    // Override static risk level with AI assessment
+                    $riskLevel = strtoupper($aiIntel['threat_level']);
+                } else {
+                    addLog($logs, "AI Unreachable. Fallback to static protocols.", "warning");
+                }
+            }
+
+            // Step 4: Complete & Generate PDF
             addLog($logs, "Generating Intelligence Report...", "info");
 
             // --- PROFESSIONAL SPANISH (v7 - ZERO ENGLISH) ---
@@ -283,7 +300,17 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
                 else
                     $riskScore += 30;
             }
-            $riskLevel = $riskScore > 60 ? "CRÍTICO" : ($riskScore > 20 ? "ALTO" : "BAJO");
+
+            // Define colors based on risk
+            if ($riskLevel === 'CRITICAL' || $riskLevel === 'CRÍTICO')
+                $riskColor = [255, 0, 80]; // Neon Red
+            elseif ($riskLevel === 'HIGH' || $riskLevel === 'ALTO')
+                $riskColor = [255, 130, 0]; // Orange
+            elseif ($riskLevel === 'MEDIUM' || $riskLevel === 'MEDIO')
+                $riskColor = [255, 200, 0]; // Amber
+            else
+                $riskColor = [0, 243, 255]; // Cyan (Low)
+
 
             // PDF CLASS
             class PDF extends FPDF
@@ -343,6 +370,47 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
                     $this->SetDrawColor(74, 85, 120);
                     $this->Line($this->GetX(), $this->GetY(), $this->GetX() + 190, $this->GetY());
                     $this->Ln(8);
+                }
+
+                function RenderAIIntel($aiData, $riskColor)
+                {
+                    if (!$aiData)
+                        return;
+
+                    $this->CheckPageSpace(60);
+                    $this->SetFillColor(10, 14, 30); // Dark background
+                    $this->Rect(10, $this->GetY(), 190, 50, 'F');
+
+                    // Header Bar
+                    $this->SetFillColor($riskColor[0], $riskColor[1], $riskColor[2]);
+                    $this->Rect(10, $this->GetY(), 4, 50, 'F'); // Left accent bar
+
+                    $this->SetXY(16, $this->GetY() + 3);
+                    $this->SetTextColor($riskColor[0], $riskColor[1], $riskColor[2]);
+                    $this->SetFont('Helvetica', 'B', 10);
+                    $this->Cell(0, 6, "COMENTARIO DEL ANALISTA TACTICO (AI)", 0, 1);
+
+                    // Executive Summary
+                    $this->SetX(16);
+                    $this->SetTextColor(200, 200, 200);
+                    $this->SetFont('Helvetica', '', 9);
+                    $this->MultiCell(180, 5, text_sanitize($aiData['executive_summary']));
+
+                    // Actionable Intel
+                    $this->Ln(3);
+                    $this->SetX(16);
+                    $this->SetTextColor($riskColor[0], $riskColor[1], $riskColor[2]);
+                    $this->SetFont('Helvetica', 'B', 9);
+                    $this->Cell(0, 6, "ACCIONES PRIORITARIAS:", 0, 1);
+
+                    $this->SetFont('Helvetica', '', 9);
+                    $this->SetTextColor(200, 200, 200);
+                    foreach ($aiData['actionable_intel'] as $step) {
+                        $this->SetX(16);
+                        $this->Cell(4, 5, ">", 0, 0);
+                        $this->Cell(0, 5, text_sanitize($step), 0, 1);
+                    }
+                    $this->Ln(5);
                 }
 
                 function BreachCard($name, $date, $classes, $description)
@@ -428,9 +496,16 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
             $pdf->SetTextColor(107, 116, 144);
             $pdf->Cell(35, 6, text_sanitize('Nivel de Riesgo:'), 0, 0);
             $pdf->SetFont('Helvetica', 'B', 10);
-            $pdf->SetTextColor(200, 50, 50);
+            $pdf->SetTextColor($riskColor[0], $riskColor[1], $riskColor[2]);
             $pdf->Cell(0, 6, text_sanitize($riskLevel), 0, 1);
             $pdf->SetTextColor(0);
+
+            // RENDER AI SECTION IF AVAILABLE
+            if ($aiIntel) {
+                $pdf->Ln(5);
+                $pdf->RenderAIIntel($aiIntel, $riskColor);
+                $pdf->Ln(5);
+            }
 
             $pdf->SectionTitle("1. Evidencia de Compromiso (Inteligencia Cruda)");
 
@@ -444,7 +519,7 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
             }
 
             // -- 2. PROTOCOLO DE MITIGACION --
-            $pdf->CheckPageSpace(60);
+            // $pdf->CheckPageSpace(60); // CheckSpace inside logic if section big
             if (!empty($breaches)) {
                 $pdf->SectionTitle("2. Protocolo de Mitigación");
 
