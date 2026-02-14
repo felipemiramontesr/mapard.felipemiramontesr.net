@@ -120,7 +120,7 @@ const Dashboard: React.FC = () => {
     };
 
     return (
-        <div className="w-full max-w-4xl mx-auto relative flex flex-col items-center my-auto py-0">
+        <div className="w-full max-w-4xl mx-auto relative flex flex-col items-center flex-grow justify-between py-0">
             {/* Title Section: Responsive Vertical Sizing */}
             {/* Mobile Compact (Default): text-3xl, mb-2 */}
             {/* Mobile Tall (>700px): text-5xl, mb-8 */}
@@ -134,11 +134,11 @@ const Dashboard: React.FC = () => {
             </div>
 
             {viewMode === 'form' ? (
-                <div className="animate-[fadeIn_0.5s_ease-out] w-full px-4">
+                <div className="animate-[fadeIn_0.5s_ease-out] w-full px-4 flex-grow flex flex-col justify-center">
                     <ScanForm onScan={handleStartScan} isLoading={isScanning} />
                 </div>
             ) : (
-                <div className="animate-[slideUp_0.5s_ease-out] w-full px-4 h-full pb-0">
+                <div className="animate-[slideUp_0.5s_ease-out] w-full px-4 h-full pb-0 flex flex-col justify-center">
                     <StatusTerminal
                         logs={logs}
                         isVisible={true}
@@ -148,7 +148,7 @@ const Dashboard: React.FC = () => {
                 </div>
             )}
             {/* Tactical Telemetry Module (Fills Void) */}
-            <div className="w-full px-4 mt-4">
+            <div className="w-full px-4 mt-2">
                 <TacticalTelemetry />
             </div>
         </div>
