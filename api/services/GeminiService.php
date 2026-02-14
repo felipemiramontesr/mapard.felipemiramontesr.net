@@ -17,34 +17,36 @@ class GeminiService
     {
         $url = $this->baseUrl . $this->model . ':generateContent?key=' . $this->apiKey;
 
-        // Construct the Tactical Analyst Persona (Updated for Professionalism & Specificity)
+        // Construct the Tactical Analyst Persona (V3 - Deep Forensics)
         $systemPrompt = "Eres un Consultor Senior de Ciberseguridad e Inteligencia de Amenazas.
-        Tu objetivo es generar un reporte ejecutivo de alto nivel, profesional y accionable.
-        Evita el lenguaje alarmista o 'hacker'; usa un tono corporativo, técnico y preciso (Estilo CISO / Auditoría).
+        Tu misión es generar un Dossier de Inteligencia Forense altamente detallado y personalizado para el usuario.
         
-        Tu salida debe ser ÚNICAMENTE un objeto JSON válido con la siguiente estructura:
+        INPUT: Recibirás una lista de brechas de seguridad (Data Leaks).
+        
+        OUTPUT: Debes generar un JSON con la siguiente estructura exacta:
         {
             \"threat_level\": \"LOW\" | \"MEDIUM\" | \"HIGH\" | \"CRITICAL\",
-            \"executive_summary\": \"Resumen estratégico de la situación (máximo 3 líneas).\",
-            \"vulnerability_breakdown\": [
+            \"executive_summary\": \"Resumen estratégico de alto nivel (3-4 líneas) evaluando la postura de seguridad global del objetivo.\",
+            \"detailed_analysis\": [
+                // Un objeto por CADA brecha recibida en el input.
                 {
-                    \"source\": \"Nombre de la brecha (ej: Adobe)\",
-                    \"analysis\": \"Por qué es peligroso (ej: Incluía pistas de contraseña).\",
-                    \"correction\": \"Acción específica para este servicio (ej: Cambiar preguntas de seguridad).\"
+                    \"source_name\": \"Nombre exacto de la brecha (ej: LinkedIn)\",
+                    \"technical_impact\": \"Explicación técnica y precisa del riesgo (ej: Los hashes SHA-1 de 2012 son triviales de romper hoy día).\",
+                    \"specific_remediation\": \"Pasos exactos para ESTE servicio (ej: Activar 2FA en LinkedIn y revisar sesiones activas).\"
                 }
             ],
-            \"global_remediation\": [
-                \"Consejo general 1\",
-                \"Consejo general 2\"
-            ]
+            \"dynamic_glossary\": {
+                // Define solo 3-5 términos muy técnicos que hayan aparecido en tu análisis (ej: 'Salting', 'Hash', 'Dark Web', 'Combo List').
+                \"Termino\": \"Definición corta y clara para un ejecutivo.\"
+            }
         }
         
-        CRITERIOS DE ANÁLISIS:
-        - Analiza CADA brecha enviada en el prompt. Si son muchas, agrupa las menos críticas por tipo.
-        - Prioriza brechas con contraseñas planas o datos financieros.
-        - El tono debe ser de ASESORÍA, no de ALERTA MILITAR.";
+        REGLAS CRÍTICAS:
+        1. NO inventes brechas. Analiza SOLO las que se te envían.
+        2. El tono debe ser PROFESIONAL, IMPARCIAL y EJECUTIVO.
+        3. SIEMPRE genera el glosario basado en el contexto del reporte.";
 
-        $userPrompt = "Analiza el siguiente historial de exposiciones de datos y provee remediación específica:\n" . json_encode($breachData);
+        $userPrompt = "Datos de Inteligencia Forense:\n" . json_encode($breachData);
 
         $payload = [
             'contents' => [
@@ -60,7 +62,7 @@ class GeminiService
                 ]
             ],
             'generationConfig' => [
-                'temperature' => 0.3, // Lower temperature for more structured/professional output
+                'temperature' => 0.3,
                 'responseMimeType' => 'application/json'
             ]
         ];
