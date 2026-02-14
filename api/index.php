@@ -169,14 +169,14 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
             }
 
             // Step 2: HIBP Breach Check (Real API)
-            $hibpApiKey = '011373b46b674891b6f19772c2205772';
+            // HIBP_API_KEY defined in config.php
             $targetEmail = $job['email'];
             addLog($logs, "Querying Intelligence Databases for $targetEmail...", "info");
 
             $ch = curl_init("https://haveibeenpwned.com/api/v3/breachedaccount/" . urlencode($targetEmail) . "?truncateResponse=false");
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($ch, CURLOPT_HTTPHEADER, [
-                "hibp-api-key: $hibpApiKey",
+                "hibp-api-key: " . HIBP_API_KEY,
                 "user-agent: MAPARD-OSINT-AGENT"
             ]);
 
