@@ -51,7 +51,7 @@ function App() {
       </header>
 
       {/* Main Content (Centered, Allow Scroll) */}
-      <main className="flex-grow relative z-10 flex flex-col p-4 pb-64 overflow-y-auto w-full">
+      <main className="flex-grow relative z-10 flex flex-col p-4 pb-80 overflow-y-auto w-full">
         <Dashboard />
       </main>
 

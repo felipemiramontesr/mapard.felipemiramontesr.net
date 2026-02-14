@@ -167,7 +167,7 @@ jobs:
 
       - name: Sync Capacitor
         working-directory: ./client
-        run: npm run sync
+        run: npx cap sync android
 
       - name: Build APK (Debug)
         working-directory: ./client/android
