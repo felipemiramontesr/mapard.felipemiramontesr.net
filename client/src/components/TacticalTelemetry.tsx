@@ -15,7 +15,7 @@ const TacticalTelemetry: React.FC = () => {
     }, []);
 
     return (
-        <div className="w-full max-w-2xl mx-auto mt-4 opacity-40 hover:opacity-100 transition-opacity duration-500 select-none flex flex-col h-full min-h-[200px] md:min-h-0">
+        <div className="w-full max-w-2xl mx-auto mt-4 opacity-40 hover:opacity-100 transition-opacity duration-500 select-none flex flex-col h-full min-h-[400px] md:min-h-0">
             {/* Divider */}
             <div className="flex items-center gap-4 mb-4">
                 <div className="h-px bg-ops-accent flex-grow opacity-30"></div>
@@ -24,7 +24,7 @@ const TacticalTelemetry: React.FC = () => {
             </div>
 
             {/* Grid Data - Mobile: 1 Col (Expanded), Desktop: 2 Cols */}
-            <div className="flex-grow flex flex-col md:grid md:grid-cols-2 gap-6 md:gap-4 justify-between md:justify-start text-[9px] tall:text-[11px] font-mono text-ops-text_dim tracking-wider py-4">
+            <div className="flex-grow flex flex-col md:grid md:grid-cols-2 gap-6 md:gap-4 justify-between md:justify-start text-left items-start md:border-r border-ops-accent/20 pr-4 text-[9px] tall:text-[11px] font-mono text-ops-text_dim tracking-wider py-4">
 
                 {/* Module 1: Uplink */}
                 <div className="flex flex-col gap-1 border-l border-ops-accent/20 pl-4 py-1">
