@@ -119,7 +119,7 @@ const Dashboard: React.FC = () => {
     };
 
     return (
-        <div className="w-full max-w-4xl mx-auto relative flex flex-col items-center justify-center h-full">
+        <div className="w-full max-w-4xl mx-auto relative flex flex-col items-center justify-center my-auto">
             {/* Title Section: Responsive Vertical Sizing */}
             {/* Mobile Compact (Default): text-3xl, mb-2 */}
             {/* Mobile Tall (>700px): text-5xl, mb-8 */}

@@ -56,7 +56,7 @@ function App() {
       </main>
 
       {/* Footer (Fixed Bottom) */}
-      <footer className="border-t border-white/10 py-4 bg-black/60 backdrop-blur-md text-center flex-none relative z-50">
+      <footer className="border-t border-white/10 h-16 flex items-center justify-center bg-black/60 backdrop-blur-md flex-none relative z-50">
         <p className="text-white/40 text-[10px] sm:text-xs font-mono tracking-[0.2em] uppercase">
           MAPARD &copy; {new Date().getFullYear()} • <span className="text-ops-cyan font-bold drop-shadow-[0_0_5px_rgba(0,243,255,0.3)]">BLACK-OPS-LEVEL</span> OSINT
         </p>
