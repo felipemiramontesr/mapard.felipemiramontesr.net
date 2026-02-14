@@ -428,7 +428,7 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
 
                     // Data Classes (Subtext)
                     $this->SetX(16);
-                    $this->SetFont('Helvetica', 'I', 8);
+                    $this->SetFont('Helvetica', '', 8); // Changed from 'I' to '' due to missing helveticai.php
                     $this->SetTextColor(138, 159, 202); // Accent
                     $this->MultiCell(180, $lineH, text_sanitize($classes));
 
