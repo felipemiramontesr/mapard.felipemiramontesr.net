@@ -666,6 +666,11 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
 if (isset($pathParams[1]) && $pathParams[1] === 'reports' && isset($pathParams[2])) {
     $file = __DIR__ . '/reports/' . basename($pathParams[2]);
     if (file_exists($file)) {
+        // Prevent Caching
+        header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+        header("Cache-Control: post-check=0, pre-check=0");
+        header("Pragma: no-cache");
+
         header('Content-Type: application/pdf');
         header('Content-Disposition: attachment; filename="' . basename($file) . '"');
         readfile($file);
