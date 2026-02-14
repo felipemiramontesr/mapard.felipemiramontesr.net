@@ -15,6 +15,7 @@ build/
 # OSINT / Data (Do not commit sensitive scans)
 04_Data/
 *.json
+!client/public/manifest.json
 *.pdf
 *.html
 *.csv

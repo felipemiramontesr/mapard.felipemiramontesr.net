@@ -1,0 +1,15 @@
+{
+    "name": "MAPARD Intelligence",
+    "short_name": "MAPARD",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#0a0e27",
+    "theme_color": "#0a0e27",
+    "icons": [
+        {
+            "src": "/favicon.svg",
+            "type": "image/svg+xml",
+            "sizes": "192x192 512x512"
+        }
+    ]
+}
