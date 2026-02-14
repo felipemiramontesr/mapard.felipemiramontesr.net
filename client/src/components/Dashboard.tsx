@@ -148,7 +148,7 @@ const Dashboard: React.FC = () => {
                 </div>
             )}
             {/* Tactical Telemetry Module (Fills Void) */}
-            <div className="w-full px-4 mt-auto">
+            <div className="w-full px-4 mt-8">
                 <TacticalTelemetry />
             </div>
         </div>
