@@ -119,7 +119,7 @@ const Dashboard: React.FC = () => {
     };
 
     return (
-        <div className="w-full max-w-4xl mx-auto relative flex flex-col items-center justify-center min-h-full py-6">
+        <div className="w-full max-w-4xl mx-auto relative flex flex-col items-center my-auto py-6">
             {/* Title Section: Responsive Vertical Sizing */}
             {/* Mobile Compact (Default): text-3xl, mb-2 */}
             {/* Mobile Tall (>700px): text-5xl, mb-8 */}
@@ -128,7 +128,7 @@ const Dashboard: React.FC = () => {
                     MAPARD
                 </h1>
                 <p className="text-ops-text_dim max-w-4xl mx-auto font-mono text-[8px] tall:text-[10px] sm:text-xs md:text-sm tracking-[0.15em] sm:tracking-[0.2em] uppercase leading-relaxed text-white/60 transition-all duration-300 whitespace-nowrap overflow-hidden text-ellipsis">
-                    INTELIGENCIA TÁCTICA Y VIGILANCIA PASIVA
+                    INTELIGENCIA TÁCTICA Y VIGILANCIA
                 </p>
             </div>
 
