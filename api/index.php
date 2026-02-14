@@ -563,12 +563,26 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
             // 2. INCIDENT STORY CARDS
             $pdf->SectionTitle("1. Análisis Detallado de Incidentes");
 
+            $aiAnalysisArray = $aiIntel['detailed_analysis'] ?? [];
+
+            // DEBUG: PRINT RAW KEYS AVAILABLE
+            $availableNames = [];
+            foreach ($aiAnalysisArray as $a) {
+                if (isset($a['source_name']))
+                    $availableNames[] = $a['source_name'];
+                else
+                    $availableNames[] = "UNKNOWN_KEY_" . json_encode(array_keys($a));
+            }
+            $debugText = "DEBUG (Server-Side): Found " . count($aiAnalysisArray) . " AI analyses. Names: " . implode(", ", $availableNames);
+            $pdf->SetFont('Helvetica', '', 6);
+            $pdf->SetTextColor(255, 0, 0);
+            $pdf->MultiCell(0, 3, $debugText);
+            $pdf->Ln(5);
+
             if (empty($breaches)) {
                 $pdf->SetFont('Helvetica', '', 9);
                 $pdf->Cell(0, 10, text_sanitize("¡Buenas noticias! No encontramos incidentes públicos asociados a tu correo."), 0, 1);
             } else {
-
-                $aiAnalysisArray = $aiIntel['detailed_analysis'] ?? [];
 
                 foreach ($breachData as $index => $b) {
                     // ROBUST MATCHING LOGIC (V2 - Fuzzy)
@@ -594,7 +608,7 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
                         $matchedAnalysis = $aiAnalysisArray[$index];
                     }
 
-                    $pdf->RenderIntelCard($b, $matchedAnalysis, $riskColor);
+                    $pdf->RenderIntelCard($b, $matchedAnalysis, $riskColor, $availableNames);
                 }
             }
 
