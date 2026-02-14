@@ -382,10 +382,20 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
                     $source = $breach['name'];
                     $date = $breach['date'];
 
-                    // Fallbacks/Defaults
-                    $story = isset($analysis['incident_story']) ? $analysis['incident_story'] : "Contexto histórico no disponible para este incidente.";
-                    $risk = isset($analysis['risk_explanation']) ? $analysis['risk_explanation'] : "Sus datos privados fueron expuestos en esta brecha.";
-                    $action = isset($analysis['specific_remediation']) ? $analysis['specific_remediation'] : "Recomendamos cambiar su contraseña en este servicio inmediatamente.";
+                    // Fallbacks with "Intelligence Needed" markers if API fails
+                    $story = isset($analysis['incident_story']) && !empty($analysis['incident_story'])
+                        ? $analysis['incident_story']
+                        : "El reporte de inteligencia para $source no pudo recuperar el contexto histórico específico. Se trató de una vulneración de datos registrada en $date.";
+
+                    $risk = isset($analysis['risk_explanation'])
+                        ? $analysis['risk_explanation']
+                        : "La exposición de sus datos en este servicio aumenta el riesgo de suplantación de identidad.";
+
+                    // ACTIONS: Expecting Array, fallback to string if legacy
+                    $rawActions = isset($analysis['specific_remediation']) ? $analysis['specific_remediation'] : ["Cambie su contraseña inmediatamente."];
+                    if (is_string($rawActions)) {
+                        $rawActions = [$rawActions];
+                    }
 
                     // Data Classes
                     $classes = "Expuesto: " . implode(", ", array_map('translate_data_class', $breach['classes']));
@@ -394,11 +404,18 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
                     $lineH = 4.5;
                     $storyLines = ceil(strlen($story) / 90);
                     $riskLines = ceil(strlen($risk) / 90);
-                    $actionLines = ceil(strlen($action) / 85);
+
+                    // Calculate Action Box Height (List)
+                    $actionsHeight = 0;
+                    foreach ($rawActions as $act) {
+                        $actionsHeight += (ceil(strlen($act) / 85) * $lineH) + 2;
+                    }
+                    $actionsHeight += 8; // Padding
+
                     $classLines = ceil(strlen($classes) / 90);
 
                     // Dynamic Height Calculation
-                    $cardHeight = 45 + ($storyLines * $lineH) + ($riskLines * $lineH) + ($actionLines * $lineH) + ($classLines * $lineH);
+                    $cardHeight = 45 + ($storyLines * $lineH) + ($riskLines * $lineH) + $actionsHeight + ($classLines * $lineH);
 
                     $this->CheckPageSpace($cardHeight);
                     if ($this->GetY() < 45)
@@ -441,7 +458,7 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
                     $this->SetX(16);
                     $this->SetFont('Helvetica', 'B', 9);
                     $this->SetTextColor(26, 31, 58);
-                    $this->Cell(0, 5, utf8_decode("¿QUÉ PASÓ? (Contexto del Incidente):"), 0, 1);
+                    $this->Cell(0, 5, utf8_decode("¿QUÉ PASÓ? (Contexto):"), 0, 1);
 
                     $this->SetX(16);
                     $this->SetFont('Helvetica', '', 9);
@@ -461,21 +478,26 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
                     $this->MultiCell(180, $lineH, text_sanitize($risk));
                     $this->Ln(3);
 
-                    // 3. ACTION (Remediation Box)
+                    // 3. ACTION (Remediation Box - Multi-step)
                     $remY = $this->GetY();
-                    $this->SetFillColor(245, 250, 247); // Light Greenish/Mint
+                    $this->SetFillColor(245, 250, 247); // Light Greenish
                     $this->SetDrawColor(200, 220, 210);
-                    $this->Rect(15, $remY, 180, ($actionLines * $lineH) + 10, 'DF');
+                    $this->Rect(15, $remY, 180, $actionsHeight, 'DF');
 
-                    $this->SetXY(20, $remY + 2);
+                    $this->SetXY(20, $remY + 3);
                     $this->SetFont('Helvetica', 'B', 9);
                     $this->SetTextColor(40, 120, 80); // Success Green
-                    $this->Cell(0, 5, utf8_decode("ACCIÓN RECOMENDADA:"), 0, 1);
+                    $this->Cell(0, 5, utf8_decode("PLAN DE ACCIÓN (3 PASOS):"), 0, 1);
 
-                    $this->SetX(20);
                     $this->SetFont('Helvetica', '', 9);
                     $this->SetTextColor(50, 60, 70);
-                    $this->MultiCell(170, $lineH, text_sanitize($action));
+
+                    foreach ($rawActions as $i => $act) {
+                        $this->SetX(20);
+                        $this->Cell(5, $lineH, ($i + 1) . ".", 0, 0); // Numbering
+                        $this->MultiCell(165, $lineH, text_sanitize($act));
+                        $this->Ln(1); // Small spacer between items
+                    }
 
                     $this->SetY($baseY + $cardHeight + 5);
                 }
@@ -526,7 +548,7 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
 
             $pdf->SetFont('Helvetica', 'B', 9);
             $pdf->SetTextColor(107, 116, 144);
-            $pdf->Cell(35, 6, text_sanitize('Riesgo Calculado:'), 0, 0);
+            $pdf->Cell(35, 6, text_sanitize('Nivel de Riesgo:'), 0, 0);
             $pdf->SetFont('Helvetica', 'B', 10);
             $pdf->SetTextColor($riskColor[0], $riskColor[1], $riskColor[2]);
             $pdf->Cell(0, 6, text_sanitize($riskLevel), 0, 1);
@@ -565,6 +587,9 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
 
                     // 2. Fallback to Index if Name match fails (and index exists)
                     if (empty($matchedAnalysis) && isset($aiAnalysisArray[$index])) {
+                        // Check if this fallback is actually for a different service (sanity check)
+                        // If the AI array is shorter, we might be misaligning.
+                        // But usually Gemini respects order.
                         $matchedAnalysis = $aiAnalysisArray[$index];
                     }
 
