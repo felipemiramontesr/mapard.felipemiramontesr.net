@@ -120,12 +120,12 @@ const Dashboard: React.FC = () => {
     };
 
     return (
-        <div className="w-full max-w-4xl mx-auto relative flex flex-col items-center my-auto py-6">
+        <div className="w-full max-w-4xl mx-auto relative flex flex-col items-center my-auto py-0">
             {/* Title Section: Responsive Vertical Sizing */}
             {/* Mobile Compact (Default): text-3xl, mb-2 */}
             {/* Mobile Tall (>700px): text-5xl, mb-8 */}
-            <div className="text-center mb-2 tall:mb-8 md:mb-10 relative z-10 px-4 w-full block">
-                <h1 className="text-3xl tall:text-5xl md:text-6xl font-black text-white tracking-widest uppercase mb-1 tall:mb-4 md:mb-4 drop-shadow-[0_0_15px_rgba(255,255,255,0.15)] break-words transition-all duration-300">
+            <div className="text-center mb-2 tall:mb-6 md:mb-6 relative z-10 px-4 w-full block">
+                <h1 className="text-3xl tall:text-5xl md:text-6xl font-black text-white tracking-widest uppercase mb-1 tall:mb-3 md:mb-3 drop-shadow-[0_0_15px_rgba(255,255,255,0.15)] break-words transition-all duration-300">
                     MAPARD
                 </h1>
                 <p className="text-ops-text_dim max-w-4xl mx-auto font-mono text-[8px] tall:text-[10px] sm:text-xs md:text-sm tracking-[0.15em] sm:tracking-[0.2em] uppercase leading-relaxed text-white/60 transition-all duration-300 whitespace-nowrap overflow-hidden text-ellipsis">
@@ -138,7 +138,7 @@ const Dashboard: React.FC = () => {
                     <ScanForm onScan={handleStartScan} isLoading={isScanning} />
                 </div>
             ) : (
-                <div className="animate-[slideUp_0.5s_ease-out] w-full px-4 h-full pb-4">
+                <div className="animate-[slideUp_0.5s_ease-out] w-full px-4 h-full pb-0">
                     <StatusTerminal
                         logs={logs}
                         isVisible={true}
@@ -148,7 +148,7 @@ const Dashboard: React.FC = () => {
                 </div>
             )}
             {/* Tactical Telemetry Module (Fills Void) */}
-            <div className="w-full px-4 mt-8">
+            <div className="w-full px-4 mt-4">
                 <TacticalTelemetry />
             </div>
         </div>
