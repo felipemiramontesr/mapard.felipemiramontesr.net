@@ -111,6 +111,9 @@ class GeminiService
             return null; // Fail-safe
         }
 
+        // SAVE RAW RESPONSE FOR DEBUGGING
+        file_put_contents(__DIR__ . '/../gemini_debug.log', "--- REQUEST ---\n" . $userPrompt . "\n\n--- RESPONSE ---\n" . $response . "\n\n", FILE_APPEND);
+
         try {
             $jsonResponse = json_decode($response, true);
             $rawText = $jsonResponse['candidates'][0]['content']['parts'][0]['text'] ?? null;
@@ -120,6 +123,9 @@ class GeminiService
 
             // Clean up Markdown if Gemini ignores the system prompt
             $cleanJson = str_replace(['```json', '```'], '', $rawText);
+
+            // Log cleaned JSON
+            file_put_contents(__DIR__ . '/../gemini_cleaned.log', $cleanJson);
 
             return json_decode($cleanJson, true);
 

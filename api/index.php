@@ -571,15 +571,19 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
                 $aiAnalysisArray = $aiIntel['detailed_analysis'] ?? [];
 
                 foreach ($breachData as $index => $b) {
-                    // ROBUST MATCHING LOGIC
+                    // ROBUST MATCHING LOGIC (V2 - Fuzzy)
                     $matchedAnalysis = [];
 
-                    // 1. Try Name Match (Case Insensitive)
+                    // 1. Try Precise/Fuzzy Name Match
                     foreach ($aiAnalysisArray as $analysis) {
-                        if (
-                            isset($analysis['source_name']) &&
-                            strcasecmp(trim($analysis['source_name']), trim($b['name'])) === 0
-                        ) {
+                        if (!isset($analysis['source_name']))
+                            continue;
+
+                        $aiName = trim(strtolower($analysis['source_name']));
+                        $breachName = trim(strtolower($b['name']));
+
+                        // Exact match OR containment (e.g. "Adobe Systems" contains "adobe")
+                        if ($aiName === $breachName || strpos($aiName, $breachName) !== false || strpos($breachName, $aiName) !== false) {
                             $matchedAnalysis = $analysis;
                             break;
                         }
@@ -587,9 +591,6 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
 
                     // 2. Fallback to Index if Name match fails (and index exists)
                     if (empty($matchedAnalysis) && isset($aiAnalysisArray[$index])) {
-                        // Check if this fallback is actually for a different service (sanity check)
-                        // If the AI array is shorter, we might be misaligning.
-                        // But usually Gemini respects order.
                         $matchedAnalysis = $aiAnalysisArray[$index];
                     }
 
