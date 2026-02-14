@@ -5,6 +5,7 @@ ini_set('log_errors', 1);
 error_reporting(E_ALL);
 
 // Robust Include
+require_once __DIR__ . '/config.php';
 $fpdfPath = __DIR__ . '/fpdf.php';
 if (!file_exists($fpdfPath)) {
     http_response_code(500);
