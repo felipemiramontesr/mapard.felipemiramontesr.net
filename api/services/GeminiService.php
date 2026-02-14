@@ -108,7 +108,7 @@ class GeminiService
 
         if ($httpCode !== 200) {
             error_log("Gemini API Error: HTTP $httpCode - Response: $response");
-            return null; // Fail-safe
+            return $this->getFallbackAnalysis($breachData); // Return Structured Fallback
         }
 
         // SAVE RAW RESPONSE FOR DEBUGGING
@@ -118,21 +118,56 @@ class GeminiService
             $jsonResponse = json_decode($response, true);
             $rawText = $jsonResponse['candidates'][0]['content']['parts'][0]['text'] ?? null;
 
-            if (!$rawText)
-                return null;
+            if (!$rawText) {
+                error_log("Gemini Error: No text in candidate.");
+                return $this->getFallbackAnalysis($breachData);
+            }
 
-            // Clean up Markdown if Gemini ignores the system prompt
-            $cleanJson = str_replace(['```json', '```'], '', $rawText);
+            // Clean up Markdown: Handle ```json and ``` wrapping
+            $cleanJson = preg_replace('/^```json\s*|\s*```$/i', '', trim($rawText));
 
             // Log cleaned JSON
             file_put_contents(__DIR__ . '/../gemini_cleaned.log', $cleanJson);
 
-            return json_decode($cleanJson, true);
+            $parsed = json_decode($cleanJson, true);
+            if (!$parsed) {
+                error_log("Gemini JSON Parse Error: " . json_last_error_msg());
+                return $this->getFallbackAnalysis($breachData);
+            }
+
+            return $parsed;
 
         } catch (Exception $e) {
-            error_log("Gemini JSON Parse Error: " . $e->getMessage());
-            return null;
+            error_log("Gemini Critical Error: " . $e->getMessage());
+            return $this->getFallbackAnalysis($breachData);
         }
+    }
+
+    // Fallback Generator to ensure PDF never breaks
+    private function getFallbackAnalysis($breaches)
+    {
+        $analysis = [
+            'threat_level' => 'HIGH',
+            'executive_summary' => 'El sistema de inteligencia artificial no pudo procesar los detalles específicos en este momento, pero se han detectado brechas confirmadas.',
+            'detailed_analysis' => [],
+            'dynamic_glossary' => [
+                'Error de Análisis' => 'No se pudo conectar con el motor neuronal. Se muestran datos crudos.'
+            ]
+        ];
+
+        foreach ($breaches as $b) {
+            $analysis['detailed_analysis'][] = [
+                'source_name' => $b['name'],
+                'incident_story' => "No se pudo generar la historia detallada por un error de conexión con la IA. Sin embargo, la brecha es real y sus datos están expuestos.",
+                'risk_explanation' => "Sus credenciales en este servicio son públicas. El riesgo de acceso no autorizado es inminente.",
+                'specific_remediation' => [
+                    "Cambie su contraseña en " . $b['name'] . " inmediatamente.",
+                    "Active la verificación en dos pasos (2FA).",
+                    "Verifique si usa esta misma contraseña en otros sitios."
+                ]
+            ];
+        }
+        return $analysis;
     }
 }
 ?>
