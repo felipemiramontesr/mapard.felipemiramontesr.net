@@ -13,15 +13,17 @@ function App() {
       setIsLoading(false);
     }, 8000); // 8 seconds loading
 
-    const enableImmersive = async () => {
-      try {
-        await StatusBar.setOverlaysWebView({ overlay: true });
-        await StatusBar.hide();
-      } catch (e) {
-        console.log('Non-native env or StatusBar error', e);
+    const initStatusBar = async () => {
+      if (Capacitor.isNativePlatform()) {
+        try {
+          await StatusBar.setOverlaysWebView({ overlay: true });
+          await StatusBar.hide();
+        } catch (e) {
+          console.log('StatusBar error', e);
+        }
       }
     };
-    enableImmersive();
+    initStatusBar();
 
     return () => clearTimeout(timer);
   }, []);
