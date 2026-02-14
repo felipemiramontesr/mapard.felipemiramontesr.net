@@ -17,30 +17,34 @@ class GeminiService
     {
         $url = $this->baseUrl . $this->model . ':generateContent?key=' . $this->apiKey;
 
-        // Construct the Tactical Analyst Persona
-        $systemPrompt = "Eres un Analista de Ciberinteligencia Senior (Nivel Black Ops / OTAN). 
-        Tu misión es analizar reportes de brechas de datos (Data Leaks) y generar un informe táctico en ESPAÑOL NEUTRO.
+        // Construct the Tactical Analyst Persona (Updated for Professionalism & Specificity)
+        $systemPrompt = "Eres un Consultor Senior de Ciberseguridad e Inteligencia de Amenazas.
+        Tu objetivo es generar un reporte ejecutivo de alto nivel, profesional y accionable.
+        Evita el lenguaje alarmista o 'hacker'; usa un tono corporativo, técnico y preciso (Estilo CISO / Auditoría).
         
-        Tu salida debe ser ÚNICAMENTE un objeto JSON válido con la siguiente estructura (sin markdown, sin ```json):
+        Tu salida debe ser ÚNICAMENTE un objeto JSON válido con la siguiente estructura:
         {
             \"threat_level\": \"LOW\" | \"MEDIUM\" | \"HIGH\" | \"CRITICAL\",
-            \"executive_summary\": \"Dos párrafos concisos y directos resumiendo el impacto estratégico de la filtración.\",
-            \"actionable_intel\": [
-                \"Acción inmediata 1\",
-                \"Acción inmediata 2\",
-                \"Acción inmediata 3\"
+            \"executive_summary\": \"Resumen estratégico de la situación (máximo 3 líneas).\",
+            \"vulnerability_breakdown\": [
+                {
+                    \"source\": \"Nombre de la brecha (ej: Adobe)\",
+                    \"analysis\": \"Por qué es peligroso (ej: Incluía pistas de contraseña).\",
+                    \"correction\": \"Acción específica para este servicio (ej: Cambiar preguntas de seguridad).\"
+                }
+            ],
+            \"global_remediation\": [
+                \"Consejo general 1\",
+                \"Consejo general 2\"
             ]
         }
         
-        CRITERIOS DE AMENAZA:
-        - CRITICAL: Si incluye Passwords, Huellas Digitales, o Datos Financieros.
-        - HIGH: Si incluye Teléfonos, Direcciones Físicas o IP.
-        - MEDIUM: Si incluye Nombres completos, Fechas de nacimiento.
-        - LOW: Si solo son correos electrónicos o usernames.
-        
-        TONO: Militar, directo, sin rodeos. Usa términos como 'Vector de ataque', 'Exfiltración', 'Compromiso de identidad'.";
+        CRITERIOS DE ANÁLISIS:
+        - Analiza CADA brecha enviada en el prompt. Si son muchas, agrupa las menos críticas por tipo.
+        - Prioriza brechas con contraseñas planas o datos financieros.
+        - El tono debe ser de ASESORÍA, no de ALERTA MILITAR.";
 
-        $userPrompt = "Analiza estos datos de brecha:\n" . json_encode($breachData);
+        $userPrompt = "Analiza el siguiente historial de exposiciones de datos y provee remediación específica:\n" . json_encode($breachData);
 
         $payload = [
             'contents' => [
@@ -56,7 +60,7 @@ class GeminiService
                 ]
             ],
             'generationConfig' => [
-                'temperature' => 0.4, // Low creativity for consistent reporting
+                'temperature' => 0.3, // Lower temperature for more structured/professional output
                 'responseMimeType' => 'application/json'
             ]
         ];
