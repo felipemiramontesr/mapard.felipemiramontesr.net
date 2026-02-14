@@ -595,7 +595,7 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
             $pdf->SetDrawColor(200);
             $pdf->Line(10, $pdf->GetY(), 200, $pdf->GetY());
             $pdf->Ln(5);
-            $pdf->SetFont('Helvetica', 'I', 7);
+            $pdf->SetFont('Helvetica', '', 7);
             $pdf->SetTextColor(150);
             $pdf->MultiCell(0, 3, text_sanitize("Generado por MAPARD Neural Engine. Este reporte es para fines educativos y de concienciación."));
             $pdf->SetFont('Helvetica', '', 7);
