@@ -176,7 +176,7 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
             $ch = curl_init("https://haveibeenpwned.com/api/v3/breachedaccount/" . urlencode($targetEmail) . "?truncateResponse=false");
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($ch, CURLOPT_HTTPHEADER, [
-                "hibp-api-key: " . HIBP_API_KEY,
+                "hibp-api-key: " . trim(HIBP_API_KEY),
                 "user-agent: MAPARD-OSINT-AGENT"
             ]);
 
