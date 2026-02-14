@@ -36,9 +36,9 @@ const TacticalTelemetry: React.FC = () => {
                     <span>PING: {ping}ms</span>
                 </div>
 
-                {/* Module 2: CPU */}
-                <div className="flex flex-col gap-1 border-l border-ops-accent/20 pl-4 py-1">
-                    <div className="flex items-center gap-2 text-ops-radioactive">
+                {/* Module 2: CPU (Right Aligned on Desktop) */}
+                <div className="flex flex-col gap-1 border-l border-ops-accent/20 pl-4 md:pl-0 md:pr-4 md:border-l-0 md:border-r md:text-right md:items-end py-1">
+                    <div className="flex items-center gap-2 text-ops-radioactive md:flex-row-reverse">
                         <Cpu size={12} />
                         <span className="text-[10px] tall:text-xs">CORE_LOAD</span>
                     </div>
@@ -56,9 +56,9 @@ const TacticalTelemetry: React.FC = () => {
                     <span>SIG: -{Math.floor(Math.random() * 20 + 40)}dBm</span>
                 </div>
 
-                {/* Module 4: Geo */}
-                <div className="flex flex-col gap-1 border-l border-ops-accent/20 pl-4 py-1">
-                    <div className="flex items-center gap-2 text-ops-warning">
+                {/* Module 4: Geo (Right Aligned on Desktop) */}
+                <div className="flex flex-col gap-1 border-l border-ops-accent/20 pl-4 md:pl-0 md:pr-4 md:border-l-0 md:border-r md:text-right md:items-end py-1">
+                    <div className="flex items-center gap-2 text-ops-warning md:flex-row-reverse">
                         <Activity size={12} />
                         <span className="text-[10px] tall:text-xs">GEO_LOCK</span>
                     </div>
