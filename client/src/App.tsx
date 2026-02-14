@@ -31,7 +31,7 @@ function App() {
   }
 
   return (
-    <div className="fixed inset-0 w-full flex flex-col relative bg-ops-bg selection:bg-ops-accent selection:text-black overflow-hidden">
+    <div className="fixed inset-0 w-full flex flex-col bg-ops-bg selection:bg-ops-accent selection:text-black overflow-hidden">
       {/* Background Grid/Effect */}
       <div className="absolute inset-0 z-0 pointer-events-none bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-ops-bg_alt via-ops-bg to-black opacity-80" />
 
