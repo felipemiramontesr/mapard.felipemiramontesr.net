@@ -2,6 +2,7 @@ import { Shield } from 'lucide-react';
 import Dashboard from './components/Dashboard';
 import MatrixLoader from './components/MatrixLoader';
 import { useEffect, useState } from 'react';
+import { Capacitor } from '@capacitor/core';
 import { StatusBar } from '@capacitor/status-bar';
 
 function App() {
