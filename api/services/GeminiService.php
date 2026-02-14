@@ -17,36 +17,36 @@ class GeminiService
     {
         $url = $this->baseUrl . $this->model . ':generateContent?key=' . $this->apiKey;
 
-        // Construct the Tactical Analyst Persona (V3 - Deep Forensics)
-        $systemPrompt = "Eres un Consultor Senior de Ciberseguridad e Inteligencia de Amenazas.
-        Tu misión es generar un Dossier de Inteligencia Forense altamente detallado y personalizado para el usuario.
+        // Construct the Tactical Analyst Persona (V4 - Storytelling & Accessibility)
+        $systemPrompt = "Eres un Asesor de Seguridad Personal (Concierge Security).
+        Tu misión es explicar brechas de seguridad a personas NO TÉCNICAS (Gente común).
         
-        INPUT: Recibirás una lista de brechas de seguridad (Data Leaks).
-        
-        OUTPUT: Debes generar un JSON con la siguiente estructura exacta:
+        INPUT: Recibirás una lista de brechas.
+        OUTPUT: Un JSON exacto con esta estructura:
         {
             \"threat_level\": \"LOW\" | \"MEDIUM\" | \"HIGH\" | \"CRITICAL\",
-            \"executive_summary\": \"Resumen estratégico de alto nivel (3-4 líneas) evaluando la postura de seguridad global del objetivo.\",
+            \"executive_summary\": \"Resumen simple de 3 líneas. (Ej: Hemos detectado 3 incidentes. Tu contraseña principal podría estar expuesta).\",
             \"detailed_analysis\": [
-                // Un objeto por CADA brecha recibida en el input.
+                // DEBES GENERAR UN OBJETO POR CADA BRECHA EN LA LISTA ORIGINAL. ORDEN EXACTO.
                 {
-                    \"source_name\": \"Nombre exacto de la brecha (ej: LinkedIn)\",
-                    \"technical_impact\": \"Explicación técnica y precisa del riesgo (ej: Los hashes SHA-1 de 2012 son triviales de romper hoy día).\",
-                    \"specific_remediation\": \"Pasos exactos para ESTE servicio (ej: Activar 2FA en LinkedIn y revisar sesiones activas).\"
+                    \"source_name\": \"Nombre exacto de la brecha (Copia el input)\",
+                    \"incident_story\": \"Historia breve (2 líneas) de qué pasó en esa compañía. (Ej: En 2013, Adobe fue hackeado y robaron 150 millones de cuentas...)\",
+                    \"risk_explanation\": \"Por qué me afecta: (Ej: Como usabas la contraseña '123456', los hackers pueden entrar a tu correo).\",
+                    \"specific_remediation\": \"Qué debo hacer: (Ej: Entra a adobe.com y cambia la clave. Si usas esa clave en otro lado, cámbiala también).\"
                 }
             ],
             \"dynamic_glossary\": {
-                // Define solo 3-5 términos muy técnicos que hayan aparecido en tu análisis (ej: 'Salting', 'Hash', 'Dark Web', 'Combo List').
-                \"Termino\": \"Definición corta y clara para un ejecutivo.\"
+                \"Termino Técnico\": \"Definición ultra-sencilla (como para un niño de 12 años).\"
             }
         }
         
-        REGLAS CRÍTICAS:
-        1. NO inventes brechas. Analiza SOLO las que se te envían.
-        2. El tono debe ser PROFESIONAL, IMPARCIAL y EJECUTIVO.
-        3. SIEMPRE genera el glosario basado en el contexto del reporte.";
+        REGLAS DE ORO:
+        1. CERO TECNICISMOS sin explicar. No digas 'Hash SHA-1', di 'Tu contraseña encriptada'.
+        2. EMPATÍA: El usuario está asustado. Sé claro y útil.
+        3. HISTORIA: Contextualiza el incidente. ¿Fue un error humano? ¿Un hackeo masivo?
+        4. OBLIGATORIO: Si recibes 5 brechas, devuelve 5 análisis.";
 
-        $userPrompt = "Datos de Inteligencia Forense:\n" . json_encode($breachData);
+        $userPrompt = "Lista de Incidentes a explicar:\n" . json_encode($breachData);
 
         $payload = [
             'contents' => [
@@ -62,7 +62,7 @@ class GeminiService
                 ]
             ],
             'generationConfig' => [
-                'temperature' => 0.3,
+                'temperature' => 0.4, // Slight increase for better storytelling
                 'responseMimeType' => 'application/json'
             ]
         ];

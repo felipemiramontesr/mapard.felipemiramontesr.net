@@ -376,29 +376,29 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
                     $this->Ln(6);
                 }
 
-                // UNIFIED INTELLIGENCE CARD (Breach Data + AI Analysis + specific Fix)
+                // UNIFIED INTELLIGENCE CARD (Breach Data + AI Story + Actions)
                 function RenderIntelCard($breach, $analysis, $riskColor)
                 {
-                    // Calculate heights
                     $source = $breach['name'];
                     $date = $breach['date'];
 
-                    // Technical Impact (AI)
-                    $techImpact = isset($analysis['technical_impact']) ? $analysis['technical_impact'] : "Análisis pendiente.";
-
-                    // Remediation (AI)
-                    $remediation = isset($analysis['specific_remediation']) ? $analysis['specific_remediation'] : "Revise sus credenciales inmediatamente.";
+                    // Fallbacks/Defaults
+                    $story = isset($analysis['incident_story']) ? $analysis['incident_story'] : "Contexto histórico no disponible para este incidente.";
+                    $risk = isset($analysis['risk_explanation']) ? $analysis['risk_explanation'] : "Sus datos privados fueron expuestos en esta brecha.";
+                    $action = isset($analysis['specific_remediation']) ? $analysis['specific_remediation'] : "Recomendamos cambiar su contraseña en este servicio inmediatamente.";
 
                     // Data Classes
-                    $classes = "Datos Comprometidos: " . implode(", ", array_map('translate_data_class', $breach['classes']));
+                    $classes = "Expuesto: " . implode(", ", array_map('translate_data_class', $breach['classes']));
 
-                    // Text height estimation (Approx 85 chars per line for width 180)
+                    // Text height estimation
                     $lineH = 4.5;
-                    $impactLines = ceil(strlen($techImpact) / 90);
-                    $remLines = ceil(strlen($remediation) / 90);
+                    $storyLines = ceil(strlen($story) / 90);
+                    $riskLines = ceil(strlen($risk) / 90);
+                    $actionLines = ceil(strlen($action) / 85);
                     $classLines = ceil(strlen($classes) / 90);
 
-                    $cardHeight = 40 + ($impactLines * $lineH) + ($remLines * $lineH) + ($classLines * $lineH) + 15;
+                    // Dynamic Height Calculation
+                    $cardHeight = 45 + ($storyLines * $lineH) + ($riskLines * $lineH) + ($actionLines * $lineH) + ($classLines * $lineH);
 
                     $this->CheckPageSpace($cardHeight);
                     if ($this->GetY() < 45)
@@ -418,7 +418,7 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
 
                     // Header Row: Source + Date
                     $this->SetXY(16, $baseY + 5);
-                    $this->SetFont('Helvetica', 'B', 11);
+                    $this->SetFont('Helvetica', 'B', 12);
                     $this->SetTextColor(26, 31, 58);
                     $this->Cell(120, 6, text_sanitize($source), 0, 0);
 
@@ -428,45 +428,55 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
 
                     // Data Classes (Subtext)
                     $this->SetX(16);
-                    $this->SetFont('Helvetica', '', 8); // Changed from 'I' to '' due to missing helveticai.php
-                    $this->SetTextColor(138, 159, 202); // Accent
+                    $this->SetFont('Helvetica', '', 8);
+                    $this->SetTextColor(138, 159, 202);
                     $this->MultiCell(180, $lineH, text_sanitize($classes));
 
-                    // Separator
                     $this->Ln(2);
                     $this->SetDrawColor(240, 240, 240);
                     $this->Line(16, $this->GetY(), 195, $this->GetY());
-                    $this->Ln(3);
+                    $this->Ln(4);
 
-                    // AI SECTION: TECHNICAL IMPACT
+                    // 1. STORY (Contexto)
                     $this->SetX(16);
                     $this->SetFont('Helvetica', 'B', 9);
                     $this->SetTextColor(26, 31, 58);
-                    $this->Cell(0, 6, utf8_decode("ANÁLISIS DE IMPACTO TÉCNICO:"), 0, 1);
+                    $this->Cell(0, 5, utf8_decode("¿QUÉ PASÓ? (Contexto del Incidente):"), 0, 1);
 
                     $this->SetX(16);
                     $this->SetFont('Helvetica', '', 9);
-                    $this->SetTextColor(71, 85, 105);
-                    $this->MultiCell(180, $lineH, text_sanitize($techImpact));
+                    $this->SetTextColor(60, 70, 90);
+                    $this->MultiCell(180, $lineH, text_sanitize($story));
                     $this->Ln(3);
 
-                    // AI SECTION: SPECIFIC REMEDIATION
-                    // Box for remediation
-                    $remY = $this->GetY();
-                    $this->SetFillColor(245, 247, 250); // Light bg for action
-                    $this->Rect(15, $remY, 180, ($remLines * $lineH) + 12, 'F');
+                    // 2. RISK (Impacto Personal)
+                    $this->SetX(16);
+                    $this->SetFont('Helvetica', 'B', 9);
+                    $this->SetTextColor(26, 31, 58);
+                    $this->Cell(0, 5, utf8_decode("¿POR QUÉ ME AFECTA?:"), 0, 1);
 
-                    $this->SetXY(20, $remY + 3);
-                    $this->SetFont('Helvetica', 'B', 8);
-                    $this->SetTextColor(50, 120, 100); // Green/Teal for solution
-                    $this->Cell(0, 5, utf8_decode("PROTOCOLO DE CONTENCIÓN ESPECÍFICO:"), 0, 1);
+                    $this->SetX(16);
+                    $this->SetFont('Helvetica', '', 9);
+                    $this->SetTextColor(60, 70, 90);
+                    $this->MultiCell(180, $lineH, text_sanitize($risk));
+                    $this->Ln(3);
+
+                    // 3. ACTION (Remediation Box)
+                    $remY = $this->GetY();
+                    $this->SetFillColor(245, 250, 247); // Light Greenish/Mint
+                    $this->SetDrawColor(200, 220, 210);
+                    $this->Rect(15, $remY, 180, ($actionLines * $lineH) + 10, 'DF');
+
+                    $this->SetXY(20, $remY + 2);
+                    $this->SetFont('Helvetica', 'B', 9);
+                    $this->SetTextColor(40, 120, 80); // Success Green
+                    $this->Cell(0, 5, utf8_decode("ACCIÓN RECOMENDADA:"), 0, 1);
 
                     $this->SetX(20);
-                    $this->SetFont('Helvetica', '', 8);
-                    $this->SetTextColor(50, 60, 80);
-                    $this->MultiCell(170, $lineH, text_sanitize($remediation));
+                    $this->SetFont('Helvetica', '', 9);
+                    $this->SetTextColor(50, 60, 70);
+                    $this->MultiCell(170, $lineH, text_sanitize($action));
 
-                    // Set Y to end of card
                     $this->SetY($baseY + $cardHeight + 5);
                 }
 
@@ -480,7 +490,7 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
                     $this->SetXY(15, $this->GetY() + 5);
                     $this->SetFont('Helvetica', 'B', 10);
                     $this->SetTextColor(26, 31, 58);
-                    $this->Cell(0, 6, utf8_decode("RESUMEN EJECUTIVO (EVALUACIÓN DE POSTURA)"), 0, 1);
+                    $this->Cell(0, 6, utf8_decode("RESUMEN DE SEGURIDAD"), 0, 1);
 
                     $this->SetX(15);
                     $this->SetFont('Helvetica', '', 9);
@@ -516,7 +526,7 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
 
             $pdf->SetFont('Helvetica', 'B', 9);
             $pdf->SetTextColor(107, 116, 144);
-            $pdf->Cell(35, 6, text_sanitize('Nivel de Riesgo:'), 0, 0);
+            $pdf->Cell(35, 6, text_sanitize('Riesgo Calculado:'), 0, 0);
             $pdf->SetFont('Helvetica', 'B', 10);
             $pdf->SetTextColor($riskColor[0], $riskColor[1], $riskColor[2]);
             $pdf->Cell(0, 6, text_sanitize($riskLevel), 0, 1);
@@ -528,30 +538,33 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
                 $pdf->RenderExecutiveSummary($aiIntel['executive_summary']);
             }
 
-            // 2. DEEP FORENSICS (EVIDENCE + ANALYSIS + FIX)
-            $pdf->SectionTitle("1. Análisis Forense Detallado por Vector");
+            // 2. INCIDENT STORY CARDS
+            $pdf->SectionTitle("1. Análisis Detallado de Incidentes");
 
             if (empty($breaches)) {
                 $pdf->SetFont('Helvetica', '', 9);
-                $pdf->Cell(0, 10, text_sanitize("Análisis Completado: No se detectaron vectores de compromiso públicos."), 0, 1);
+                $pdf->Cell(0, 10, text_sanitize("¡Buenas noticias! No encontramos incidentes públicos asociados a tu correo."), 0, 1);
             } else {
-                // Map AI analysis to Breaches
-                // The AI returns an array 'detailed_analysis'. We hope it matches count, but we must index safely.
+
                 $aiAnalysisArray = $aiIntel['detailed_analysis'] ?? [];
 
-                // Create a map for name-based lookup if possible, else index based
-                $aiMap = [];
-                foreach ($aiAnalysisArray as $analysis) {
-                    // Fuzzy match or just store by index if loop matches
-                    // Ideally AI returns specific names. We'll use index as fallback if names don't match perfectly.
-                    // For robustness, let's just iterate through breaches and pop from AI array or try to find name.
-                }
-
                 foreach ($breachData as $index => $b) {
-                    // Try to find matching AI analysis
+                    // ROBUST MATCHING LOGIC
                     $matchedAnalysis = [];
-                    // Simple index fallback (assuming Gemini respects order)
-                    if (isset($aiAnalysisArray[$index])) {
+
+                    // 1. Try Name Match (Case Insensitive)
+                    foreach ($aiAnalysisArray as $analysis) {
+                        if (
+                            isset($analysis['source_name']) &&
+                            strcasecmp(trim($analysis['source_name']), trim($b['name'])) === 0
+                        ) {
+                            $matchedAnalysis = $analysis;
+                            break;
+                        }
+                    }
+
+                    // 2. Fallback to Index if Name match fails (and index exists)
+                    if (empty($matchedAnalysis) && isset($aiAnalysisArray[$index])) {
                         $matchedAnalysis = $aiAnalysisArray[$index];
                     }
 
@@ -562,7 +575,7 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
             // 3. DYNAMIC GLOSSARY
             if ($aiIntel && isset($aiIntel['dynamic_glossary']) && !empty($aiIntel['dynamic_glossary'])) {
                 $pdf->CheckPageSpace(60);
-                $pdf->SectionTitle("2. Glosario Técnico (Contextual)");
+                $pdf->SectionTitle("2. Glosario de Términos (Explicado Simple)");
 
                 foreach ($aiIntel['dynamic_glossary'] as $term => $def) {
                     $pdf->CheckPageSpace(20);
@@ -582,6 +595,9 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
             $pdf->SetDrawColor(200);
             $pdf->Line(10, $pdf->GetY(), 200, $pdf->GetY());
             $pdf->Ln(5);
+            $pdf->SetFont('Helvetica', 'I', 7);
+            $pdf->SetTextColor(150);
+            $pdf->MultiCell(0, 3, text_sanitize("Generado por MAPARD Neural Engine. Este reporte es para fines educativos y de concienciación."));
             $pdf->SetFont('Helvetica', '', 7);
             $pdf->SetTextColor(150);
             $pdf->MultiCell(0, 3, text_sanitize("AVISO LEGAL: Inteligencia de Fuentes Abiertas (OSINT). Generado por la Plataforma MAPARD."));
