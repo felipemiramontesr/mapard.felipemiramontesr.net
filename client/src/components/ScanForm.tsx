@@ -36,7 +36,7 @@ const ScanForm: React.FC<ScanFormProps> = ({ onScan, isLoading }) => {
                         <input
                             type="text"
                             className="input-field pl-8 tall:pl-10 md:pl-10 bg-black/20 focus:bg-ops-bg_alt/80 text-xs tall:text-sm md:text-sm py-1.5 tall:py-3 md:py-3 h-8 tall:h-auto md:h-auto transition-all duration-300"
-                            placeholder="DESIGNACION_OBJETIVO"
+                            placeholder="Objective Name"
                             value={name}
                             onChange={(e) => setName(e.target.value)}
                         />

@@ -51,12 +51,12 @@ function App() {
       </header>
 
       {/* Main Content (Centered, Allow Scroll) */}
-      <main className="flex-grow relative z-10 flex flex-col p-4 pb-40 overflow-y-auto w-full">
+      <main className="flex-grow relative z-10 flex flex-col p-4 pb-64 overflow-y-auto w-full">
         <Dashboard />
       </main>
 
       {/* Footer (Fixed Bottom) */}
-      <footer className="border-t border-white/10 h-16 box-border flex items-center justify-center bg-black/60 backdrop-blur-md flex-none relative z-50">
+      <footer className="border-t border-white/10 h-14 box-border flex items-center justify-center bg-black/60 backdrop-blur-md flex-none relative z-50">
         <p className="text-white/40 text-[10px] sm:text-xs font-mono tracking-[0.2em] uppercase">
           MAPARD &copy; {new Date().getFullYear()} • <span className="text-ops-cyan font-bold drop-shadow-[0_0_5px_rgba(0,243,255,0.3)]">BLACK-OPS-LEVEL</span> OSINT
         </p>
