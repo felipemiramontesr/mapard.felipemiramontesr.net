@@ -15,7 +15,7 @@ const TacticalTelemetry: React.FC = () => {
     }, []);
 
     return (
-        <div className="w-full max-w-2xl mx-auto mt-8 opacity-40 hover:opacity-100 transition-opacity duration-500 select-none">
+        <div className="w-full max-w-2xl mx-auto mt-4 opacity-40 hover:opacity-100 transition-opacity duration-500 select-none flex flex-col h-full min-h-[200px] md:min-h-0">
             {/* Divider */}
             <div className="flex items-center gap-4 mb-4">
                 <div className="h-px bg-ops-accent flex-grow opacity-30"></div>
@@ -23,44 +23,44 @@ const TacticalTelemetry: React.FC = () => {
                 <div className="h-px bg-ops-accent flex-grow opacity-30"></div>
             </div>
 
-            {/* Grid Data */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-[9px] tall:text-[10px] font-mono text-ops-text_dim tracking-wider">
+            {/* Grid Data - Mobile: 1 Col (Expanded), Desktop: 2 Cols */}
+            <div className="flex-grow flex flex-col md:grid md:grid-cols-2 gap-6 md:gap-4 justify-between md:justify-start text-[9px] tall:text-[11px] font-mono text-ops-text_dim tracking-wider py-4">
 
                 {/* Module 1: Uplink */}
-                <div className="flex flex-col gap-1 border-l border-ops-accent/20 pl-3">
+                <div className="flex flex-col gap-1 border-l border-ops-accent/20 pl-4 py-1">
                     <div className="flex items-center gap-2 text-ops-accent">
-                        <Wifi size={10} className="animate-pulse" />
-                        <span>UPLINK_SECURE</span>
+                        <Wifi size={12} className="animate-pulse" />
+                        <span className="text-[10px] tall:text-xs">UPLINK_SECURE</span>
                     </div>
                     <span>TLS 1.3 // AES-256</span>
                     <span>PING: {ping}ms</span>
                 </div>
 
                 {/* Module 2: CPU */}
-                <div className="flex flex-col gap-1 border-l border-ops-accent/20 pl-3">
+                <div className="flex flex-col gap-1 border-l border-ops-accent/20 pl-4 py-1">
                     <div className="flex items-center gap-2 text-ops-radioactive">
-                        <Cpu size={10} />
-                        <span>CORE_LOAD</span>
+                        <Cpu size={12} />
+                        <span className="text-[10px] tall:text-xs">CORE_LOAD</span>
                     </div>
                     <span>THREADS: 8/8 ACT</span>
                     <span>MEM: SEGMENT_{scramble.substring(0, 4)}</span>
                 </div>
 
                 {/* Module 3: Signal */}
-                <div className="flex flex-col gap-1 border-l border-ops-accent/20 pl-3">
+                <div className="flex flex-col gap-1 border-l border-ops-accent/20 pl-4 py-1">
                     <div className="flex items-center gap-2 text-ops-cyan">
-                        <Radio size={10} className="animate-[spin_4s_linear_infinite]" />
-                        <span>FREQ_MOD</span>
+                        <Radio size={12} className="animate-[spin_4s_linear_infinite]" />
+                        <span className="text-[10px] tall:text-xs">FREQ_MOD</span>
                     </div>
                     <span>BAND: 2.4Ghz-Enc</span>
                     <span>SIG: -{Math.floor(Math.random() * 20 + 40)}dBm</span>
                 </div>
 
                 {/* Module 4: Geo */}
-                <div className="flex flex-col gap-1 border-l border-ops-accent/20 pl-3">
+                <div className="flex flex-col gap-1 border-l border-ops-accent/20 pl-4 py-1">
                     <div className="flex items-center gap-2 text-ops-warning">
-                        <Activity size={10} />
-                        <span>GEO_LOCK</span>
+                        <Activity size={12} />
+                        <span className="text-[10px] tall:text-xs">GEO_LOCK</span>
                     </div>
                     <span>LAT: [REDACTED]</span>
                     <span>LON: [REDACTED]</span>
