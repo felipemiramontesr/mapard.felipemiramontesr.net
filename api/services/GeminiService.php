@@ -46,7 +46,8 @@ class GeminiService
             ],
             'generationConfig' => [
                 'temperature' => 0.7,
-                'maxOutputTokens' => 4000
+                'maxOutputTokens' => 8192,
+                'responseMimeType' => 'application/json'
             ]
         ];
 
@@ -114,8 +115,15 @@ class GeminiService
             return $this->getFallbackAnalysis($data, "Empty AI Response");
         }
 
-        // Clean Markdown wrappers
+        // Clean up Markdown: Handle ```json and ``` wrapping
         $cleanJson = preg_replace('/^```json\s*|\s*```$/i', '', trim($rawText));
+
+        // SMART EXTRACTION: If chatty preamble exists, find the first { and last }
+        if (strpos($cleanJson, '{') !== 0) {
+            if (preg_match('/\{[\s\S]*\}/', $cleanJson, $matches)) {
+                $cleanJson = $matches[0];
+            }
+        }
 
         // Decode JSON from AI
         $parsed = json_decode($cleanJson, true);
