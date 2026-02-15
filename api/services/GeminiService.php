@@ -37,115 +37,81 @@ class GeminiService
             \"threat_level\": \"CRITICAL\",
             \"executive_summary\": \"Se detectaron exposiciones críticas en servicios financieros y sociales...\",
             \"detailed_analysis\": [
+        IMPORTANTE: Responde SOLO con JSON válido. Sin bloque de código markdown (```json).";
+
+        $userPrompt = "Analiza estas brechas de seguridad:\n" . json_encode($data) . "\n\n" .
+            "Genera un JSON con esta estructura exacta:\n" .
+            "{
+              \"threat_level\": \"LOW|MEDIUM|HIGH|CRITICAL\",
+              \"executive_summary\": \"Resumen ejecutivo de alto nivel...\",
+              \"detailed_analysis\": [
                 {
-                    \"source_name\": \"Adobe\",
-                    \"incident_story\": \"En octubre de 2013, atacantes accedieron a la red de Adobe y sustrajeron datos de 153 millones de cuentas, incluyendo contraseñas cifradas y pistas.\",
-                    \"risk_explanation\": \"Dado que Adobe almacena métodos de pago, el riesgo de fraude financiero y phishing dirigido es muy alto.\",
-                    \"specific_remediation\": [
-                        \"Cambie su contraseña en Adobe y active la autenticación en dos pasos (2FA).\",
-                        \"Solicite a su banco un monitoreo de transacciones por posibles cargos no reconocidos.\",
-                        \"Utilice un gestor de contraseñas para generar claves únicas en el futuro.\"
-                    ]
+                  \"source_name\": \"Nombre de la fuente\",
+                  \"incident_story\": \"Narrativa detallada del incidente...\",
+                  \"risk_explanation\": \"Por qué es peligroso...\",
+                  \"specific_remediation\": [\"Paso 1\", \"Paso 2\"]
                 }
-            ],
-            \"dynamic_glossary\": {
-                \"Encryption\": \"Proceso de codificar datos para que solo autorizados los lean.\"
-            }
-        }";
+              ],
+              \"dynamic_glossary\": {\"Término\": \"Definición\"}
+            }";
 
-        $userPrompt = "Analiza estas brechas y genera el JSON completo:\n" . json_encode($data);
-
-        $payload = [
+        $body = [
             'contents' => [
-                [
-                    'parts' => [
-                        ['text' => $userPrompt]
-                    ]
-                ]
-            ],
-            'systemInstruction' => [
-                'parts' => [
-                    ['text' => $systemPrompt]
-                ]
+                ['parts' => [['text' => $systemPrompt . "\n---\n" . $userPrompt]]]
             ],
             'generationConfig' => [
-                'temperature' => 0.6, // Higher temperature = More creativity/variety
-                'responseMimeType' => 'application/json'
+                'temperature' => 0.7,
+                'maxOutputTokens' => 4000 // Reduced for Pro
             ]
         ];
 
         // HYBRID REQUEST ENGINE
-        $jsonPayload = json_encode($payload);
-        $response = false;
+        $response = null;
         $httpCode = 0;
-        $curlError = '';
+        $startTime = microtime(true);
+        $errorMsg = "";
 
+        // OPTION A: cURL (Preferred)
         if (function_exists('curl_init')) {
-            // OPTION A: cURL (Preferred)
             $ch = curl_init($url);
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($ch, CURLOPT_POST, true);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, $jsonPayload);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($body));
             curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
-            curl_setopt($ch, CURLOPT_TIMEOUT, 120);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 60); // 60s timeout
             curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); // Relax SSL as requested
-
             $response = curl_exec($ch);
             $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            $curlError = curl_error($ch);
+            if (curl_errno($ch)) $errorMsg = "cURL Error: " . curl_error($ch);
             curl_close($ch);
-
-            if ($response === FALSE) {
-                $msg = "cURL Connection Failed: " . $curlError;
-                error_log("Gemini API Error: " . $msg);
-                return $this->getFallbackAnalysis($data, $msg);
-            }
         } else {
-            // OPTION B: file_get_contents (Fallback)
-            $options = [
+            // OPTION B: file_get_contents
+            $opts = [
                 'http' => [
-                    'header' => "Content-type: application/json\r\n",
                     'method' => 'POST',
-                    'content' => $jsonPayload,
-                    'timeout' => 120,
+                    'header' => "Content-Type: application/json\r\n",
+                    'content' => json_encode($body),
+                    'timeout' => 60,
                     'ignore_errors' => true
                 ],
                 'ssl' => [
-                    'verify_peer' => false,
-                    'verify_peer_name' => false
+                   'verify_peer' => false,
+                   'verify_peer_name' => false
                 ]
             ];
-            $context = stream_context_create($options);
-            $response = file_get_contents($url, false, $context);
-
-            if ($response === FALSE) {
-                $msg = "Stream Connection Failed (file_get_contents)";
-                error_log("Gemini API Error: " . $msg);
-                return $this->getFallbackAnalysis($data, $msg);
-            }
-
+            $context = stream_context_create($opts);
+            $response = @file_get_contents($url, false, $context);
+            // Parse headers for HTTP code
             if (isset($http_response_header)) {
-                foreach ($http_response_header as $header) {
-                    if (preg_match('/^HTTP\/\d\.\d (\d+)/', $header, $matches)) {
-                        $httpCode = intval($matches[1]);
-                        break;
-                    }
-                }
+                preg_match('#HTTP/\d\.\d (\d{3})#', $http_response_header[0], $matches);
+                $httpCode = isset($matches[1]) ? intval($matches[1]) : 0;
             }
         }
-
+        
+        // Handle API Errors
         if ($httpCode !== 200) {
-            $msg = "HTTP $httpCode | Model: {$this->model} | Url: $debugUrl | Response: " . substr($response, 0, 100);
+            $msg = "HTTP $httpCode | Model: {$this->model} | Response: " . substr($response, 0, 150);
             error_log("Gemini API Error: $msg");
-            return $this->getFallbackAnalysis($data, $msg);
-        }
-
-        // SAVE RAW RESPONSE FOR DEBUGGING
-        file_put_contents(__DIR__ . '/../gemini_debug.log', "--- REQUEST ---\n" . $userPrompt . "\n\n--- RESPONSE ---\n" . $response . "\n\n", FILE_APPEND);
-
-        try {
-            $jsonResponse = json_decode($response, true);
-            $rawText = $jsonResponse['candidates'][0]['content']['parts'][0]['text'] ?? null;
 
             if (!$rawText) {
                 $msg = "No Candidate Text in JSON response";
