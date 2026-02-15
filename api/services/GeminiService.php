@@ -15,6 +15,16 @@ class GeminiService
 
     public function analyzeBreach($data)
     {
+        // 🚀 USER REQUEST: PROCESS EVERYTHING (No Limits)
+        // Attempt to override server timeout to 5 minutes
+        if (function_exists('set_time_limit')) {
+            @set_time_limit(300);
+        }
+
+        // PERFORMANCE GUARD: DISABLED BY USER REQUEST
+        // $totalBreaches = count($data);
+        // if ($totalBreaches > 5) { ... }
+
         // VERIFIED MODEL (Requested by User & Confirmed Available)
         $this->model = 'gemini-2.5-pro';
         $url = $this->baseUrl . $this->model . ':generateContent?key=' . $this->apiKey;
@@ -29,15 +39,25 @@ class GeminiService
             "{
               \"threat_level\": \"LOW|MEDIUM|HIGH|CRITICAL\",
               \"executive_summary\": \"Resumen ejecutivo de alto nivel...\",
+        INSTRUCCIONES CLAVE DE PERSUASIÓN:
+        1. 'executive_summary': Debe ser DIRECTO. Ejemplo: \"Detectamos X incidentes. Su perfil digital es vulnerable. Actúe hoy.\"
+        2. 'detailed_analysis' (Top 3): Enfoca en \"Vectores de Ataque Inmediato\".
+        3. 'strategic_conclusion': CIERRE DE VENTA.
+           - NO digas \"ya estás al 80%\".
+           - DI: \"Resolver estas 3 brechas detiene el sangrado inmediato, pero el resto de los incidentes actúan como 'puertas traseras' latentes. La seguridad parcial es inseguridad total. Se requiere una limpieza profunda.\"
+           - Genera miedo a la \"persistencia\" del atacante.
+
+        EJEMPLO DE SALIDA (JSON): \",
               \"detailed_analysis\": [
                 {
-                  \"source_name\": \"Nombre de la fuente\",
-                  \"incident_story\": \"Narrativa detallada del incidente...\",
-                  \"risk_explanation\": \"Por qué es peligroso...\",
-                  \"specific_remediation\": [\"Paso 1\", \"Paso 2\"]
+                  \"source_name\": \"Nombre\",
+                  \"incident_story\": \"Historia...\",
+                  \"risk_explanation\": \"Impacto crítico...\",
+                  \"specific_remediation\": [\"Acción 1\", \"Acción 2\"]
                 }
               ],
-              \"dynamic_glossary\": {\"Término\": \"Definición\"}
+              \"dynamic_glossary\": {\"Término\": \"Definición\"},
+              \"strategic_conclusion\": \"Texto persuasivo final...\"
             }";
 
         $body = [
@@ -63,7 +83,7 @@ class GeminiService
             curl_setopt($ch, CURLOPT_POST, true);
             curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($body));
             curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
-            curl_setopt($ch, CURLOPT_TIMEOUT, 60);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 300); // 5 Minutes Timeout
             curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
             $response = curl_exec($ch);
             $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
