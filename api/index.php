@@ -385,6 +385,32 @@ críticos asociados a los usuarios registrados.";
                     }
                 }
 
+                // Fix: Add Missing WordWrapCount Method for Table Calculation
+                function WordWrapCount($text, $width)
+                {
+                    $text = trim($text);
+                    if ($text === '')
+                        return 0;
+
+                    $nb = 0;
+                    $words = explode(' ', $text);
+                    $currLine = '';
+
+                    foreach ($words as $word) {
+                        $checkLine = $currLine ? $currLine . ' ' . $word : $word;
+                        if ($this->GetStringWidth($checkLine) < $width) {
+                            $currLine = $checkLine;
+                        } else {
+                            $nb++;
+                            $currLine = $word;
+                        }
+                    }
+                    if ($currLine)
+                        $nb++;
+
+                    return $nb;
+                }
+
                 function SectionTitle($title)
                 {
                     $this->CheckPageSpace(25);
