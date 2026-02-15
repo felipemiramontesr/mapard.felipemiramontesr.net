@@ -17,44 +17,40 @@ class GeminiService
     {
         $url = $this->baseUrl . $this->model . ':generateContent?key=' . $this->apiKey;
 
-        // Construct the Tactical Analyst Persona (V6 - Contextual Chameleon & Anti-Repetition)
-        $systemPrompt = "Eres un Estratega de Ciberseguridad de alto nivel.
-        Tu cliente se queja de que los reportes son 'genéricos'. Tu trabajo es demostrar que CADA brecha es un mundo distinto.
+        // Construct the Tactical Analyst Persona (V7 - High Reasoning & One-Shot)
+        $systemPrompt = "Eres un Estratega de Ciberseguridad Senior.
+        Tu misión es analizar una lista de brechas y generar un reporte JSON detallado para el cliente.
         
-        INPUT: Lista de brechas.
-        OUTPUT: JSON estricto:
+        INPUT: Lista de brechas (Array).
+        
+        INSTRUCCIONES CLAVE:
+        1. Debes generar un objeto en 'detailed_analysis' POR CADA brecha recibida. Si recibes 3 brechas, devuelve 3 análisis.
+        2. NO devuelvas arrays vacíos. Si te falta información, infiere el riesgo basado en el tipo de servicio.
+        3. 'incident_story' debe ser narrativo y explicar el contexto.
+        4. 'specific_remediation' debe ser un array de 3 strings distintas (Técnica, Legal, Preventiva).
+
+        EJEMPLO DE SALIDA (JSON):
         {
-            \"threat_level\": \"LOW\" | \"MEDIUM\" | \"HIGH\" | \"CRITICAL\",
-            \"executive_summary\": \"Resumen de impacto real.\",
+            \"threat_level\": \"CRITICAL\",
+            \"executive_summary\": \"Se detectaron exposiciones críticas en servicios financieros y sociales...\",
             \"detailed_analysis\": [
                 {
-                    \"source_name\": \"Nombre del servicio\",
-                    \"incident_story\": \"Historia breve y ÚNICA del incidente.\",
-                    \"risk_explanation\": \"Impacto específico. (Ej: Si es LinkedIn -> Riesgo de ingeniería social laboral. Si es Adobe -> Riesgo de phishing de facturas).\",
+                    \"source_name\": \"Adobe\",
+                    \"incident_story\": \"En octubre de 2013, atacantes accedieron a la red de Adobe y sustrajeron datos de 153 millones de cuentas, incluyendo contraseñas cifradas y pistas.\",
+                    \"risk_explanation\": \"Dado que Adobe almacena métodos de pago, el riesgo de fraude financiero y phishing dirigido es muy alto.\",
                     \"specific_remediation\": [
-                        // ¡IMPORTANTE! Las acciones deben variar según el TIPO de servicio.
-                        \"Acción 1 (Inmediata y Técnica): Ej: 'Revocar acceso a aplicaciones de terceros en [Servicio]'.\",
-                        \"Acción 2 (Legal/Privacidad): Ej: 'Solicitar historial de accesos (GDPR)'.\",
-                        \"Acción 3 (Creativa/Preventiva): Ej: 'Crear una regla de correo para filtrar emails de este dominio'.\"
+                        \"Cambie su contraseña en Adobe y active la autenticación en dos pasos (2FA).\",
+                        \"Solicite a su banco un monitoreo de transacciones por posibles cargos no reconocidos.\",
+                        \"Utilice un gestor de contraseñas para generar claves únicas en el futuro.\"
                     ]
                 }
             ],
             \"dynamic_glossary\": {
-                \"Término\": \"Definición simple.\"
+                \"Encryption\": \"Proceso de codificar datos para que solo autorizados los lean.\"
             }
-        }
-        
-        REGLAS DE ORO (ANTI-ABURRIMIENTO):
-        1. CLASIFICA EL SERVICIO MENTALMENTE:
-           - ¿Es Financiero/Compras? -> Habla de tarjetas y transacciones.
-           - ¿Es Red Social? -> Habla de suplantación de identidad y reputación.
-           - ¿Es Herramienta (Adobe/Dropbox)? -> Habla de archivos y propiedad intelectual.
-           - ¿Es Ocio (Juegos/Citas)? -> Habla de extorsión o irrelevancia.
-        2. PROHIBIDO REPETIR: No uses la frase 'Cambia tu contraseña' en todos los ítems. Usa variantes: 'Actualiza credenciales', 'Rota tu clave', 'Establece nuevo pass'.
-        3. SÉ ESPECÍFICO: Si es LinkedIn, di 'Ve a Configuración y Privacidad'. Si es Netflix, di 'Cierra sesión en todos los dispositivos'.
-        4. NO PAREZCAS UN ROBOT: Usa lenguaje natural y variado.";
+        }";
 
-        $userPrompt = "Genera un reporte único para estas brechas. Evita sonar repetitivo:\n" . json_encode($breachData);
+        $userPrompt = "Analiza estas brechas y genera el JSON completo:\n" . json_encode($breachData);
 
         $payload = [
             'contents' => [

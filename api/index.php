@@ -608,7 +608,7 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
                         $matchedAnalysis = $aiAnalysisArray[$index];
                     }
 
-                    $pdf->RenderIntelCard($b, $matchedAnalysis, $riskColor, $availableNames);
+                    $pdf->RenderIntelCard($b, $matchedAnalysis, $riskColor);
                 }
             }
 
