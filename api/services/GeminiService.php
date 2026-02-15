@@ -177,13 +177,13 @@ class GeminiService
             }
         } else {
             // ... (OMITTED for brevity, keep existing else block but update the return)
-            // But since I'm replacing the whole file content in my head, I need to be careful with the replace tool.
-            // Actually, I will just update the calls and the method definition.
+            $msg = $e->getMessage();
+            error_log("Gemini Critical Error: " . $msg);
+            return $this->getFallbackAnalysis($data, $msg);
         }
-
-        // ...
+    }
         
-    // UPDATED FALLBACK WITH ERROR INJECTION
+    // Fallback Generator to ensure PDF never breaks
     private function getFallbackAnalysis($breaches, $debugError = '') {
         $analysis = [
             'threat_level' => 'HIGH',
