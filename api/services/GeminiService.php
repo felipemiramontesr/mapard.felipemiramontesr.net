@@ -15,9 +15,10 @@ class GeminiService
 
     public function analyzeBreach($data)
     {
-        // HARDCODE MODEL TO ENSURE V7
-        $this->model = 'gemini-1.5-pro';
+        // SWITCH TO FLASH (More reliable availability & speed)
+        $this->model = 'gemini-1.5-flash';
         $url = $this->baseUrl . $this->model . ':generateContent?key=' . $this->apiKey;
+        $debugUrl = $this->baseUrl . $this->model . ':generateContent?key=MASKED';
 
         // Construct the Tactical Analyst Persona (V7 - High Reasoning & One-Shot)
         $systemPrompt = "Eres un Estratega de Ciberseguridad Senior.
@@ -134,7 +135,7 @@ class GeminiService
         }
 
         if ($httpCode !== 200) {
-            $msg = "API HTTP Error code: $httpCode | Response: " . substr($response, 0, 100);
+            $msg = "HTTP $httpCode | Model: {$this->model} | Url: $debugUrl | Response: " . substr($response, 0, 100);
             error_log("Gemini API Error: $msg");
             return $this->getFallbackAnalysis($data, $msg);
         }
