@@ -25,8 +25,8 @@ class GeminiService
         // $totalBreaches = count($data);
         // if ($totalBreaches > 5) { ... }
 
-        // VERIFIED MODEL (Requested by User & Confirmed Available)
-        $this->model = 'gemini-2.5-pro';
+        // VERIFIED MODEL (Switching to Flash for Speed/Reliability)
+        $this->model = 'gemini-2.0-flash';
         $url = $this->baseUrl . $this->model . ':generateContent?key=' . $this->apiKey;
 
         // Construct the Tactical Analyst Persona
@@ -83,7 +83,7 @@ class GeminiService
             curl_setopt($ch, CURLOPT_POST, true);
             curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($body));
             curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
-            curl_setopt($ch, CURLOPT_TIMEOUT, 300); // 5 Minutes Timeout
+            curl_setopt($ch, CURLOPT_TIMEOUT, 120);
             curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
             $response = curl_exec($ch);
             $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
@@ -97,7 +97,7 @@ class GeminiService
                     'method' => 'POST',
                     'header' => "Content-Type: application/json\r\n",
                     'content' => json_encode($body),
-                    'timeout' => 60,
+                    'timeout' => 120,
                     'ignore_errors' => true
                 ],
                 'ssl' => [
@@ -149,8 +149,10 @@ class GeminiService
         $parsed = json_decode($cleanJson, true);
 
         if (!is_array($parsed) || empty($parsed['detailed_analysis'])) {
-            error_log("Gemini Logic Error: Invalid JSON structure");
-            return $this->getFallbackAnalysis($data, "Invalid JSON from AI");
+            $jsonErr = json_last_error_msg();
+            $msg = "Invalid JSON structure. JSON Error: $jsonErr. Preview: " . substr($cleanJson, 0, 50) . "...";
+            error_log("Gemini Logic Error: $msg");
+            return $this->getFallbackAnalysis($data, $msg);
         }
 
         // Success!
