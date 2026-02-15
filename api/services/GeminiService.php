@@ -13,8 +13,10 @@ class GeminiService
         $this->model = defined('GEMINI_MODEL') ? GEMINI_MODEL : 'gemini-1.5-flash';
     }
 
-    public function analyzeBreach($breachData)
+    public function analyzeBreach($data)
     {
+        // HARDCODE MODEL TO ENSURE V7
+        $this->model = 'gemini-1.5-pro';
         $url = $this->baseUrl . $this->model . ':generateContent?key=' . $this->apiKey;
 
         // Construct the Tactical Analyst Persona (V7 - High Reasoning & One-Shot)

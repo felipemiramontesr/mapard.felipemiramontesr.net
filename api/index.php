@@ -565,18 +565,24 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
 
             $aiAnalysisArray = $aiIntel['detailed_analysis'] ?? [];
 
-            // DEBUG: PRINT RAW KEYS AVAILABLE
-            $availableNames = [];
-            foreach ($aiAnalysisArray as $a) {
-                if (isset($a['source_name']))
-                    $availableNames[] = $a['source_name'];
-                else
-                    $availableNames[] = "UNKNOWN_KEY_" . json_encode(array_keys($a));
-            }
-            $debugText = "DEBUG (Server-Side): Found " . count($aiAnalysisArray) . " AI analyses. Names: " . implode(", ", $availableNames);
+            // SUPER DEBUG BLOCK
             $pdf->SetFont('Helvetica', '', 6);
             $pdf->SetTextColor(255, 0, 0);
-            $pdf->MultiCell(0, 3, $debugText);
+
+            $debugInfo = "DEBUG DIAGNOSTIC:\n";
+            $debugInfo .= "Breaches Input: " . count($breachData) . "\n";
+            $debugInfo .= "AI Response Type: " . gettype($aiIntel) . "\n";
+            $debugInfo .= "AI Response Keys: " . json_encode(is_array($aiIntel) ? array_keys($aiIntel) : []) . "\n";
+            $debugInfo .= "Detailed Analysis Count: " . count($aiAnalysisArray) . "\n";
+
+            // Check first item contents if exists
+            if (!empty($aiAnalysisArray)) {
+                $debugInfo .= "First Item Keys: " . json_encode(array_keys($aiAnalysisArray[0])) . "\n";
+            } else {
+                $debugInfo .= "AI Intel Raw Dump: " . substr(json_encode($aiIntel), 0, 300) . "...\n";
+            }
+
+            $pdf->MultiCell(0, 3, $debugInfo);
             $pdf->Ln(5);
 
             if (empty($breaches)) {
