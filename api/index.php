@@ -594,37 +594,41 @@ críticos asociados a los usuarios registrados.";
             $aiAnalysisArray = $aiIntel['detailed_analysis'] ?? [];
             $analyzedSources = [];
 
+            // Correct Variable: $breachData
             foreach ($aiAnalysisArray as $analysis) {
-                 if (!isset($analysis['source_name'])) continue;
-                 
-                 // Find original breach data to match
-                 $originalBreach = null;
-                 foreach ($breaches as $b) {
-                     // Fuzzy match or exact match
-                     if (strpos(strtolower($b['name']), strtolower($analysis['source_name'])) !== false ||
-                         strpos(strtolower($analysis['source_name']), strtolower($b['name'])) !== false) {
-                         $originalBreach = $b;
-                         break;
-                     }
-                 }
-                 
-                 // If not found, create a mock one from analysis (fallback)
-                 if (!$originalBreach) {
-                     $originalBreach = [
-                         'name' => $analysis['source_name'],
-                         'date' => 'Fecha desconocida',
-                         'classes' => []
-                     ];
-                 }
+                if (!isset($analysis['source_name']))
+                    continue;
 
-                 $analyzedSources[] = strtolower($originalBreach['name']);
-                 $pdf->RenderIntelCard($originalBreach, $analysis, $riskColor);
-                 $pdf->Ln(5);
+                // Find original breach data to match
+                $originalBreach = null;
+                foreach ($breachData as $b) {
+                    // Fuzzy match or exact match
+                    if (
+                        strpos(strtolower($b['name']), strtolower($analysis['source_name'])) !== false ||
+                        strpos(strtolower($analysis['source_name']), strtolower($b['name'])) !== false
+                    ) {
+                        $originalBreach = $b;
+                        break;
+                    }
+                }
+
+                // If not found, create a mock one from analysis (fallback)
+                if (!$originalBreach) {
+                    $originalBreach = [
+                        'name' => $analysis['source_name'],
+                        'date' => 'Fecha desconocida',
+                        'classes' => []
+                    ];
+                }
+
+                $analyzedSources[] = strtolower($originalBreach['name']);
+                $pdf->RenderIntelCard($originalBreach, $analysis, $riskColor);
+                $pdf->Ln(5);
             }
 
             // 3. THE "REST" OF THE BREACHES (Audit Log)
             $remainingBreaches = [];
-            foreach ($breaches as $b) {
+            foreach ($breachData as $b) {
                 if (!in_array(strtolower($b['name']), $analyzedSources)) {
                     $remainingBreaches[] = $b;
                 }
@@ -644,7 +648,7 @@ críticos asociados a los usuarios registrados.";
                 $pdf->Cell(60, 8, 'Fuente', 1, 0, 'L', true);
                 $pdf->Cell(30, 8, 'Fecha', 1, 0, 'L', true);
                 $pdf->Cell(100, 8, utf8_decode('Datos Expuestos'), 1, 1, 'L', true);
-                
+
                 $pdf->SetFont('Helvetica', '', 8);
                 foreach ($remainingBreaches as $rb) {
                     $classesStr = implode(", ", array_map('translate_data_class', $rb['classes']));
@@ -652,31 +656,31 @@ críticos asociados a los usuarios registrados.";
                     $nb = $pdf->WordWrapCount($classesStr, 100);
                     $h = 6 * $nb;
                     $pdf->CheckPageSpace($h);
-                    
+
                     $x = $pdf->GetX();
                     $y = $pdf->GetY();
-                    
+
                     $pdf->Cell(60, $h, text_sanitize($rb['name']), 1, 0, 'L');
                     $pdf->Cell(30, $h, text_sanitize($rb['date']), 1, 0, 'L');
                     $pdf->MultiCell(100, 6, text_sanitize($classesStr), 1, 'L');
                 }
             }
-            
+
             // 4. STRATEGIC CONCLUSION
             if (isset($aiIntel['strategic_conclusion'])) {
                 $pdf->Ln(10);
                 $pdf->CheckPageSpace(40);
-                
+
                 // Red Warning Box
                 $pdf->SetFillColor(255, 235, 235);
                 $pdf->SetDrawColor(255, 0, 0);
                 $pdf->Rect(10, $pdf->GetY(), 190, 35, 'DF');
-                
+
                 $pdf->SetXY(15, $pdf->GetY() + 5);
                 $pdf->SetFont('Helvetica', 'B', 11);
                 $pdf->SetTextColor(200, 0, 0); // Dark Red
                 $pdf->Cell(0, 6, utf8_decode("CONCLUSIÓN ESTRATÉGICA"), 0, 1);
-                
+
                 $pdf->SetX(15);
                 $pdf->SetFont('Helvetica', 'I', 10);
                 $pdf->SetTextColor(50, 0, 0);
@@ -684,7 +688,7 @@ críticos asociados a los usuarios registrados.";
                 $pdf->Ln(10);
             }
 
-            // SUPER DEBUG BLOCK
+            // SUPER DEBUG BLOCK (Re-added at the end of section)
             $pdf->SetFont('Helvetica', '', 6);
             $pdf->SetTextColor(255, 0, 0);
 
@@ -694,37 +698,13 @@ críticos asociados a los usuarios registrados.";
             $debugInfo .= "AI Response Keys: " . json_encode(is_array($aiIntel) ? array_keys($aiIntel) : []) . "\n";
             $debugInfo .= "Detailed Analysis Count: " . count($aiAnalysisArray) . "\n";
 
-            // Check first item contents if exists
             if (!empty($aiAnalysisArray)) {
                 $debugInfo .= "First Item Keys: " . json_encode(array_keys($aiAnalysisArray[0])) . "\n";
-            } else {
-                $debugInfo .= "AI Intel Raw Dump: " . substr(json_encode($aiIntel), 0, 300) . "...\n";
             }
 
-            $pdf->MultiCell(0, 3, $debugInfo);
+            $pdf->MultiCell(190, 3, $debugInfo); // Use reduced width to avoid overflow
+            $pdf->SetTextColor(0);
             $pdf->Ln(5);
-
-            if (empty($breaches)) {
-                $pdf->SetFont('Helvetica', '', 9);
-                $pdf->Cell(
-                    0,
-                    10,
-                    text_sanitize("¡Buenas noticias! No encontramos incidentes públicos asociados a tu correo."),
-                    0,
-                    1
-                );
-            } else {
-
-                    }
-
-                    // 2. Fallback to Index if Name match fails (and index exists)
-                    if (empty($matchedAnalysis) && isset($aiAnalysisArray[$index])) {
-                        $matchedAnalysis = $aiAnalysisArray[$index];
-                    }
-
-                    $pdf->RenderIntelCard($b, $matchedAnalysis, $riskColor);
-                }
-            }
 
             // 3. DYNAMIC GLOSSARY
             if ($aiIntel && isset($aiIntel['dynamic_glossary']) && !empty($aiIntel['dynamic_glossary'])) {
