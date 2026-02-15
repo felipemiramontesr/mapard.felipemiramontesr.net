@@ -74,16 +74,20 @@ class GeminiService
         ];
 
         // HYBRID REQUEST ENGINE
+        $jsonPayload = json_encode($payload);
+        $response = false;
+        $httpCode = 0;
+        $curlError = '';
+
         if (function_exists('curl_init')) {
             // OPTION A: cURL (Preferred)
             $ch = curl_init($url);
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($ch, CURLOPT_POST, true);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
+            curl_setopt($ch, CURLOPT_POSTFIELDS, $jsonPayload);
             curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
             curl_setopt($ch, CURLOPT_TIMEOUT, 120);
-            // Relax SSL for local dev if needed, typically strictly verified in prod
-            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); // Relax SSL as requested
 
             $response = curl_exec($ch);
             $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
@@ -91,16 +95,17 @@ class GeminiService
             curl_close($ch);
 
             if ($response === FALSE) {
-                error_log("Gemini API Error: cURL Connection failed - " . $curlError);
-                return $this->getFallbackAnalysis($data);
+                $msg = "cURL Connection Failed: " . $curlError;
+                error_log("Gemini API Error: " . $msg);
+                return $this->getFallbackAnalysis($data, $msg);
             }
         } else {
-            // OPTION B: file_get_contents (Fallback for limited envs)
+            // OPTION B: file_get_contents (Fallback)
             $options = [
                 'http' => [
                     'header' => "Content-type: application/json\r\n",
                     'method' => 'POST',
-                    'content' => json_encode($payload),
+                    'content' => $jsonPayload,
                     'timeout' => 120,
                     'ignore_errors' => true
                 ],
@@ -112,14 +117,12 @@ class GeminiService
             $context = stream_context_create($options);
             $response = file_get_contents($url, false, $context);
 
-            // Check for HTTP errors in Fallback Mode
             if ($response === FALSE) {
-                error_log("Gemini API Error: Stream Connection failed");
-                return $this->getFallbackAnalysis($data);
+                $msg = "Stream Connection Failed (file_get_contents)";
+                error_log("Gemini API Error: " . $msg);
+                return $this->getFallbackAnalysis($data, $msg);
             }
 
-            // Parse headers for status code
-            $httpCode = 0;
             if (isset($http_response_header)) {
                 foreach ($http_response_header as $header) {
                     if (preg_match('/^HTTP\/\d\.\d (\d+)/', $header, $matches)) {
@@ -131,8 +134,9 @@ class GeminiService
         }
 
         if ($httpCode !== 200) {
-            error_log("Gemini API Error: HTTP $httpCode - Response: $response");
-            return $this->getFallbackAnalysis($data);
+            $msg = "API HTTP Error code: $httpCode | Response: " . substr($response, 0, 100);
+            error_log("Gemini API Error: $msg");
+            return $this->getFallbackAnalysis($data, $msg);
         }
 
         // SAVE RAW RESPONSE FOR DEBUGGING
@@ -143,8 +147,9 @@ class GeminiService
             $rawText = $jsonResponse['candidates'][0]['content']['parts'][0]['text'] ?? null;
 
             if (!$rawText) {
-                error_log("Gemini Error: No text in candidate.");
-                return $this->getFallbackAnalysis($data); // Corrected variable
+                $msg = "No Candidate Text in JSON response";
+                error_log("Gemini Error: " . $msg);
+                return $this->getFallbackAnalysis($data, $msg);
             }
 
             // Clean up Markdown: Handle ```json and ``` wrapping
@@ -155,36 +160,25 @@ class GeminiService
 
             $parsed = json_decode($cleanJson, true);
 
-            // STRICT VALIDATION: Ensure we actually have the data we need
+            // STRICT VALIDATION
             if (!is_array($parsed) || empty($parsed['detailed_analysis'])) {
-                error_log("Gemini Logic Error: JSON is valid but missing 'detailed_analysis'. content: " . substr($cleanJson, 0, 100) . "...");
-                return $this->getFallbackAnalysis($data); // Corrected variable
+                $msg = "Missing 'detailed_analysis' array in JSON";
+                error_log("Gemini Logic Error: " . $msg);
+                return $this->getFallbackAnalysis($data, $msg);
             }
 
             return $parsed;
 
         } catch (Exception $e) {
-            error_log("Gemini Critical Error: " . $e->getMessage());
-            return $this->getFallbackAnalysis($data); // Corrected variable
-        }
-    }
-
-            if ($response === FALSE) {
-                // EXPOSE CURL ERROR IN FALLBACK STORY
-                $msg = "cURL Error: " . $curlError; 
-                error_log("Gemini API Error: " . $msg);
-                return $this->getFallbackAnalysis($data, $msg);
-            }
-        } else {
-            // ... (OMITTED for brevity, keep existing else block but update the return)
-            $msg = $e->getMessage();
+            $msg = "Exception: " . $e->getMessage();
             error_log("Gemini Critical Error: " . $msg);
             return $this->getFallbackAnalysis($data, $msg);
         }
     }
-        
+
     // Fallback Generator to ensure PDF never breaks
-    private function getFallbackAnalysis($breaches, $debugError = '') {
+    private function getFallbackAnalysis($breaches, $debugError = '')
+    {
         $analysis = [
             'threat_level' => 'HIGH',
             'executive_summary' => 'El sistema de inteligencia artificial no pudo procesar los detalles. Razón Técnica: ' . $debugError,
