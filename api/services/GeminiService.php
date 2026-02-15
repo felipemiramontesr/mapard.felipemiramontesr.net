@@ -106,7 +106,7 @@ class GeminiService
 
         if ($httpCode !== 200) {
             error_log("Gemini API Error: HTTP $httpCode - Response: $response");
-            return $this->getFallbackAnalysis($breachData); // Return Structured Fallback
+            return $this->getFallbackAnalysis($data); // Corrected variable
         }
 
         // SAVE RAW RESPONSE FOR DEBUGGING
@@ -118,7 +118,7 @@ class GeminiService
 
             if (!$rawText) {
                 error_log("Gemini Error: No text in candidate.");
-                return $this->getFallbackAnalysis($breachData);
+                return $this->getFallbackAnalysis($data); // Corrected variable
             }
 
             // Clean up Markdown: Handle ```json and ``` wrapping
@@ -128,16 +128,18 @@ class GeminiService
             file_put_contents(__DIR__ . '/../gemini_cleaned.log', $cleanJson);
 
             $parsed = json_decode($cleanJson, true);
-            if (!$parsed) {
-                error_log("Gemini JSON Parse Error: " . json_last_error_msg());
-                return $this->getFallbackAnalysis($breachData);
+
+            // STRICT VALIDATION: Ensure we actually have the data we need
+            if (!is_array($parsed) || empty($parsed['detailed_analysis'])) {
+                error_log("Gemini Logic Error: JSON is valid but missing 'detailed_analysis'. content: " . substr($cleanJson, 0, 100) . "...");
+                return $this->getFallbackAnalysis($data); // Corrected variable
             }
 
             return $parsed;
 
         } catch (Exception $e) {
             error_log("Gemini Critical Error: " . $e->getMessage());
-            return $this->getFallbackAnalysis($breachData);
+            return $this->getFallbackAnalysis($data); // Corrected variable
         }
     }
 

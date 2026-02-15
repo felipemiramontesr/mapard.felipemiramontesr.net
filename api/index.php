@@ -219,7 +219,7 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
             $aiIntel = null;
             if (!empty($breaches)) {
                 require_once __DIR__ . '/services/GeminiService.php';
-                addLog($logs, "Invoking CORTEX Neural Engine (Gemini 2.0)...", "info");
+                addLog($logs, "Invoking CORTEX Neural Engine (Gemini 1.5 Pro)...", "info");
                 $gemini = new GeminiService();
                 $aiIntel = $gemini->analyzeBreach($breachData);
 
