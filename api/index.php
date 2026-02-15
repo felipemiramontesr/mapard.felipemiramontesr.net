@@ -1,8 +1,15 @@
 <?php
 // Enable Error Reporting for Debugging (Return JSON, not HTML)
-ini_set('display_errors', 0); // Reverting to 0 to prevent JSON breakage from Notice messages
+ini_set('display_errors', 1);
 ini_set('log_errors', 1);
 error_reporting(E_ALL);
+
+// DEBUG PROBE
+// Remove this after fixing!
+if (isset($_GET['probe'])) {
+    echo "PHP IS ALIVE. Version: " . phpversion();
+    exit;
+}
 
 // Robust Include
 require_once __DIR__ . '/config.php';
