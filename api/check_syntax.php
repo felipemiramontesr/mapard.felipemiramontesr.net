@@ -32,11 +32,16 @@ if (!file_exists($servicePath)) {
     echo "[FAIL] services/GeminiService.php not found. Did you upload it?\n";
 } else {
     try {
+        echo "File Size: " . filesize($servicePath) . " bytes\n";
+        echo "File Hash: " . md5_file($servicePath) . "\n";
+
         require_once $servicePath;
         echo "[OK] GeminiService.php loaded successfully.\n";
-        if (class_exists('GeminiService')) {
-            echo " [Class Exists]\n";
-        }
+
+        // CHECK METHOD SIGNATURE
+        $reflection = new ReflectionMethod('GeminiService', 'analyzeBreach');
+        echo "Method 'analyzeBreach' exists. Parameters: " . $reflection->getNumberOfParameters() . "\n";
+
     } catch (Throwable $e) {
         echo "[CRASH] Syntax Error in GeminiService.php: " . $e->getMessage() . "\n";
     }
