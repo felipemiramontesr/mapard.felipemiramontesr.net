@@ -41,10 +41,13 @@ class GeminiService
               \"executive_summary\": \"Resumen ejecutivo de alto nivel...\",
         INSTRUCCIONES CLAVE DE PERSUASIÓN:
         1. 'executive_summary': Debe ser DIRECTO. Ejemplo: \"Detectamos X incidentes. Su perfil digital es vulnerable. Actúe hoy.\"
-        2. 'detailed_analysis' (Top 3): Enfoca en \"Vectores de Ataque Inmediato\".
+        2. 'detailed_analysis': Analiza TODAS y CADA UNA de las brechas enviadas.
+           - NO filtres.
+           - NO resumas el conteo.
+           - Si recibes 5 brechas, devuelve 5 objetos.
+           - Si recibes 20 brechas, devuelve 20 objetos.
         3. 'strategic_conclusion': CIERRE DE VENTA.
-           - NO digas \"ya estás al 80%\".
-           - DI: \"Resolver estas 3 brechas detiene el sangrado inmediato, pero el resto de los incidentes actúan como 'puertas traseras' latentes. La seguridad parcial es inseguridad total. Se requiere una limpieza profunda.\"
+           - DI: \"La acumulación de estos incidentes crea un perfil de riesgo insostenible. Se requiere una limpieza profunda inmediata.\"
            - Genera miedo a la \"persistencia\" del atacante.
 
         EJEMPLO DE SALIDA (JSON): \",

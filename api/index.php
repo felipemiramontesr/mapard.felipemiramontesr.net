@@ -102,7 +102,7 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
             ["message" => "Iniciando Protocolo MAPARD...", "type" => "info", "timestamp" => date('c')]
         ]);
 
-        $stmt = $pdo->prepare("INSERT INTO scans (job_id, email, domain, status, logs) VALUES (?, ?, ?, 'RUNNING', ?)");
+        $stmt = $pdo->prepare("INSERT INTO scans (job_id, email, domain, status, logs) VALUES (?, ?, ?, 'PENDING', ?)");
         $stmt->execute([$jobId, $email, $domain, $initialLogs]);
 
         echo json_encode(["job_id" => $jobId, "status" => "ACCEPTED"]);
@@ -129,6 +129,29 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
                 "logs" => json_decode($job['logs']),
                 "result_url" => $job['result_path']
             ]);
+            exit;
+        }
+
+        // RACE CONDITION FIX: Prevent multiple executions
+        if ($job['status'] === 'RUNNING') {
+            // If it's been running for too long (> 2 mins), maybe reset?
+            // For now, just return specific status so client keeps polling
+            echo json_encode([
+                "job_id" => $jobId,
+                "status" => "RUNNING",
+                "logs" => json_decode($job['logs']),
+                "message" => "Scan in progress..."
+            ]);
+            exit;
+        }
+
+        // Only Execute if PENDING
+        if ($job['status'] === 'PENDING') {
+            // Lock it immediately
+            $pdo->prepare("UPDATE scans SET status='RUNNING' WHERE job_id=?")->execute([$jobId]);
+            $job['status'] = 'RUNNING'; // Local update
+        } else {
+            // Should not happen if filtered correctly
             exit;
         }
 
@@ -614,8 +637,8 @@ críticos asociados a los usuarios registrados.";
                 $pdf->RenderExecutiveSummary($aiIntel['executive_summary']);
             }
 
-            // 2. INCIDENT STORY CARDS (TOP 3)
-            $pdf->SectionTitle("1. Análisis Detallado (Top Prioridad)");
+            // 2. INCIDENT STORY CARDS (Full Analyzed List)
+            $pdf->SectionTitle("1. Análisis Detallado (Auditoría Forense)");
 
             $aiAnalysisArray = $aiIntel['detailed_analysis'] ?? [];
             $analyzedSources = [];
