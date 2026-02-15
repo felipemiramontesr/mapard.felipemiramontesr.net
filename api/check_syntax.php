@@ -10,18 +10,18 @@ echo "<h1>MAPARD Syntax Diagnostic</h1>";
 echo "<h2>1. Checking config.php...</h2>";
 $configPath = __DIR__ . '/config.php';
 if (!file_exists($configPath)) {
-    echo "<span style='color:red'>FAIL: config.php not found. Did you upload it?</span>";
+    echo "[FAIL] config.php not found. Did you upload it?\n";
 } else {
     try {
         include $configPath;
-        echo "<span style='color:green'>OK: config.php loaded successfully.</span>";
+        echo "[OK] config.php loaded successfully.\n";
         if (defined('GEMINI_API_KEY')) {
-            echo " [Key Loaded]";
+            echo " [Key Loaded]\n";
         } else {
-            echo " <span style='color:orange'>WARNING: GEMINI_API_KEY constant not defined.</span>";
+            echo " [WARNING] GEMINI_API_KEY constant not defined.\n";
         }
     } catch (Throwable $e) {
-        echo "<span style='color:red'>CRASH: Syntax Error in config.php: " . $e->getMessage() . "</span>";
+        echo "[CRASH] Syntax Error in config.php: " . $e->getMessage() . "\n";
     }
 }
 
@@ -29,16 +29,16 @@ if (!file_exists($configPath)) {
 echo "<h2>2. Checking services/GeminiService.php...</h2>";
 $servicePath = __DIR__ . '/services/GeminiService.php';
 if (!file_exists($servicePath)) {
-    echo "<span style='color:red'>FAIL: services/GeminiService.php not found. Did you upload it to the 'services' folder?</span>";
+    echo "[FAIL] services/GeminiService.php not found. Did you upload it?\n";
 } else {
     try {
         require_once $servicePath;
-        echo "<span style='color:green'>OK: GeminiService.php loaded successfully.</span>";
+        echo "[OK] GeminiService.php loaded successfully.\n";
         if (class_exists('GeminiService')) {
-            echo " [Class Exists]";
+            echo " [Class Exists]\n";
         }
     } catch (Throwable $e) {
-        echo "<span style='color:red'>CRASH: Syntax Error in GeminiService.php: " . $e->getMessage() . "</span>";
+        echo "[CRASH] Syntax Error in GeminiService.php: " . $e->getMessage() . "\n";
     }
 }
 
