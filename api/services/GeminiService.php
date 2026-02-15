@@ -15,28 +15,13 @@ class GeminiService
 
     public function analyzeBreach($data)
     {
-        // SWITCH TO FLASH (More reliable availability & speed)
-        $this->model = 'gemini-1.5-flash';
+        // VERIFIED MODEL (Requested by User & Confirmed Available)
+        $this->model = 'gemini-2.5-pro';
         $url = $this->baseUrl . $this->model . ':generateContent?key=' . $this->apiKey;
-        $debugUrl = $this->baseUrl . $this->model . ':generateContent?key=MASKED';
 
-        // Construct the Tactical Analyst Persona (V7 - High Reasoning & One-Shot)
+        // Construct the Tactical Analyst Persona
         $systemPrompt = "Eres un Estratega de Ciberseguridad Senior.
         Tu misión es analizar una lista de brechas y generar un reporte JSON detallado para el cliente.
-        
-        INPUT: Lista de brechas (Array).
-        
-        INSTRUCCIONES CLAVE:
-        1. Debes generar un objeto en 'detailed_analysis' POR CADA brecha recibida. Si recibes 3 brechas, devuelve 3 análisis.
-        2. NO devuelvas arrays vacíos. Si te falta información, infiere el riesgo basado en el tipo de servicio.
-        3. 'incident_story' debe ser narrativo y explicar el contexto.
-        4. 'specific_remediation' debe ser un array de 3 strings distintas (Técnica, Legal, Preventiva).
-
-        EJEMPLO DE SALIDA (JSON):
-        {
-            \"threat_level\": \"CRITICAL\",
-            \"executive_summary\": \"Se detectaron exposiciones críticas en servicios financieros y sociales...\",
-            \"detailed_analysis\": [
         IMPORTANTE: Responde SOLO con JSON válido. Sin bloque de código markdown (```json).";
 
         $userPrompt = "Analiza estas brechas de seguridad:\n" . json_encode($data) . "\n\n" .
@@ -61,14 +46,13 @@ class GeminiService
             ],
             'generationConfig' => [
                 'temperature' => 0.7,
-                'maxOutputTokens' => 4000 // Reduced for Pro
+                'maxOutputTokens' => 4000
             ]
         ];
 
         // HYBRID REQUEST ENGINE
         $response = null;
         $httpCode = 0;
-        $startTime = microtime(true);
         $errorMsg = "";
 
         // OPTION A: cURL (Preferred)
@@ -78,14 +62,15 @@ class GeminiService
             curl_setopt($ch, CURLOPT_POST, true);
             curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($body));
             curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
-            curl_setopt($ch, CURLOPT_TIMEOUT, 60); // 60s timeout
-            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); // Relax SSL as requested
+            curl_setopt($ch, CURLOPT_TIMEOUT, 60);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
             $response = curl_exec($ch);
             $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            if (curl_errno($ch)) $errorMsg = "cURL Error: " . curl_error($ch);
+            if (curl_errno($ch))
+                $errorMsg = "cURL Error: " . curl_error($ch);
             curl_close($ch);
         } else {
-            // OPTION B: file_get_contents
+            // OPTION B: file_get_contents (Fallback)
             $opts = [
                 'http' => [
                     'method' => 'POST',
@@ -95,52 +80,53 @@ class GeminiService
                     'ignore_errors' => true
                 ],
                 'ssl' => [
-                   'verify_peer' => false,
-                   'verify_peer_name' => false
+                    'verify_peer' => false,
+                    'verify_peer_name' => false
                 ]
             ];
             $context = stream_context_create($opts);
             $response = @file_get_contents($url, false, $context);
-            // Parse headers for HTTP code
             if (isset($http_response_header)) {
                 preg_match('#HTTP/\d\.\d (\d{3})#', $http_response_header[0], $matches);
                 $httpCode = isset($matches[1]) ? intval($matches[1]) : 0;
             }
         }
-        
-        // Handle API Errors
+
+        // Handle Transport Errors
         if ($httpCode !== 200) {
-            $msg = "HTTP $httpCode | Model: {$this->model} | Response: " . substr($response, 0, 150);
+            $shortResponse = substr($response ? $response : $errorMsg, 0, 150);
+            $msg = "HTTP $httpCode | Model: {$this->model} | Info: $shortResponse";
             error_log("Gemini API Error: $msg");
-
-            if (!$rawText) {
-                $msg = "No Candidate Text in JSON response";
-                error_log("Gemini Error: " . $msg);
-                return $this->getFallbackAnalysis($data, $msg);
-            }
-
-            // Clean up Markdown: Handle ```json and ``` wrapping
-            $cleanJson = preg_replace('/^```json\s*|\s*```$/i', '', trim($rawText));
-
-            // Log cleaned JSON
-            file_put_contents(__DIR__ . '/../gemini_cleaned.log', $cleanJson);
-
-            $parsed = json_decode($cleanJson, true);
-
-            // STRICT VALIDATION
-            if (!is_array($parsed) || empty($parsed['detailed_analysis'])) {
-                $msg = "Missing 'detailed_analysis' array in JSON";
-                error_log("Gemini Logic Error: " . $msg);
-                return $this->getFallbackAnalysis($data, $msg);
-            }
-
-            return $parsed;
-
-        } catch (Exception $e) {
-            $msg = "Exception: " . $e->getMessage();
-            error_log("Gemini Critical Error: " . $msg);
             return $this->getFallbackAnalysis($data, $msg);
         }
+
+        // Parse Response
+        $json = json_decode($response, true);
+
+        // Extract Text
+        $rawText = null;
+        if (isset($json['candidates'][0]['content']['parts'][0]['text'])) {
+            $rawText = $json['candidates'][0]['content']['parts'][0]['text'];
+        }
+
+        if (!$rawText) {
+            error_log("Gemini Error: No text in response");
+            return $this->getFallbackAnalysis($data, "Empty AI Response");
+        }
+
+        // Clean Markdown wrappers
+        $cleanJson = preg_replace('/^```json\s*|\s*```$/i', '', trim($rawText));
+
+        // Decode JSON from AI
+        $parsed = json_decode($cleanJson, true);
+
+        if (!is_array($parsed) || empty($parsed['detailed_analysis'])) {
+            error_log("Gemini Logic Error: Invalid JSON structure");
+            return $this->getFallbackAnalysis($data, "Invalid JSON from AI");
+        }
+
+        // Success!
+        return $parsed;
     }
 
     // Fallback Generator to ensure PDF never breaks
