@@ -52,7 +52,7 @@ class GeminiService
             }
         }";
 
-        $userPrompt = "Analiza estas brechas y genera el JSON completo:\n" . json_encode($breachData);
+        $userPrompt = "Analiza estas brechas y genera el JSON completo:\n" . json_encode($data);
 
         $payload = [
             'contents' => [
@@ -79,7 +79,7 @@ class GeminiService
                 'header' => "Content-type: application/json\r\n",
                 'method' => 'POST',
                 'content' => json_encode($payload),
-                'timeout' => 10,
+                'timeout' => 120, // Increased for 1.5 Pro Latency (17+ breaches)
                 'ignore_errors' => true // To capture error responses
             ]
         ];
@@ -90,7 +90,7 @@ class GeminiService
         // Check for HTTP errors
         if ($response === FALSE) {
             error_log("Gemini API Error: Connection failed");
-            return null;
+            return $this->getFallbackAnalysis($data);
         }
 
         // Parse HTTP status code from headers
