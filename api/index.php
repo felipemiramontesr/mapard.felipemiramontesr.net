@@ -708,7 +708,8 @@ críticos asociados a los usuarios registrados.";
                 $pdf->Cell(0, 6, utf8_decode("CONCLUSIÓN ESTRATÉGICA"), 0, 1);
 
                 $pdf->SetX(15);
-                $pdf->SetFont('Helvetica', 'I', 10);
+                // FIX: Use Normal font (instead of Italic) to prevent missing font error
+                $pdf->SetFont('Helvetica', '', 10);
                 $pdf->SetTextColor(50, 0, 0);
                 $pdf->MultiCell(180, 6, text_sanitize($aiIntel['strategic_conclusion']));
                 $pdf->Ln(10);
