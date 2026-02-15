@@ -234,7 +234,7 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
 
             // Step 3: Gemini AI Intelligence (Project CORTEX)
             $aiIntel = null;
-            if (!empty($breaches)) {
+            if (!empty($breachData)) {
                 require_once __DIR__ . '/services/GeminiService.php';
                 addLog($logs, "Invoking CORTEX Neural Engine (Gemini 1.5 Pro)...", "info");
                 $gemini = new GeminiService();
