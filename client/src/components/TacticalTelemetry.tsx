@@ -4,12 +4,20 @@ import { Activity, Radio, Cpu, Wifi } from 'lucide-react';
 const TacticalTelemetry: React.FC = () => {
     const [scramble, setScramble] = useState('LOADING...');
     const [ping, setPing] = useState(24);
+    const [signalStrength, setSignalStrength] = useState(45);
+    const [randomBits, setRandomBits] = useState<boolean[]>([true, false, true, false, true]);
 
     useEffect(() => {
         const interval = setInterval(() => {
             setPing(prev => Math.max(12, Math.min(99, prev + (Math.random() > 0.5 ? 2 : -2))));
             const chars = '0123456789ABCDEF';
             setScramble(chars.split('').sort(() => 0.5 - Math.random()).join('').substring(0, 8));
+
+            // Randomize visual elements occasionally
+            if (Math.random() > 0.7) {
+                setSignalStrength(Math.floor(Math.random() * 20 + 40));
+                setRandomBits(Array(5).fill(0).map(() => Math.random() > 0.5));
+            }
         }, 1000);
         return () => clearInterval(interval);
     }, []);
@@ -53,7 +61,7 @@ const TacticalTelemetry: React.FC = () => {
                         <span className="text-[10px] tall:text-xs">FREQ_MOD</span>
                     </div>
                     <span>BAND: 2.4Ghz-Enc</span>
-                    <span>SIG: -{Math.floor(Math.random() * 20 + 40)}dBm</span>
+                    <span>SIG: -{signalStrength}dBm</span>
                 </div>
 
                 {/* Module 4: Geo (Right Aligned on Desktop) */}
@@ -72,8 +80,8 @@ const TacticalTelemetry: React.FC = () => {
             <div className="flex items-center justify-between mt-4 text-[8px] text-white/20">
                 <span>ID: {scramble}</span>
                 <div className="flex gap-1">
-                    {[1, 2, 3, 4, 5].map(i => (
-                        <div key={i} className={`w-1 h-1 rounded-full ${Math.random() > 0.5 ? 'bg-ops-accent' : 'bg-white/10'}`}></div>
+                    {randomBits.map((active, i) => (
+                        <div key={i} className={`w-1 h-1 rounded-full ${active ? 'bg-ops-accent' : 'bg-white/10'}`}></div>
                     ))}
                 </div>
             </div>

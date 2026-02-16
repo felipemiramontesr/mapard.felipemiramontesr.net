@@ -80,12 +80,26 @@ jobs:
         with:
           node-version: 20
 
+      - name: 🐘 Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mbstring, intl, gd, xml, dom, json, fileinfo, curl, zip
+          coverage: none
+
       - name: 🔨 Build Frontend
         run: |
           cd client
           npm ci
           npm run build
-          cd   ..
+          # ------------------------------------------------------------------
+      # 2.B INSTALL PHP DEPENDENCIES
+      # ------------------------------------------------------------------
+      - name: 🐘 Install Composer Dependencies
+        run: |
+          cd api
+          composer install --no-dev --optimize-autoloader --prefer-dist
+          cd ..
 
       # ------------------------------------------------------------------
       # 3. BUILD & PREPARE DEPLOYMENT PACKAGE
@@ -101,9 +115,11 @@ jobs:
           mkdir -p deploy_package/api
           cp api/*.php deploy_package/api/
           
-          # Copy FPDF Fonts
-          mkdir -p deploy_package/api/font
-          cp api/font/*.php deploy_package/api/font/
+          # Copy Services & Vendor
+          cp -r api/services deploy_package/api/
+          cp -r api/vendor deploy_package/api/
+          cp api/composer.json deploy_package/api/
+          cp api/composer.lock deploy_package/api/
           
           # Ensure reports directory exists
           mkdir -p deploy_package/api/reports

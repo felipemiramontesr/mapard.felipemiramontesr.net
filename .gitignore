@@ -40,3 +40,12 @@ out/
 
 # Security
 api/config.php
+
+# Build Artifacts
+deploy_package/
+deploy_package.zip
+create_package.ps1
+
+# Dependency directories
+api/vendor/
+api/composer.lock

@@ -74,7 +74,7 @@ const Dashboard: React.FC = () => {
                     // We map them to our frontend format.
                     if (jobData.logs && Array.isArray(jobData.logs)) {
                         // We reconstruct logs from backend source of truth
-                        const backendLogs = jobData.logs.map((l: any, idx: number) => ({
+                        const backendLogs = jobData.logs.map((l: { message: string, type: string, timestamp: string }, idx: number) => ({
                             id: idx, // Simple index as ID
                             message: l.message,
                             type: l.type as Log['type'],
@@ -128,10 +128,11 @@ const Dashboard: React.FC = () => {
                 }
             }, 2000); // Poll every 2s
 
-        } catch (e: any) {
+        } catch (e: unknown) {
             console.error(e);
-            addLog(`CRITICAL BACKEND ERROR: ${e.message}`, 'error');
-            if (e.message.includes('500')) {
+            const errorMessage = e instanceof Error ? e.message : 'Unknown Error';
+            addLog(`CRITICAL BACKEND ERROR: ${errorMessage}`, 'error');
+            if (errorMessage.includes('500')) {
                 addLog("Server Internal Error. Check api/debug.php", 'error');
             }
             setIsScanning(false);
