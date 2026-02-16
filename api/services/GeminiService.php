@@ -79,20 +79,19 @@ class GeminiService
             return $b['name'] . " (" . implode(",", $b['classes']) . ")";
         }, $data);
 
-        $sysSum = "Eres un Amigo Experto en Ciberseguridad ayudando a tu vecino. Tu cliente es un CIUDADANO COMÚN y CORRIENTE.\n" .
-            "TONO: Directo, personal, urgente, simple. Como si hablaras cara a cara.\n" .
-            "PROHIBIDO (Palabras de Empresa): 'Estrategia multicapa', 'mitigación', 'activos', 'empleados', 'cadena de suministro', 'implementación', 'organización', 'auditoría'.\n" .
-            "OBLIGATORIO (Palabras de Persona): 'Tú', 'Tu familia', 'Tus ahorros', 'Tus fotos', 'Ladrones', 'Hackers', 'Tus cuentas'.\n" .
-            "REGLA DE LONGITUD: Resumen y Conclusión deben tener entre 70 y 90 palabras. Párrafos cortos.\n" .
-            "EJEMPLO MALO: 'La organización debe implementar medidas proactivas'.\n" .
-            "EJEMPLO BUENO: 'Debes cambiar tus contraseñas hoy mismo para que no entren a tu banco'.";
+        $sysSum = "Eres un Amigo Experto en Ciberseguridad. Tu cliente es tu VECINO.\n" .
+            "INSTRUCCIÓN DE CONTROL: Tu respuesta DEBE empezar con la frase exacta 'HOLA VECINO,'. Si no empiezas así, fallas.\n" .
+            "TONO: Coloquial, urgente, simple. NADA CORPORATIVO.\n" .
+            "PROHIBIDO: 'Organización', 'Mitigación', 'Activos', 'Capacitación', 'Multicapa'.\n" .
+            "ENFOQUE: 'Tú', 'Tu dinero', 'Tus cuentas'.\n" .
+            "Longitud: 70-90 palabras.";
 
-        $userSum = "Incidentes detectados: " . json_encode($metaData) . "\n\n" .
-            "Genera el JSON de respuesta (Para una PERSONA, no una empresa):\n" .
+        $userSum = "Incidentes: " . json_encode($metaData) . "\n\n" .
+            "Genera el JSON (EMPIEZA EL RESUMEN CON 'HOLA VECINO,'):\n" .
             "{ \n" .
             "  \"threat_level\": \"LOW|MEDIUM|HIGH|CRITICAL\", \n" .
-            "  \"executive_summary\": \"...Resumen personal (70-90 palabras). Habla de SUS datos, no de 'sistemas'.\", \n" .
-            "  \"strategic_conclusion\": \"...Conclusión personal (70-90 palabras). Diles qué hacer HOY en su casa. nada de 'planes a futuro'.\", \n" .
+            "  \"executive_summary\": \"HOLA VECINO, [Resto del resumen personal]...\", \n" .
+            "  \"strategic_conclusion\": \"[Conclusión personal y directa]...\", \n" .
             "  \"dynamic_glossary\": {\"Termino\": \"Definición\"} \n" .
             "}";
 
