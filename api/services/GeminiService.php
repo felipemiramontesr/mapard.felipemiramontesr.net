@@ -32,23 +32,28 @@ class GeminiService
             $totalBatches = count($batches);
 
             // Analysis Prompt
-            $systemPrompt = "Eres un Analista Forense Digital experto en Ciberseguridad. Tu tarea es analizar brechas de seguridad y proporcionar un informe técnico detallado. IMPORTANTE: TODA LA SALIDA DEBE ESTAR EN ESPAÑOL (ES_MX). NO DES RESPUESTAS EN INGLÉS.";
-            $userPrompt = "Analiza este lote de brechas ($batchNum de $totalBatches):\n" . json_encode($batch) . "\n\n" .
+            $systemPrompt = "Eres un Asesor de Seguridad Personal. Tu cliente es un INDIVIDUO (B2C), NO una empresa. \n" .
+                "OBJETIVO: Explicar riesgos y soluciones a una persona común.\n" .
+                "REGLAS DE TONO: \n" .
+                "1. Usa 'Tú', 'Tus datos', 'Tu cuenta'. \n" .
+                "2. PROHIBIDO hablar de: 'empleados', 'capacitación', 'reputación corporativa', 'sistemas internos'. \n" .
+                "3. Idioma: Español (ES_MX).";
+            $userPrompt = "Analiza este lote de brechas ($batchNum de $totalBatches) para una persona:\n" . json_encode($batch) . "\n\n" .
                 "Genera UNICAMENTE un JSON válido con esta estructura (sin markdown):\n" .
                 "{\n" .
                 "  \"detailed_analysis\": [\n" .
                 "    { \n" .
                 "      \"source_name\": \"Nombre del servicio\", \n" .
-                "      \"incident_story\": \"Explicación detallada del incidente en Español.\", \n" .
-                "      \"risk_explanation\": \"Por qué es peligroso para el usuario en Español.\", \n" .
-                "      \"specific_remediation\": [\"Paso 1\", \"Paso 2\"] \n" .
+                "      \"incident_story\": \"Qué ocurrió (en Español).\", \n" .
+                "      \"risk_explanation\": \"Por qué es peligroso para MI como usuario (en Español).\", \n" .
+                "      \"specific_remediation\": [\"Acción personal 1\", \"Acción personal 2\"] \n" .
                 "    }\n" .
                 "  ]\n" .
                 "}\n\n" .
                 "REGLAS:\n" .
-                "1. Traduce todo el contenido al Español.\n" .
-                "2. 'source_name' debe mantenerse original.\n" .
-                "3. Devuelve EXACTAMENTE $count objetos.";
+                "1. Traduce todo al Español.\n" .
+                "2. 'source_name' original.\n" .
+                "3. EXACTAMENTE $count objetos.";
 
             $response = $this->callGemini($url, $systemPrompt, $userPrompt);
 
@@ -74,8 +79,10 @@ class GeminiService
             return $b['name'] . " (" . implode(",", $b['classes']) . ")";
         }, $data);
 
-        $sysSum = "Eres un CISO (Chief Information Security Officer). Tu objetivo es generar un reporte de ALTO NIVEL. \n" .
-            "REGLA DE ORO: El 'executive_summary' y la 'strategic_conclusion' DEBEN tener entre 80 y 100 palabras cada uno. Ni más, ni menos. \n" .
+        $sysSum = "Eres un Asesor de Ciberseguridad Personal. Tu cliente es una PERSONA, no una empresa. \n" .
+            "REGLA DE ORO: El 'executive_summary' y la 'strategic_conclusion' DEBEN tener entre 80 y 100 palabras. \n" .
+            "PROHIBIDO: Mencionar empresas, empleados, corporativos. \n" .
+            "ENFOQUE: Robo de identidad, fraude financiero, privacidad personal. \n" .
             "Idioma: Español Neutro o de México.";
 
         $userSum = "Incidentes: " . json_encode($metaData) . "\n\n" .
