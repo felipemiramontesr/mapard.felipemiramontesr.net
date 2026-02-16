@@ -261,9 +261,13 @@ class ReportService extends FPDF
 
     public function renderExecutiveSummary($summary)
     {
+        // 1. Setup Context for Accurate Measurement
+        $this->SetFont('Helvetica', '', 9);
         $lineH = 5;
         $nb = $this->wordWrapCount($summary, 180);
-        $height = 20 + ($nb * $lineH); // 20mm padding for header + text
+
+        // Calculation: Top(4) + Header(6) + Gap(2) + Text($nb * 5) + Bottom(4) = 16 + Text
+        $height = 16 + ($nb * $lineH);
 
         $this->checkPageSpace($height);
 
@@ -273,7 +277,7 @@ class ReportService extends FPDF
         $this->Rect(10, $this->GetY(), 190, $height, 'DF');
 
         // Header
-        $this->SetXY(15, $this->GetY() + 5);
+        $this->SetXY(15, $this->GetY() + 4); // Top padding 4mm
         $this->SetFont('Helvetica', 'B', 10);
         $this->SetTextColor(26, 31, 58);
         $this->Cell(0, 6, utf8_decode("RESUMEN DE SEGURIDAD"), 0, 1);
@@ -284,15 +288,20 @@ class ReportService extends FPDF
         $this->SetTextColor(71, 85, 105);
         $this->MultiCell(180, $lineH, text_sanitize($summary));
 
-        $this->SetY($this->GetY() + 5); // Bottom margin
+        $this->SetY($this->GetY() + 4); // Bottom padding 4mm
         $this->Ln(5);
     }
 
     public function renderStrategicConclusion($conclusion)
     {
+        // 1. Setup Context for Accurate Measurement
+        $this->SetFont('Helvetica', '', 10);
         $lineH = 6;
         $nb = $this->wordWrapCount($conclusion, 180);
-        $height = 20 + ($nb * $lineH);
+
+        // Calculation: Top(4) + Header(6) + Gap(2) + Text($nb * 6) + Bottom(4) = 16 + Text
+        // Adding +2mm safety buffer for font rendering differences -> 18
+        $height = 18 + ($nb * $lineH);
 
         $this->Ln(5); // Top margin
         $this->checkPageSpace($height);
@@ -303,7 +312,7 @@ class ReportService extends FPDF
         $this->Rect(10, $this->GetY(), 190, $height, 'DF');
 
         // Header
-        $this->SetXY(15, $this->GetY() + 5);
+        $this->SetXY(15, $this->GetY() + 4);
         $this->SetFont('Helvetica', 'B', 11);
         $this->SetTextColor(200, 0, 0);
         $this->Cell(0, 6, utf8_decode("CONCLUSIÓN ESTRATÉGICA"), 0, 1);
@@ -314,7 +323,7 @@ class ReportService extends FPDF
         $this->SetTextColor(50, 0, 0);
         $this->MultiCell(180, $lineH, text_sanitize($conclusion));
 
-        $this->SetY($this->GetY() + 5);
+        $this->SetY($this->GetY() + 4);
         $this->Ln(5);
     }
 }
