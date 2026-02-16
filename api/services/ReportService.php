@@ -261,21 +261,60 @@ class ReportService extends FPDF
 
     public function renderExecutiveSummary($summary)
     {
-        $this->checkPageSpace(40);
+        $lineH = 5;
+        $nb = $this->wordWrapCount($summary, 180);
+        $height = 20 + ($nb * $lineH); // 20mm padding for header + text
+
+        $this->checkPageSpace($height);
+
+        // Background
         $this->SetFillColor(249, 250, 252);
         $this->SetDrawColor(200, 209, 224);
-        $this->Rect(10, $this->GetY(), 190, 30, 'DF');
+        $this->Rect(10, $this->GetY(), 190, $height, 'DF');
 
+        // Header
         $this->SetXY(15, $this->GetY() + 5);
         $this->SetFont('Helvetica', 'B', 10);
         $this->SetTextColor(26, 31, 58);
         $this->Cell(0, 6, utf8_decode("RESUMEN DE SEGURIDAD"), 0, 1);
 
+        // Body
         $this->SetX(15);
         $this->SetFont('Helvetica', '', 9);
         $this->SetTextColor(71, 85, 105);
-        $this->MultiCell(180, 5, text_sanitize($summary));
+        $this->MultiCell(180, $lineH, text_sanitize($summary));
 
-        $this->Ln(10);
+        $this->SetY($this->GetY() + 5); // Bottom margin
+        $this->Ln(5);
+    }
+
+    public function renderStrategicConclusion($conclusion)
+    {
+        $lineH = 6;
+        $nb = $this->wordWrapCount($conclusion, 180);
+        $height = 20 + ($nb * $lineH);
+
+        $this->Ln(5); // Top margin
+        $this->checkPageSpace($height);
+
+        // Background
+        $this->SetFillColor(255, 235, 235);
+        $this->SetDrawColor(255, 0, 0);
+        $this->Rect(10, $this->GetY(), 190, $height, 'DF');
+
+        // Header
+        $this->SetXY(15, $this->GetY() + 5);
+        $this->SetFont('Helvetica', 'B', 11);
+        $this->SetTextColor(200, 0, 0);
+        $this->Cell(0, 6, utf8_decode("CONCLUSIÓN ESTRATÉGICA"), 0, 1);
+
+        // Body
+        $this->SetX(15);
+        $this->SetFont('Helvetica', '', 10);
+        $this->SetTextColor(50, 0, 0);
+        $this->MultiCell(180, $lineH, text_sanitize($conclusion));
+
+        $this->SetY($this->GetY() + 5);
+        $this->Ln(5);
     }
 }

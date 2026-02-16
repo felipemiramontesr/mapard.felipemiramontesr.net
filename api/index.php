@@ -65,7 +65,7 @@ if ($method === 'OPTIONS') {
 
 // ROUTER
 if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
-// START SCAN
+    // START SCAN
     if ($method === 'POST') {
         $input = json_decode(file_get_contents('php://input'), true);
         $email = $input['email'] ?? 'unknown';
@@ -109,7 +109,7 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
 
         // RACE CONDITION FIX: Prevent multiple executions
         if ($job['status'] === 'RUNNING') {
-// If it's been running for too long (> 2 mins), maybe reset?
+            // If it's been running for too long (> 2 mins), maybe reset?
             // For now, just return specific status so client keeps polling
             echo json_encode([
                 "job_id" => $jobId,
@@ -122,21 +122,21 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
 
         // Only Execute if PENDING
         if ($job['status'] === 'PENDING') {
-// Lock it immediately
+            // Lock it immediately
             $pdo->prepare("UPDATE scans SET status='RUNNING' WHERE job_id=?")->execute([$jobId]);
             $job['status'] = 'RUNNING';
-// Local update
+            // Local update
         } else {
-        // Should not happen if filtered correctly
+            // Should not happen if filtered correctly
             exit;
         }
 
         try {
-// --- REAL OSINT EXECUTION ---
+            // --- REAL OSINT EXECUTION ---
             $logs = json_decode($job['logs'], true) ?: [];
             $findings = [];
             $domain = $job['domain'];
-// Helper to add log if unique
+            // Helper to add log if unique
             function addLog(&$logs, $msg, $type = 'info')
             {
                 foreach ($logs as $l) {
@@ -170,7 +170,7 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
                         $findings[] = "DNS Records Found: $count";
                         foreach ($dns as $r) {
                             if (isset($r['ip'])) {
-                                    $findings[] = "A Record: " . $r['ip'];
+                                $findings[] = "A Record: " . $r['ip'];
                             }
                             if (isset($r['target'])) {
                                 $findings[] = "MX Record: " . $r['target'];
@@ -228,14 +228,14 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
             // Step 3: Gemini AI Intelligence (Project CORTEX)
             $aiIntel = null;
             if (!empty($breachData)) {
-            // Autoloaded via Composer now
+                // Autoloaded via Composer now
                 addLog($logs, "Invoking CORTEX Neural Engine (Gemini 1.5 Pro)...", "info");
                 $gemini = new GeminiService();
                 $aiIntel = $gemini->analyzeBreach($breachData);
                 if ($aiIntel) {
                     addLog($logs, "Threat Analysis Complete. Level: " . $aiIntel['threat_level'], "success");
                     $riskLevel = strtoupper($aiIntel['threat_level']);
-        // --- FORCE FULL COUNT ---
+                    // --- FORCE FULL COUNT ---
                     if (!isset($aiIntel['detailed_analysis']) || !is_array($aiIntel['detailed_analysis'])) {
                         $aiIntel['detailed_analysis'] = [];
                     }
@@ -243,11 +243,11 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
                     $analyzedCount = count($aiIntel['detailed_analysis']);
                     $inputCount = count($breachData);
                     if ($analyzedCount < $inputCount) {
-                            addLog($logs, "AI returned partial list ($analyzedCount/$inputCount). Filling gaps...", "warning");
-                            $analyzedNames = [];
+                        addLog($logs, "AI returned partial list ($analyzedCount/$inputCount). Filling gaps...", "warning");
+                        $analyzedNames = [];
                         foreach ($aiIntel['detailed_analysis'] as $a) {
                             if (isset($a['source_name'])) {
-                                        $analyzedNames[strtolower($a['source_name'])] = true;
+                                $analyzedNames[strtolower($a['source_name'])] = true;
                             }
                         }
 
@@ -274,7 +274,7 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
             $pdf = new ReportService();
             $pdf->AliasNbPages();
             $pdf->AddPage();
-// Define colors based on risk
+            // Define colors based on risk
             if ($riskLevel === 'CRITICAL' || $riskLevel === 'CRÍTICO') {
                 $riskColor = [255, 0, 80];
             } elseif ($riskLevel === 'HIGH' || $riskLevel === 'ALTO') {
@@ -307,7 +307,7 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
             $pdf->Cell(0, 6, text_sanitize($riskLevel), 0, 1);
             $pdf->SetTextColor(0);
             $pdf->Ln(5);
-// 1. EXECUTIVE SUMMARY
+            // 1. EXECUTIVE SUMMARY
             if ($aiIntel && isset($aiIntel['executive_summary'])) {
                 $pdf->RenderExecutiveSummary($aiIntel['executive_summary']);
             }
@@ -334,9 +334,9 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
 
                 if (!$originalBreach) {
                     $originalBreach = [
-                    'name' => $analysis['source_name'],
-                    'date' => 'Fecha desconocida',
-                    'classes' => []
+                        'name' => $analysis['source_name'],
+                        'date' => 'Fecha desconocida',
+                        'classes' => []
                     ];
                 }
 
@@ -379,20 +379,7 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
 
             // 4. STRATEGIC CONCLUSION
             if (isset($aiIntel['strategic_conclusion'])) {
-                $pdf->Ln(10);
-                $pdf->CheckPageSpace(40);
-                $pdf->SetFillColor(255, 235, 235);
-                $pdf->SetDrawColor(255, 0, 0);
-                $pdf->Rect(10, $pdf->GetY(), 190, 35, 'DF');
-                $pdf->SetXY(15, $pdf->GetY() + 5);
-                $pdf->SetFont('Helvetica', 'B', 11);
-                $pdf->SetTextColor(200, 0, 0);
-                $pdf->Cell(0, 6, utf8_decode("CONCLUSIÓN ESTRATÉGICA"), 0, 1);
-                $pdf->SetX(15);
-                $pdf->SetFont('Helvetica', '', 10);
-                $pdf->SetTextColor(50, 0, 0);
-                $pdf->MultiCell(180, 6, text_sanitize($aiIntel['strategic_conclusion']));
-                $pdf->Ln(10);
+                $pdf->renderStrategicConclusion($aiIntel['strategic_conclusion']);
             }
 
             // 5. GLOSSARY
@@ -417,7 +404,7 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
                 mkdir(__DIR__ . '/reports', 0777, true);
             }
             $pdf->Output('F', $outputPath);
-// COMPLETE JOB
+            // COMPLETE JOB
             addLog($logs, "Report generated successfully.", "success");
             $pdo->prepare("UPDATE scans SET status='COMPLETED', result_path=?, logs=?, findings=? WHERE job_id=?")
                 ->execute([
@@ -426,7 +413,7 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
                     json_encode($findings),
                     $jobId
                 ]);
-// Final Response for this request
+            // Final Response for this request
             echo json_encode([
                 "status" => "COMPLETED",
                 "result_url" => "api/reports/mapard_report_$jobId.pdf",
