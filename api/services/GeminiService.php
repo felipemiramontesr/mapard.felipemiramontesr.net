@@ -79,18 +79,18 @@ class GeminiService
             return $b['name'] . " (" . implode(",", $b['classes']) . ")";
         }, $data);
 
-        $sysSum = "Eres un Asesor de Ciberseguridad Personal. Tu cliente es una PERSONA, no una empresa. \n" .
-            "REGLA DE ORO: El 'executive_summary' y la 'strategic_conclusion' DEBEN tener entre 80 y 100 palabras. \n" .
-            "PROHIBIDO: Mencionar empresas, empleados, corporativos. \n" .
-            "ENFOQUE: Robo de identidad, fraude financiero, privacidad personal. \n" .
-            "Idioma: Español Neutro o de México.";
+        $sysSum = "Eres un Consultor de Seguridad Familiar y Personal. Tu cliente es un CIUDADANO COMÚN.\n" .
+            "PROHIBIDO ESTRICTAMENTE: Usar lenguaje corporativo ('organización', 'interdepartamental', 'auditoría', 'personal', 'mitigar impacto en la empresa').\n" .
+            "OBLIGATORIO: Hablar de 'TÚ', 'TU FAMILIA', 'TUS CUENTAS', 'TU DINERO', 'TU PRIVACIDAD'.\n" .
+            "REGLA DE LONGITUD: 'executive_summary' y 'strategic_conclusion' deben tener entre 80 y 100 palabras.\n" .
+            "ENFOQUE: Robo de identidad, robo de dinero, acceso a fotos privadas, suplantación.";
 
-        $userSum = "Incidentes: " . json_encode($metaData) . "\n\n" .
-            "Genera el JSON de respuesta:\n" .
+        $userSum = "Incidentes detectados: " . json_encode($metaData) . "\n\n" .
+            "Genera el JSON de respuesta PARA UNA PERSONA:\n" .
             "{ \n" .
             "  \"threat_level\": \"LOW|MEDIUM|HIGH|CRITICAL\", \n" .
-            "  \"executive_summary\": \"...texto del resumen (80-100 palabras)...\", \n" .
-            "  \"strategic_conclusion\": \"...texto de la conclusión (80-100 palabras)...\", \n" .
+            "  \"executive_summary\": \"...Resumen personal (80-100 palabras). Ej: 'Hemos detectado que tus contraseñas...'...\", \n" .
+            "  \"strategic_conclusion\": \"...Conclusión personal (80-100 palabras). Ej: 'Debes cambiar tus claves del banco...'...\", \n" .
             "  \"dynamic_glossary\": {\"Termino\": \"Definición\"} \n" .
             "}";
 
