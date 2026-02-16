@@ -79,8 +79,8 @@ class GeminiService
             "Genera un JSON con el siguiente formato:\n" .
             "{ \n" .
             "  \"threat_level\": \"LOW|MEDIUM|HIGH|CRITICAL\", \n" .
-            "  \"executive_summary\": \"Resumen ejecutivo profesional en Español.\", \n" .
-            "  \"strategic_conclusion\": \"Conclusión estratégica y recomendaciones finales en Español.\", \n" .
+            "  \"executive_summary\": \"Resumen ejecutivo profesional en Español (aprox 100 palabras).\", \n" .
+            "  \"strategic_conclusion\": \"Conclusión estratégica y recomendaciones finales en Español (aprox 100 palabras).\", \n" .
             "  \"dynamic_glossary\": {\"Termino\": \"Definición en Español\"} \n" .
             "}";
 
