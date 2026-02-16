@@ -163,7 +163,7 @@ const Dashboard: React.FC = () => {
                     <ScanForm onScan={handleStartScan} isLoading={isScanning} />
                 </div>
             ) : (
-                <div className="animate-[slideUp_0.5s_ease-out] w-full px-4 h-full pb-0 flex flex-col justify-center">
+                <div className="animate-[slideUp_0.5s_ease-out] w-full px-4 flex-grow flex flex-col justify-center">
                     <StatusTerminal
                         logs={logs}
                         isVisible={true}
