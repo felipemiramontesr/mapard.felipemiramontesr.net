@@ -157,21 +157,28 @@ class ReportService extends FPDF
 
         $classes = "Expuesto: " . implode(", ", array_map('MapaRD\Services\translate_data_class', $breach['classes']));
 
-        $lineH = 4.5;
-        // Adjusted line wrapping estimation (Safety Factor)
-        $storyLines = $this->wordWrapCount($story, 180); // Width is 180
+        // COMPACT MODE SETTINGS
+        $lineH = 4; // Reduced from 4.5
+
+        // Context Setup
+        $this->SetFont('Helvetica', '', 9);
+        $storyLines = $this->wordWrapCount($story, 180);
         $riskLines = $this->wordWrapCount($risk, 180);
+
+        $this->SetFont('Helvetica', '', 8);
         $classLines = $this->wordWrapCount($classes, 180);
 
         $actionsHeight = 0;
+        $this->SetFont('Helvetica', '', 9);
         foreach ($rawActions as $act) {
-            $nb = $this->wordWrapCount($act, 165); // Width is 165
-            $actionsHeight += ($nb * $lineH) + 2;
+            $nb = $this->wordWrapCount($act, 165);
+            $actionsHeight += ($nb * $lineH) + 1; // Reduced gap
         }
-        $actionsHeight += 8; // Header padding
+        $actionsHeight += 6; // Header padding reduced
 
-        // Calculate total card height with padding
-        $cardHeight = 45 + ($storyLines * $lineH) + ($riskLines * $lineH) + $actionsHeight + ($classLines * $lineH) + 10; // Added +10 buffer
+        // Calculate total card height (Compact)
+        // Header (15) + Classes (Lines*4) + Gap(2) + StoryTitle(5) + Story(Lines*4) + Gap(2) + RiskTitle(5) + Risk(Lines*4) + Gap(2) + Actions
+        $cardHeight = 15 + ($classLines * 4) + 2 + 5 + ($storyLines * $lineH) + 2 + 5 + ($riskLines * $lineH) + 3 + $actionsHeight + 5;
 
         $this->checkPageSpace($cardHeight);
         if ($this->GetY() < 45) {
@@ -190,50 +197,50 @@ class ReportService extends FPDF
         $this->SetFillColor($riskColor[0], $riskColor[1], $riskColor[2]);
         $this->Rect(10, $baseY, 2, $cardHeight, 'F');
 
-        // Header
-        $this->SetXY(16, $baseY + 5);
-        $this->SetFont('Helvetica', 'B', 12);
+        // Header (Compact)
+        $this->SetXY(16, $baseY + 4);
+        $this->SetFont('Helvetica', 'B', 11); // Reduced from 12
         $this->SetTextColor(26, 31, 58);
-        $this->Cell(120, 6, text_sanitize($source), 0, 0);
+        $this->Cell(120, 5, text_sanitize($source), 0, 0);
 
-        $this->SetFont('Helvetica', '', 9);
+        $this->SetFont('Helvetica', '', 8); // Reduced from 9
         $this->SetTextColor(107, 116, 144);
-        $this->Cell(60, 6, text_sanitize("Incidente: $date"), 0, 1, 'R');
+        $this->Cell(60, 5, text_sanitize("Incidente: $date"), 0, 1, 'R');
 
         // Classes
         $this->SetX(16);
         $this->SetFont('Helvetica', '', 8);
         $this->SetTextColor(138, 159, 202);
-        $this->MultiCell(180, $lineH, text_sanitize($classes));
+        $this->MultiCell(180, 4, text_sanitize($classes));
 
-        $this->Ln(2);
+        $this->Ln(1);
         $this->SetDrawColor(240, 240, 240);
         $this->Line(16, $this->GetY(), 195, $this->GetY());
-        $this->Ln(4);
+        $this->Ln(2);
 
         // Story
         $this->SetX(16);
         $this->SetFont('Helvetica', 'B', 9);
         $this->SetTextColor(26, 31, 58);
-        $this->Cell(0, 5, utf8_decode("¿QUÉ PASÓ? (Contexto):"), 0, 1);
+        $this->Cell(0, 5, utf8_decode("CONTEXTO:"), 0, 1); // Shortened title
 
         $this->SetX(16);
         $this->SetFont('Helvetica', '', 9);
         $this->SetTextColor(60, 70, 90);
         $this->MultiCell(180, $lineH, text_sanitize($story));
-        $this->Ln(3);
+        $this->Ln(2);
 
         // Risk
         $this->SetX(16);
         $this->SetFont('Helvetica', 'B', 9);
         $this->SetTextColor(26, 31, 58);
-        $this->Cell(0, 5, utf8_decode("¿POR QUÉ ME AFECTA?:"), 0, 1);
+        $this->Cell(0, 5, utf8_decode("IMPACTO:"), 0, 1); // Shortened title
 
         $this->SetX(16);
         $this->SetFont('Helvetica', '', 9);
         $this->SetTextColor(60, 70, 90);
         $this->MultiCell(180, $lineH, text_sanitize($risk));
-        $this->Ln(3);
+        $this->Ln(2);
 
         // Actions
         $remY = $this->GetY();
@@ -241,10 +248,10 @@ class ReportService extends FPDF
         $this->SetDrawColor(200, 220, 210);
         $this->Rect(15, $remY, 180, $actionsHeight, 'DF');
 
-        $this->SetXY(20, $remY + 3);
+        $this->SetXY(20, $remY + 2);
         $this->SetFont('Helvetica', 'B', 9);
         $this->SetTextColor(40, 120, 80);
-        $this->Cell(0, 5, utf8_decode("PLAN DE ACCIÓN:"), 0, 1); // Updated Label
+        $this->Cell(0, 5, utf8_decode("PLAN DE ACCIÓN:"), 0, 1);
 
         $this->SetFont('Helvetica', '', 9);
         $this->SetTextColor(50, 60, 70);
@@ -256,7 +263,7 @@ class ReportService extends FPDF
             $this->Ln(1);
         }
 
-        $this->SetY($baseY + $cardHeight + 5);
+        $this->SetY($baseY + $cardHeight + 4);
     }
 
     public function renderExecutiveSummary($summary)
