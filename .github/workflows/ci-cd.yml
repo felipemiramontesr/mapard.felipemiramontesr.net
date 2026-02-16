@@ -106,7 +106,7 @@ jobs:
       # ------------------------------------------------------------------
       - name: Create Deployment Package
         run: |
-          mkdir deploy_package
+          mkdir -p deploy_package
           
           # Copy Frontend Build
           cp -r client/dist/* deploy_package/
