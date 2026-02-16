@@ -147,7 +147,7 @@ jobs:
           timeout: 600000 # 10 minutes
           log-level: verbose
           security: loose
-          state-name: .ftp-deploy-sync-state.json
+          state-name: .ftp-deploy-sync-force-v1.json
           dry-run: false        
           exclude: |
             **/.git*
