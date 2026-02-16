@@ -142,10 +142,11 @@ jobs:
           password: ${{ secrets.FTP_PASSWORD }}
           local-dir: ./deploy_package/
           server-dir: ./
-          protocol: ftp
+          protocol: ftps
           port: 21
-          security: strict
-          timeout: 300000
+          timeout: 600000 # 10 minutes
+          log-level: verbose
+          security: loose
 
           exclude: |
             **/.git*
