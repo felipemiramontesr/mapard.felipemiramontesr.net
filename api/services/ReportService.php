@@ -175,6 +175,7 @@ class ReportService extends FPDF
             $actionsHeight += ($nb * $lineH) + 1; // Reduced gap
         }
         $actionsHeight += 6; // Header padding reduced
+        $actionsHeight += 4; // Add 4mm (~10-15px) bottom padding to container
 
         // Calculate total card height (Compact)
         // Header (15) + Classes (Lines*4) + Gap(2) + StoryTitle(5) + Story(Lines*4) + Gap(2) + RiskTitle(5) + Risk(Lines*4) + Gap(2) + Actions

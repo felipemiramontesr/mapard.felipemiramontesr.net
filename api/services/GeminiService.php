@@ -39,18 +39,21 @@ class GeminiService
                 "2. PROHIBIDO hablar de: 'empleados', 'capacitación', 'reputación corporativa', 'sistemas internos'. \n" .
                 "3. Idioma: Español (ES_MX).";
             $userPrompt = "Analiza este lote de brechas ($batchNum de $totalBatches) para una persona:\n" . json_encode($batch) . "\n\n" .
-                "Genera UNICAMENTE un JSON válido con esta estructura (sin markdown):\n" .
+                "Genera UNICAMENTE un JSON válido con esta estructura (sin markdown). \n" .
+                "REGLAS CRÍTICAS DE CONTENIDO:\n" .
+                "1. incident_story: DEBE contar la historia del incidente. NO uses frases genéricas como 'Ocurrió una brecha'. Di: 'En Mayo de 2023, atacantes accedieron a los servidores de X...'. Si no hay datos, di: 'No se encontraron detalles públicos específicos, pero sus datos aparecieron en una lista de tráfico ilegal.'\n" .
+                "2. specific_remediation: DEVUELVE UNA LISTA DE 3 ACCIONES CONCRETAS. Ejemplo: ['Cambiar contraseña en Netflix', 'Activar 2FA en ajustes de cuenta', 'Revocar permisos de apps de terceros']. NO des consejos vagos.\n\n" .
                 "{\n" .
                 "  \"detailed_analysis\": [\n" .
                 "    { \n" .
                 "      \"source_name\": \"Nombre del servicio\", \n" .
-                "      \"incident_story\": \"Qué ocurrió (en Español).\", \n" .
+                "      \"incident_story\": \"Historia específica del incidente (Min 30 palabras).\", \n" .
                 "      \"risk_explanation\": \"Por qué es peligroso para MI como usuario (en Español).\", \n" .
-                "      \"specific_remediation\": [\"Acción personal 1\", \"Acción personal 2\"] \n" .
+                "      \"specific_remediation\": [\"Acción 1 (Verbo Imperativo)\", \"Acción 2\", \"Acción 3\"] \n" .
                 "    }\n" .
                 "  ]\n" .
                 "}\n\n" .
-                "REGLAS:\n" .
+                "REGLAS TÉCNICAS:\n" .
                 "1. Traduce todo al Español.\n" .
                 "2. 'source_name' original.\n" .
                 "3. EXACTAMENTE $count objetos.";
