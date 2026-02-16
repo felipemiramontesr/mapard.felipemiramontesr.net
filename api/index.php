@@ -265,8 +265,41 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
 
                 if ($aiIntel) {
                     addLog($logs, "Threat Analysis Complete. Level: " . $aiIntel['threat_level'], "success");
-                    // Override static risk level with AI assessment
                     $riskLevel = strtoupper($aiIntel['threat_level']);
+
+                    // --- FORCE FULL COUNT (User Request: "METER TODAS") ---
+                    // If AI returns fewer items than input, fill the gaps manually.
+                    if (!isset($aiIntel['detailed_analysis']) || !is_array($aiIntel['detailed_analysis'])) {
+                        $aiIntel['detailed_analysis'] = [];
+                    }
+
+                    $analyzedCount = count($aiIntel['detailed_analysis']);
+                    $inputCount = count($breachData);
+
+                    if ($analyzedCount < $inputCount) {
+                        addLog($logs, "AI returned partial list ($analyzedCount/$inputCount). Filling gaps...", "warning");
+
+                        // Create a map of analyzed sources to avoid duplicates
+                        $analyzedNames = [];
+                        foreach ($aiIntel['detailed_analysis'] as $a) {
+                            if (isset($a['source_name']))
+                                $analyzedNames[strtolower($a['source_name'])] = true;
+                        }
+
+                        // Append missing breaches
+                        foreach ($breachData as $b) {
+                            if (!isset($analyzedNames[strtolower($b['name'])])) {
+                                $aiIntel['detailed_analysis'][] = [
+                                    'source_name' => $b['name'],
+                                    'incident_story' => "Analizado automáticamente (IA Saturada). Datos del incidente: " . $b['description'],
+                                    'risk_explanation' => "Exposición de: " . implode(", ", $b['classes']),
+                                    'specific_remediation' => ["Cambiar contraseña en " . $b['name'], "Activar 2FA si está disponible", "Verificar reutilización de claves"]
+                                ];
+                            }
+                        }
+                    }
+                    // -----------------------------------------------------
+
                 } else {
                     addLog($logs, "AI Unreachable. Fallback to static protocols.", "warning");
                 }

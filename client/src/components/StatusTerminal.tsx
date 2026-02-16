@@ -33,7 +33,7 @@ const StatusTerminal: React.FC<StatusTerminalProps> = ({ logs, isVisible, onRese
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             // FORCED UPDATE: Re-triggering build for button styles
-            className="ops-card mt-2 sm:mt-4 font-mono text-xs border-ops-cyan shadow-none flex flex-col h-full w-full max-w-full overflow-hidden relative bg-black"
+            className="ops-card mt-2 sm:mt-4 font-mono text-xs border-ops-cyan shadow-none flex flex-col w-full max-w-full overflow-hidden relative bg-black h-[50vh] sm:h-[450px]"
         >
             {/* Header Fijo */}
             <div className="bg-ops-bg_alt/90 px-3 sm:px-4 py-2 flex items-center justify-between border-b border-white/5 flex-none z-10">
@@ -49,7 +49,7 @@ const StatusTerminal: React.FC<StatusTerminalProps> = ({ logs, isVisible, onRese
             </div>
 
             {/* Area de scroll para logs (Flex Grow) */}
-            <div className="flex-grow overflow-y-auto p-4 space-y-2 font-mono custom-scrollbar bg-black/50 relative h-96">
+            <div className="flex-grow overflow-y-auto p-4 space-y-2 font-mono custom-scrollbar bg-black/50 relative h-full">
                 <AnimatePresence>
                     {logs.map((log) => {
                         // Format timestamp: 2026-02-13T07:10:07+00:00 -> 07:10:07
