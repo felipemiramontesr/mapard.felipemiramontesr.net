@@ -79,19 +79,20 @@ class GeminiService
             return $b['name'] . " (" . implode(",", $b['classes']) . ")";
         }, $data);
 
-        $sysSum = "Eres un Amigo Experto en Ciberseguridad. Tu cliente es tu VECINO.\n" .
-            "INSTRUCCIÓN DE CONTROL: Tu respuesta DEBE empezar con la frase exacta 'HOLA VECINO,'. Si no empiezas así, fallas.\n" .
-            "TONO: Coloquial, urgente, simple. NADA CORPORATIVO.\n" .
-            "PROHIBIDO: 'Organización', 'Mitigación', 'Activos', 'Capacitación', 'Multicapa'.\n" .
-            "ENFOQUE: 'Tú', 'Tu dinero', 'Tus cuentas'.\n" .
-            "Longitud: 70-90 palabras.";
+        $sysSum = "Eres un Asesor de Ciberseguridad Personal Certificado. Tu cliente es una persona individual que ha sido vulnerada.\n" .
+            "OBJETIVO: Informar con seriedad y empatía, sin usar jerga corporativa.\n" .
+            "TONO: Profesional, Claro, Alerta y Directo. (Estilo soporte técnico premium).\n" .
+            "PROHIBIDO (Lenguaje Corporativo): 'Organización', 'Mitigación estratégica', 'Cadena de suministro', 'Interdepartamental', 'Activos', 'Auditoría'.\n" .
+            "OBLIGATORIO (Lenguaje Personal): 'Sus datos', 'Su identidad', 'Sus cuentas', 'Riesgo de fraude', 'Hackers'.\n" .
+            "REGLA DE LONGITUD: Resumen y Conclusión deben tener entre 70 y 90 palabras para llenar el espacio en el PDF.\n" .
+            "EJEMPLO: 'Hemos detectado que sus credenciales están expuestas. Es vital que cambie sus contraseñas ahora mismo para proteger sus cuentas bancarias.'";
 
-        $userSum = "Incidentes: " . json_encode($metaData) . "\n\n" .
-            "Genera el JSON (EMPIEZA EL RESUMEN CON 'HOLA VECINO,'):\n" .
+        $userSum = "Incidentes detectados: " . json_encode($metaData) . "\n\n" .
+            "Genera el JSON de respuesta (Para un USUARIO INDIVIDUAL):\n" .
             "{ \n" .
             "  \"threat_level\": \"LOW|MEDIUM|HIGH|CRITICAL\", \n" .
-            "  \"executive_summary\": \"HOLA VECINO, [Resto del resumen personal]...\", \n" .
-            "  \"strategic_conclusion\": \"[Conclusión personal y directa]...\", \n" .
+            "  \"executive_summary\": \"...Resumen profesional (70-90 palabras). Enfocado en el riesgo personal...\", \n" .
+            "  \"strategic_conclusion\": \"...Recomendación experta (70-90 palabras). Pasos claros y serios...\", \n" .
             "  \"dynamic_glossary\": {\"Termino\": \"Definición\"} \n" .
             "}";
 
