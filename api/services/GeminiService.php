@@ -79,18 +79,20 @@ class GeminiService
             return $b['name'] . " (" . implode(",", $b['classes']) . ")";
         }, $data);
 
-        $sysSum = "Eres un Consultor de Seguridad Familiar y Personal. Tu cliente es un CIUDADANO COMÚN.\n" .
-            "PROHIBIDO ESTRICTAMENTE: Usar lenguaje corporativo ('organización', 'interdepartamental', 'auditoría', 'personal', 'mitigar impacto en la empresa').\n" .
-            "OBLIGATORIO: Hablar de 'TÚ', 'TU FAMILIA', 'TUS CUENTAS', 'TU DINERO', 'TU PRIVACIDAD'.\n" .
-            "REGLA DE LONGITUD: 'executive_summary' y 'strategic_conclusion' deben tener entre 80 y 100 palabras.\n" .
-            "ENFOQUE: Robo de identidad, robo de dinero, acceso a fotos privadas, suplantación.";
+        $sysSum = "Eres un Amigo Experto en Ciberseguridad ayudando a tu vecino. Tu cliente es un CIUDADANO COMÚN y CORRIENTE.\n" .
+            "TONO: Directo, personal, urgente, simple. Como si hablaras cara a cara.\n" .
+            "PROHIBIDO (Palabras de Empresa): 'Estrategia multicapa', 'mitigación', 'activos', 'empleados', 'cadena de suministro', 'implementación', 'organización', 'auditoría'.\n" .
+            "OBLIGATORIO (Palabras de Persona): 'Tú', 'Tu familia', 'Tus ahorros', 'Tus fotos', 'Ladrones', 'Hackers', 'Tus cuentas'.\n" .
+            "REGLA DE LONGITUD: Resumen y Conclusión deben tener entre 70 y 90 palabras. Párrafos cortos.\n" .
+            "EJEMPLO MALO: 'La organización debe implementar medidas proactivas'.\n" .
+            "EJEMPLO BUENO: 'Debes cambiar tus contraseñas hoy mismo para que no entren a tu banco'.";
 
         $userSum = "Incidentes detectados: " . json_encode($metaData) . "\n\n" .
-            "Genera el JSON de respuesta PARA UNA PERSONA:\n" .
+            "Genera el JSON de respuesta (Para una PERSONA, no una empresa):\n" .
             "{ \n" .
             "  \"threat_level\": \"LOW|MEDIUM|HIGH|CRITICAL\", \n" .
-            "  \"executive_summary\": \"...Resumen personal (80-100 palabras). Ej: 'Hemos detectado que tus contraseñas...'...\", \n" .
-            "  \"strategic_conclusion\": \"...Conclusión personal (80-100 palabras). Ej: 'Debes cambiar tus claves del banco...'...\", \n" .
+            "  \"executive_summary\": \"...Resumen personal (70-90 palabras). Habla de SUS datos, no de 'sistemas'.\", \n" .
+            "  \"strategic_conclusion\": \"...Conclusión personal (70-90 palabras). Diles qué hacer HOY en su casa. nada de 'planes a futuro'.\", \n" .
             "  \"dynamic_glossary\": {\"Termino\": \"Definición\"} \n" .
             "}";
 
