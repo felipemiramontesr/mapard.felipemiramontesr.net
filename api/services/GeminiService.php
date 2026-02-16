@@ -32,15 +32,23 @@ class GeminiService
             $totalBatches = count($batches);
 
             // Analysis Prompt
-            $systemPrompt = "Eres un Analista Forense Digital. Tu única tarea es devolver un JSON con el análisis detallado de las brechas proporcionadas.";
+            $systemPrompt = "Eres un Analista Forense Digital experto en Ciberseguridad. Tu tarea es analizar brechas de seguridad y proporcionar un informe técnico detallado. IMPORTANTE: TODA LA SALIDA DEBE ESTAR EN ESPAÑOL (ES_MX). NO DES RESPUESTAS EN INGLÉS.";
             $userPrompt = "Analiza este lote de brechas ($batchNum de $totalBatches):\n" . json_encode($batch) . "\n\n" .
-                "DEBES devolver UNICAMENTE un JSON válido con esta estructura (sin markdown):\n" .
+                "Genera UNICAMENTE un JSON válido con esta estructura (sin markdown):\n" .
                 "{\n" .
                 "  \"detailed_analysis\": [\n" .
-                "    { \"source_name\": \"...\", \"incident_story\": \"...\", \"risk_explanation\": \"...\", \"specific_remediation\": [...] }\n" .
+                "    { \n" .
+                "      \"source_name\": \"Nombre del servicio\", \n" .
+                "      \"incident_story\": \"Explicación detallada del incidente en Español.\", \n" .
+                "      \"risk_explanation\": \"Por qué es peligroso para el usuario en Español.\", \n" .
+                "      \"specific_remediation\": [\"Paso 1\", \"Paso 2\"] \n" .
+                "    }\n" .
                 "  ]\n" .
                 "}\n\n" .
-                "IMPORTANTE: Debes devolver EXACTAMENTE $count objetos en 'detailed_analysis'. Uno por cada brecha de entrada.";
+                "REGLAS:\n" .
+                "1. Traduce todo el contenido al Español.\n" .
+                "2. 'source_name' debe mantenerse original.\n" .
+                "3. Devuelve EXACTAMENTE $count objetos.";
 
             $response = $this->callGemini($url, $systemPrompt, $userPrompt);
 
@@ -66,10 +74,15 @@ class GeminiService
             return $b['name'] . " (" . implode(",", $b['classes']) . ")";
         }, $data);
 
-        $sysSum = "Eres un CISO. Genera el resumen ejecutivo para este reporte de inteligencia.";
+        $sysSum = "Eres un CISO (Chief Information Security Officer) redactando un reporte para la Alta Dirección. Todo el contenido DEBE ser en Español Neutro o de México.";
         $userSum = "Lista de incidentes detectados: " . json_encode($metaData) . "\n\n" .
-            "Genera un JSON con:\n" .
-            "{ \"threat_level\": \"LOW|MEDIUM|HIGH|CRITICAL\", \"executive_summary\": \"...\", \"strategic_conclusion\": \"...\", \"dynamic_glossary\": {...} }";
+            "Genera un JSON con el siguiente formato:\n" .
+            "{ \n" .
+            "  \"threat_level\": \"LOW|MEDIUM|HIGH|CRITICAL\", \n" .
+            "  \"executive_summary\": \"Resumen ejecutivo profesional en Español.\", \n" .
+            "  \"strategic_conclusion\": \"Conclusión estratégica y recomendaciones finales en Español.\", \n" .
+            "  \"dynamic_glossary\": {\"Termino\": \"Definición en Español\"} \n" .
+            "}";
 
         $summary = $this->callGemini($url, $sysSum, $userSum);
 

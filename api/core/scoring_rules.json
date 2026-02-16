@@ -1,0 +1,43 @@
+{
+    "risk_levels": {
+        "P0": "Critical - Direct compromise imminent",
+        "P1": "High - Sensitive data exposed, high exploitability",
+        "P2": "Medium - Useful for profiling, low immediate risk",
+        "P3": "Low - Public information, trivial"
+    },
+    "scoring_factors": {
+        "sensitivity": {
+            "password_cleartext": 10,
+            "password_hash": 8,
+            "pii_id_govt": 9,
+            "pii_phone": 7,
+            "pii_email": 5,
+            "username": 3,
+            "domain_whois": 2
+        },
+        "visibility": {
+            "darkweb": 1.5,
+            "pastebin": 1.2,
+            "social_media_public": 1.0,
+            "archive": 0.8
+        }
+    },
+    "rules": [
+        {
+            "condition": "entity_type == 'ACCOUNT_EXTERNAL' and 'password' in data",
+            "score": "P0"
+        },
+        {
+            "condition": "entity_type == 'EMAILADDR' and source == 'HaveIBeenPwned'",
+            "score": "P1"
+        },
+        {
+            "condition": "entity_type == 'PHONE_NUMBER' and source == 'SocialMedia'",
+            "score": "P2"
+        },
+        {
+            "condition": "entity_type == 'DOMAIN_NAME' and source == 'Whois'",
+            "score": "P3"
+        }
+    ]
+}

@@ -14,8 +14,12 @@ build/
 
 # OSINT / Data (Do not commit sensitive scans)
 04_Data/
-*.json
+# *.json (Too aggressive, ignores composer.json/package.json)
 !client/public/manifest.json
+!package.json
+!composer.json
+!tsconfig.json
+!*.config.json
 *.pdf
 *.html
 *.csv
@@ -48,4 +52,4 @@ create_package.ps1
 
 # Dependency directories
 api/vendor/
-api/composer.lock
+!api/composer.lock

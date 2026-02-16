@@ -158,17 +158,20 @@ class ReportService extends FPDF
         $classes = "Expuesto: " . implode(", ", array_map('MapaRD\Services\translate_data_class', $breach['classes']));
 
         $lineH = 4.5;
-        $storyLines = ceil(strlen($story) / 90);
-        $riskLines = ceil(strlen($risk) / 90);
+        // Adjusted line wrapping estimation (Safety Factor)
+        $storyLines = $this->wordWrapCount($story, 180); // Width is 180
+        $riskLines = $this->wordWrapCount($risk, 180);
+        $classLines = $this->wordWrapCount($classes, 180);
 
         $actionsHeight = 0;
         foreach ($rawActions as $act) {
-            $actionsHeight += (ceil(strlen($act) / 85) * $lineH) + 2;
+            $nb = $this->wordWrapCount($act, 165); // Width is 165
+            $actionsHeight += ($nb * $lineH) + 2;
         }
-        $actionsHeight += 8;
+        $actionsHeight += 8; // Header padding
 
-        $classLines = ceil(strlen($classes) / 90);
-        $cardHeight = 45 + ($storyLines * $lineH) + ($riskLines * $lineH) + $actionsHeight + ($classLines * $lineH);
+        // Calculate total card height with padding
+        $cardHeight = 45 + ($storyLines * $lineH) + ($riskLines * $lineH) + $actionsHeight + ($classLines * $lineH) + 10; // Added +10 buffer
 
         $this->checkPageSpace($cardHeight);
         if ($this->GetY() < 45) {
@@ -177,14 +180,17 @@ class ReportService extends FPDF
 
         $baseY = $this->GetY();
 
+        // Card Background
         $this->SetFillColor(255, 255, 255);
         $this->SetDrawColor(200, 209, 224);
         $this->SetLineWidth(0.2);
         $this->Rect(10, $baseY, 190, $cardHeight, 'DF');
 
+        // Risk Border Color
         $this->SetFillColor($riskColor[0], $riskColor[1], $riskColor[2]);
         $this->Rect(10, $baseY, 2, $cardHeight, 'F');
 
+        // Header
         $this->SetXY(16, $baseY + 5);
         $this->SetFont('Helvetica', 'B', 12);
         $this->SetTextColor(26, 31, 58);
@@ -194,6 +200,7 @@ class ReportService extends FPDF
         $this->SetTextColor(107, 116, 144);
         $this->Cell(60, 6, text_sanitize("Incidente: $date"), 0, 1, 'R');
 
+        // Classes
         $this->SetX(16);
         $this->SetFont('Helvetica', '', 8);
         $this->SetTextColor(138, 159, 202);
@@ -204,6 +211,7 @@ class ReportService extends FPDF
         $this->Line(16, $this->GetY(), 195, $this->GetY());
         $this->Ln(4);
 
+        // Story
         $this->SetX(16);
         $this->SetFont('Helvetica', 'B', 9);
         $this->SetTextColor(26, 31, 58);
@@ -215,6 +223,7 @@ class ReportService extends FPDF
         $this->MultiCell(180, $lineH, text_sanitize($story));
         $this->Ln(3);
 
+        // Risk
         $this->SetX(16);
         $this->SetFont('Helvetica', 'B', 9);
         $this->SetTextColor(26, 31, 58);
@@ -226,6 +235,7 @@ class ReportService extends FPDF
         $this->MultiCell(180, $lineH, text_sanitize($risk));
         $this->Ln(3);
 
+        // Actions
         $remY = $this->GetY();
         $this->SetFillColor(245, 250, 247);
         $this->SetDrawColor(200, 220, 210);
@@ -234,7 +244,7 @@ class ReportService extends FPDF
         $this->SetXY(20, $remY + 3);
         $this->SetFont('Helvetica', 'B', 9);
         $this->SetTextColor(40, 120, 80);
-        $this->Cell(0, 5, utf8_decode("PLAN DE ACCIÓN (3 PASOS):"), 0, 1);
+        $this->Cell(0, 5, utf8_decode("PLAN DE ACCIÓN:"), 0, 1); // Updated Label
 
         $this->SetFont('Helvetica', '', 9);
         $this->SetTextColor(50, 60, 70);
