@@ -104,7 +104,17 @@ const Dashboard: React.FC = () => {
                         if (jobData.result_url) {
                             setTimeout(() => {
                                 setResultUrl(jobData.result_url);
-                                addLog('Dossier generated. Waiting for manual download.', 'info');
+                                setLogs(currentLogs => {
+                                    if (!currentLogs.some(l => l.message.includes('Dossier generated'))) {
+                                        return [...currentLogs, {
+                                            id: Date.now(),
+                                            message: 'Dossier generated. Waiting for manual download.',
+                                            type: 'info',
+                                            timestamp: format(new Date(), 'HH:mm:ss')
+                                        }];
+                                    }
+                                    return currentLogs;
+                                });
                             }, 500);
                         }
                     } else if (jobData.status === 'FAILED') {

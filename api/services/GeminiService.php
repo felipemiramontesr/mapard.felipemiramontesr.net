@@ -34,18 +34,17 @@ class GeminiService
         Tu misión es analizar una lista de brechas y generar un reporte JSON detallado para el cliente.
         IMPORTANTE: Responde SOLO con JSON válido. Sin bloque de código markdown (```json).";
 
-        $userPrompt = "Analiza estas brechas de seguridad:\n" . json_encode($data) . "\n\n" .
+        $count = count($data);
+        $userPrompt = "Analiza estas $count brechas de seguridad:\n" . json_encode($data) . "\n\n" .
             "Genera un JSON con esta estructura exacta:\n" .
             "{
               \"threat_level\": \"LOW|MEDIUM|HIGH|CRITICAL\",
-              \"executive_summary\": \"Resumen ejecutivo de alto nivel...\",
+              \"executive_summary\": \"Resumen ejecutivo...\",
         INSTRUCCIONES CLAVE DE PERSUASIÓN:
-        1. 'executive_summary': Debe ser DIRECTO. Ejemplo: \"Detectamos X incidentes. Su perfil digital es vulnerable. Actúe hoy.\"
-        2. 'detailed_analysis': CRÍTICO - Analiza TODAS las brechas de la lista de entrada.
-           - Si la lista de entrada tiene 10 brechas, el array 'detailed_analysis' DEBE tener 10 objetos.
-           - Si la lista tiene 20, devuelve 20.
-           - NO omitas ninguna bajo ninguna circunstancia.
-           - NO filtres por fecha ni severidad. Analiza TODO lo que recibas.
+        1. 'detailed_analysis': DEBES devolver un array con EXACTAMENTE $count objetos.
+           - Si la entrada tiene $count, la salida TIENE QUE tener $count.
+           - Provoca un error si devuelves menos de $count.
+           - Analiza CADA UNA. No omitas ninguna.
         3. 'strategic_conclusion': CIERRE DE VENTA.
            - DI: \"La acumulación de estos incidentes crea un perfil de riesgo insostenible. Se requiere una limpieza profunda inmediata.\"
            - Genera miedo a la \"persistencia\" del atacante.

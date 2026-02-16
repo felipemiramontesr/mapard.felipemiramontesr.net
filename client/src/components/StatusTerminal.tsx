@@ -49,7 +49,7 @@ const StatusTerminal: React.FC<StatusTerminalProps> = ({ logs, isVisible, onRese
             </div>
 
             {/* Area de scroll para logs (Flex Grow) */}
-            <div className="flex-grow overflow-y-auto p-4 space-y-2 font-mono custom-scrollbar bg-black/50 relative">
+            <div className="flex-grow overflow-y-auto p-4 space-y-2 font-mono custom-scrollbar bg-black/50 relative h-96">
                 <AnimatePresence>
                     {logs.map((log) => {
                         // Format timestamp: 2026-02-13T07:10:07+00:00 -> 07:10:07
