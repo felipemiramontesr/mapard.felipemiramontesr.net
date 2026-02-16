@@ -86,11 +86,26 @@ const Dashboard: React.FC = () => {
                     if (jobData.status === 'COMPLETED') {
                         clearInterval(pollInterval);
                         setIsScanning(false);
-                        addLog('Scan Complete. Report ready.', 'success');
+
+                        // Fix: Check if log already exists to prevent duplication loop
+                        setLogs(currentLogs => {
+                            const hasCompletionLog = currentLogs.some(l => l.message === 'Scan Complete. Report ready.');
+                            if (!hasCompletionLog) {
+                                return [...currentLogs, {
+                                    id: Date.now(),
+                                    message: 'Scan Complete. Report ready.',
+                                    type: 'success',
+                                    timestamp: format(new Date(), 'HH:mm:ss')
+                                }];
+                            }
+                            return currentLogs;
+                        });
 
                         if (jobData.result_url) {
-                            setResultUrl(jobData.result_url);
-                            addLog('Dossier generated. Waiting for manual download.', 'info');
+                            setTimeout(() => {
+                                setResultUrl(jobData.result_url);
+                                addLog('Dossier generated. Waiting for manual download.', 'info');
+                            }, 500);
                         }
                     } else if (jobData.status === 'FAILED') {
                         clearInterval(pollInterval);
