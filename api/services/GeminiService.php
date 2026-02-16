@@ -74,14 +74,17 @@ class GeminiService
             return $b['name'] . " (" . implode(",", $b['classes']) . ")";
         }, $data);
 
-        $sysSum = "Eres un CISO (Chief Information Security Officer) redactando un reporte para la Alta Dirección. Todo el contenido DEBE ser en Español Neutro o de México.";
-        $userSum = "Lista de incidentes detectados: " . json_encode($metaData) . "\n\n" .
-            "Genera un JSON con el siguiente formato:\n" .
+        $sysSum = "Eres un CISO (Chief Information Security Officer). Tu objetivo es generar un reporte de ALTO NIVEL. \n" .
+            "REGLA DE ORO: El 'executive_summary' y la 'strategic_conclusion' DEBEN tener entre 80 y 100 palabras cada uno. Ni más, ni menos. \n" .
+            "Idioma: Español Neutro o de México.";
+
+        $userSum = "Incidentes: " . json_encode($metaData) . "\n\n" .
+            "Genera el JSON de respuesta:\n" .
             "{ \n" .
             "  \"threat_level\": \"LOW|MEDIUM|HIGH|CRITICAL\", \n" .
-            "  \"executive_summary\": \"Resumen ejecutivo profesional en Español (aprox 100 palabras).\", \n" .
-            "  \"strategic_conclusion\": \"Conclusión estratégica y recomendaciones finales en Español (aprox 100 palabras).\", \n" .
-            "  \"dynamic_glossary\": {\"Termino\": \"Definición en Español\"} \n" .
+            "  \"executive_summary\": \"...texto del resumen (80-100 palabras)...\", \n" .
+            "  \"strategic_conclusion\": \"...texto de la conclusión (80-100 palabras)...\", \n" .
+            "  \"dynamic_glossary\": {\"Termino\": \"Definición\"} \n" .
             "}";
 
         $summary = $this->callGemini($url, $sysSum, $userSum);
