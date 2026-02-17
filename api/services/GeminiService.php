@@ -2,7 +2,7 @@
 
 namespace MapaRD\Services;
 
-require_once __DIR__ . '/../config.php';
+// require_once moved to constructor
 
 class GeminiService
 {
@@ -12,6 +12,7 @@ class GeminiService
 
     public function __construct()
     {
+        require_once __DIR__ . '/../config.php';
         $this->apiKey = GEMINI_API_KEY;
         $this->model = defined('GEMINI_MODEL') ? GEMINI_MODEL : 'gemini-1.5-flash';
     }
@@ -19,6 +20,17 @@ class GeminiService
     public function analyzeBreach($data)
     {
         $this->model = 'gemini-2.0-flash';
+
+        if (empty($data)) {
+            return [
+                'threat_level' => 'LOW',
+                'executive_summary' => 'No se detectaron vulneraciones de datos en las fuentes consultadas.',
+                'detailed_analysis' => [],
+                'dynamic_glossary' => [],
+                'strategic_conclusion' => 'Su huella digital parece segura por el momento.'
+            ];
+        }
+
         $url = $this->baseUrl . $this->model . ':generateContent?key=' . $this->apiKey;
 
         // 1. SPLIT INTO BATCHES (Chunk size 5)
@@ -32,17 +44,27 @@ class GeminiService
             $totalBatches = count($batches);
 
             // Analysis Prompt
-            $systemPrompt = "Eres un Asesor de Seguridad Personal. Tu cliente es un INDIVIDUO (B2C), NO una empresa. \n" .
+            $systemPrompt = "Eres un Asesor de Seguridad Personal. " .
+                "Tu cliente es un INDIVIDUO (B2C), NO una empresa. \n" .
                 "OBJETIVO: Explicar riesgos y soluciones a una persona común.\n" .
                 "REGLAS DE TONO: \n" .
                 "1. Usa 'Tú', 'Tus datos', 'Tu cuenta'. \n" .
-                "2. PROHIBIDO hablar de: 'empleados', 'capacitación', 'reputación corporativa', 'sistemas internos'. \n" .
+                "2. PROHIBIDO hablar de: 'empleados', 'capacitación', 'reputación corporativa', " .
+                "'sistemas internos'. \n" .
                 "3. Idioma: Español (ES_MX).";
-            $userPrompt = "Analiza este lote de brechas ($batchNum de $totalBatches) para una persona:\n" . json_encode($batch) . "\n\n" .
+            $userPrompt = "Analiza este lote de brechas ($batchNum de $totalBatches) para una persona:\n" .
+                json_encode($batch) . "\n\n" .
                 "Genera UNICAMENTE un JSON válido con esta estructura (sin markdown). \n" .
                 "REGLAS CRÍTICAS DE CONTENIDO:\n" .
-                "1. incident_story: DEBE contar la historia del incidente. NO uses frases genéricas como 'Ocurrió una brecha'. Di: 'En Mayo de 2023, atacantes accedieron a los servidores de X...'. Si no hay datos, di: 'No se encontraron detalles públicos específicos, pero sus datos aparecieron en una lista de tráfico ilegal.'\n" .
-                "2. specific_remediation: DEVUELVE UNA LISTA DE 3 ACCIONES CONCRETAS. Ejemplo: ['Cambiar contraseña en Netflix', 'Activar 2FA en ajustes de cuenta', 'Revocar permisos de apps de terceros']. NO des consejos vagos.\n\n" .
+                "1. incident_story: DEBE contar la historia del incidente. " .
+                "NO uses frases genéricas como 'Ocurrió una brecha'. " .
+                "Di: 'En Mayo de 2023, atacantes accedieron a los servidores de X...'. " .
+                "Si no hay datos, di: 'No se encontraron detalles públicos específicos, " .
+                "pero sus datos aparecieron en una lista de tráfico ilegal.'\n" .
+                "2. specific_remediation: DEVUELVE UNA LISTA DE 3 ACCIONES CONCRETAS. " .
+                "Ejemplo: ['Cambiar contraseña en Netflix', 'Activar 2FA en ajustes de cuenta', " .
+                "'Revocar permisos de apps de terceros']. " .
+                "NO des consejos vagos.\n\n" .
                 "{\n" .
                 "  \"detailed_analysis\": [\n" .
                 "    { \n" .
@@ -69,7 +91,8 @@ class GeminiService
                 foreach ($batch as $b) {
                     $finalAnalysis[] = [
                         'source_name' => $b['name'],
-                        'incident_story' => "Error de análisis IA en lote $batchNum. Datos crudos: " . $b['description'],
+                        'incident_story' => "Error de análisis IA en lote $batchNum. " .
+                            "Datos crudos: " . $b['description'],
                         'risk_explanation' => "Clases expuestas: " . implode(", ", $b['classes']),
                         'specific_remediation' => ["Cambiar contraseñas", "Verificar 2FA"]
                     ];
@@ -82,20 +105,27 @@ class GeminiService
             return $b['name'] . " (" . implode(",", $b['classes']) . ")";
         }, $data);
 
-        $sysSum = "Eres un Asesor de Ciberseguridad Personal Certificado. Tu cliente es una persona individual que ha sido vulnerada.\n" .
+        $sysSum = "Eres un Asesor de Ciberseguridad Personal Certificado. " .
+            "Tu cliente es una persona individual que ha sido vulnerada.\n" .
             "OBJETIVO: Informar con seriedad y empatía, sin usar jerga corporativa.\n" .
             "TONO: Profesional, Claro, Alerta y Directo. (Estilo soporte técnico premium).\n" .
-            "PROHIBIDO (Lenguaje Corporativo): 'Organización', 'Mitigación estratégica', 'Cadena de suministro', 'Interdepartamental', 'Activos', 'Auditoría'.\n" .
-            "OBLIGATORIO (Lenguaje Personal): 'Sus datos', 'Su identidad', 'Sus cuentas', 'Riesgo de fraude', 'Hackers'.\n" .
-            "REGLA DE LONGITUD: Resumen y Conclusión deben tener entre 70 y 90 palabras para llenar el espacio en el PDF.\n" .
-            "EJEMPLO: 'Hemos detectado que sus credenciales están expuestas. Es vital que cambie sus contraseñas ahora mismo para proteger sus cuentas bancarias.'";
+            "PROHIBIDO (Lenguaje Corporativo): 'Organización', 'Mitigación estratégica', " .
+            "'Cadena de suministro', 'Interdepartamental', 'Activos', 'Auditoría'.\n" .
+            "OBLIGATORIO (Lenguaje Personal): 'Sus datos', 'Su identidad', 'Sus cuentas', " .
+            "'Riesgo de fraude', 'Hackers'.\n" .
+            "REGLA DE LONGITUD: Resumen y Conclusión deben tener entre 70 y 90 palabras " .
+            "para llenar el espacio en el PDF.\n" .
+            "EJEMPLO: 'Hemos detectado que sus credenciales están expuestas. " .
+            "Es vital que cambie sus contraseñas ahora mismo para proteger sus cuentas bancarias.'";
 
         $userSum = "Incidentes detectados: " . json_encode($metaData) . "\n\n" .
             "Genera el JSON de respuesta (Para un USUARIO INDIVIDUAL):\n" .
             "{ \n" .
             "  \"threat_level\": \"LOW|MEDIUM|HIGH|CRITICAL\", \n" .
-            "  \"executive_summary\": \"...Resumen profesional (70-90 palabras). Enfocado en el riesgo personal...\", \n" .
-            "  \"strategic_conclusion\": \"...Recomendación experta (70-90 palabras). Pasos claros y serios...\", \n" .
+            "  \"executive_summary\": \"...Resumen profesional (70-90 palabras). " .
+            "Enfocado en el riesgo personal...\", \n" .
+            "  \"strategic_conclusion\": \"...Recomendación experta (70-90 palabras). " .
+            "Pasos claros y serios...\", \n" .
             "  \"dynamic_glossary\": {\"Termino\": \"Definición\"} \n" .
             "}";
 
@@ -106,7 +136,8 @@ class GeminiService
             'executive_summary' => $summary['executive_summary'] ?? 'Se detectaron múltiples compromisos de seguridad.',
             'detailed_analysis' => $finalAnalysis,
             'dynamic_glossary' => $summary['dynamic_glossary'] ?? [],
-            'strategic_conclusion' => $summary['strategic_conclusion'] ?? 'Se recomienda rotación inmediata de credenciales.'
+            'strategic_conclusion' => $summary['strategic_conclusion']
+                ?? 'Se recomienda rotación inmediata de credenciales.'
         ];
     }
 
@@ -151,7 +182,8 @@ class GeminiService
     {
         $analysis = [
             'threat_level' => 'HIGH',
-            'executive_summary' => 'El sistema de inteligencia artificial no pudo procesar los detalles. Razón Técnica: ' . $debugError,
+            'executive_summary' => 'El sistema de inteligencia artificial no pudo procesar los detalles. ' .
+                'Razón Técnica: ' . $debugError,
             'detailed_analysis' => [],
             'dynamic_glossary' => ['Error' => $debugError]
         ];
@@ -159,7 +191,8 @@ class GeminiService
         foreach ($breaches as $b) {
             $analysis['detailed_analysis'][] = [
                 'source_name' => $b['name'],
-                'incident_story' => " FALLO DE CONEXIÓN IA. \n\nDETALLE TÉCNICO: $debugError \n\nPor favor reporte este código de error al administrador.",
+                'incident_story' => " FALLO DE CONEXIÓN IA. \n\nDETALLE TÉCNICO: $debugError \n\n" .
+                    "Por favor reporte este código de error al administrador.",
                 'risk_explanation' => "Riesgo no calculado debido a fallo técnico ($debugError).",
                 'specific_remediation' => [
                     "Error Técnico: $debugError",

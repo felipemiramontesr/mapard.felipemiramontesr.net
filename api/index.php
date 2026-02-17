@@ -14,11 +14,61 @@ use MapaRD\Services\ReportService;
 use function MapaRD\Services\text_sanitize;
 use function MapaRD\Services\translate_data_class;
 // api/index.php - Real OSINT Engine
-
-header("Access-Control-Allow-Origin: *");
-header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
-header("Access-Control-Allow-Headers: Content-Type");
+// --------------------------------------------------------------------------
+// 1. SECURITY HEADERS (NSA Level Defense)
+// --------------------------------------------------------------------------
+header("Strict-Transport-Security: max-age=31536000; includeSubDomains; preload");
+header("X-Content-Type-Options: nosniff");
+header("X-Frame-Options: DENY");
+header("X-XSS-Protection: 1; mode=block");
+header("Content-Security-Policy: default-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'self';");
 header("Content-Type: application/json");
+
+// --------------------------------------------------------------------------
+// 2. STRICT CORS (No Wildcards)
+// --------------------------------------------------------------------------
+$allowedOrigins = [
+    'https://mapa-rd.felipemiramontesr.net',
+    'http://localhost:5173', // Dev
+    'http://localhost:4173'  // Preview
+];
+$origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+if (in_array($origin, $allowedOrigins)) {
+    header("Access-Control-Allow-Origin: $origin");
+    header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
+    header("Access-Control-Allow-Headers: Content-Type");
+} else {
+    // If not in allowed list, do not send CORS headers (Browser will block)
+    // Optional: Return 403 immediately if strict
+}
+
+// --------------------------------------------------------------------------
+// 3. RATE LIMITING (Token Bucket - File Based)
+// --------------------------------------------------------------------------
+$ip = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+$limitDir = __DIR__ . '/temp/ratelimit';
+if (!is_dir($limitDir))
+    @mkdir($limitDir, 0755, true);
+
+$limitFile = $limitDir . '/' . md5($ip) . '.lock';
+$now = time();
+$window = 60; // 1 Minute
+$limit = 10;  // Requests per minute
+
+$data = @file_exists($limitFile) ? json_decode(file_get_contents($limitFile), true) : ['start' => $now, 'count' => 0];
+
+if ($data['start'] < ($now - $window)) {
+    $data = ['start' => $now, 'count' => 1]; // Reset window
+} else {
+    $data['count']++;
+}
+
+if ($data['count'] > $limit) {
+    http_response_code(429);
+    echo json_encode(["error" => "Rate Limit Exceeded. Try again in 60 seconds."]);
+    exit;
+}
+@file_put_contents($limitFile, json_encode($data));
 // Register Shutdown Function to catch Fatal Errors
 register_shutdown_function(function () {
 

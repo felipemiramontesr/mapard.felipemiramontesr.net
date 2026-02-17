@@ -1,0 +1,23 @@
+# NSA Level Security for API Directory
+
+# 1. Block Sensitive Files
+<FilesMatch "\.(php|json|lock|sqlite|md|yml|xml)$">
+    Order Allow,Deny
+    Deny from all
+</FilesMatch>
+
+# 2. Allow only index.php
+<Files "index.php">
+    Order Allow,Deny
+    Allow from all
+</Files>
+
+# 3. Disable Directory Browsing
+Options -Indexes
+
+# 4. Force HTTPS (If not active)
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteCond %{HTTPS} off
+    RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+</IfModule>

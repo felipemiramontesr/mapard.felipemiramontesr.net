@@ -1,37 +1,41 @@
 <?php
 
+namespace Tests\Unit;
+
 use PHPUnit\Framework\TestCase;
 use MapaRD\Services\ReportService;
+use function MapaRD\Services\text_sanitize;
+use function MapaRD\Services\translate_data_class;
 
 class ReportServiceTest extends TestCase
 {
-    public function testReportGenerationBasics()
-    {
-        // 1. Instantiate
-        $pdf = new ReportService();
-        $pdf->AddPage();
-
-        // 2. act: Add some content
-        $pdf->SectionTitle("Test Section");
-
-        // 3. Assert: Verify no errors occurred and object is valid
-        $this->assertInstanceOf(ReportService::class, $pdf);
-        $this->assertInstanceOf(\FPDF::class, $pdf);
-
-        // We can't easily assert the PDF content without a parser, 
-        // but we can ensure the code executes without crashing.
-        $this->assertTrue(true);
-    }
-
     public function testSanitizeFunction()
     {
-        // Test the helper function (which is namespaced now)
-        $input = "Federación";
-        $expected = "Federacion"; // logic replaces accents or handles encoding
-        // Note: The specific iconv/sanitize logic might behave differently on different OS/Locales
-        // Let's just test it runs.
+        // Logic is now inside the file but maybe not globally functional if not included.
+        // We might need to include ReportService.php manually if composer autoload doesn't catch functions.
+        require_once __DIR__ . '/../../services/ReportService.php';
 
-        $cleaned = \MapaRD\Services\text_sanitize($input);
-        $this->assertIsString($cleaned);
+        $dirty = "Héllö Wörld";
+        $clean = text_sanitize($dirty);
+        // iconv behavior might vary, but basic check
+        $this->assertIsString($clean);
+    }
+
+    public function testTranslateDataClass()
+    {
+        require_once __DIR__ . '/../../services/ReportService.php';
+
+        $english = 'Email addresses';
+        $spanish = translate_data_class($english);
+        $this->assertEquals('Correos electrónicos', $spanish);
+
+        $unknown = 'Alien DNA';
+        $this->assertEquals('Alien DNA', translate_data_class($unknown));
+    }
+
+    public function testPDFInstantiation()
+    {
+        $pdf = new ReportService();
+        $this->assertInstanceOf(\FPDF::class, $pdf);
     }
 }

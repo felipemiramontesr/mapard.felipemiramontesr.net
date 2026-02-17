@@ -144,13 +144,16 @@ class ReportService extends FPDF
 
         $story = isset($analysis['incident_story']) && !empty($analysis['incident_story'])
             ? $analysis['incident_story']
-            : "El reporte de inteligencia para $source no pudo recuperar el contexto histórico específico. Se trató de una vulneración de datos registrada en $date.";
+            : "El reporte de inteligencia para $source no pudo recuperar el contexto histórico específico." .
+            " Se trató de una vulneración de datos registrada en $date.";
 
         $risk = isset($analysis['risk_explanation'])
             ? $analysis['risk_explanation']
             : "La exposición de sus datos en este servicio aumenta el riesgo de suplantación de identidad.";
 
-        $rawActions = isset($analysis['specific_remediation']) ? $analysis['specific_remediation'] : ["Cambie su contraseña inmediatamente."];
+        $rawActions = isset($analysis['specific_remediation'])
+            ? $analysis['specific_remediation']
+            : ["Cambie su contraseña inmediatamente."];
         if (is_string($rawActions)) {
             $rawActions = [$rawActions];
         }
@@ -178,8 +181,11 @@ class ReportService extends FPDF
         $actionsHeight += 4; // Add 4mm (~10-15px) bottom padding to container
 
         // Calculate total card height (Compact)
-        // Header (15) + Classes (Lines*4) + Gap(2) + StoryTitle(5) + Story(Lines*4) + Gap(2) + RiskTitle(5) + Risk(Lines*4) + Gap(2) + Actions
-        $cardHeight = 15 + ($classLines * 4) + 2 + 5 + ($storyLines * $lineH) + 2 + 5 + ($riskLines * $lineH) + 3 + $actionsHeight + 5;
+        // Header (15) + Classes (Lines*4) + Gap(2) + StoryTitle(5) + Story(Lines*4) + Gap(2)
+        // + RiskTitle(5) + Risk(Lines*4) + Gap(2) + Actions
+        $cardHeight = 15 + ($classLines * 4) + 2 + 5 +
+            ($storyLines * $lineH) + 2 + 5 +
+            ($riskLines * $lineH) + 3 + $actionsHeight + 5;
 
         $this->checkPageSpace($cardHeight);
         if ($this->GetY() < 45) {
