@@ -53,7 +53,7 @@ if (!is_dir($limitDir))
 $limitFile = $limitDir . '/' . md5($ip) . '.lock';
 $now = time();
 $window = 60; // 1 Minute
-$limit = 10;  // Requests per minute
+$limit = 60;  // Requests per minute (Relaxed for polling)
 
 $data = @file_exists($limitFile) ? json_decode(file_get_contents($limitFile), true) : ['start' => $now, 'count' => 0];
 
