@@ -131,7 +131,7 @@ const Dashboard: React.FC = () => {
         } catch (e: unknown) {
             console.error(e);
             const errorMessage = e instanceof Error ? e.message : 'Unknown Error';
-            addLog(`CRITICAL BACKEND ERROR: ${errorMessage}`, 'error');
+            addLog(`CRITICAL BACKEND ERROR: ${errorMessage} [Target: ${API_BASE}/api/scan]`, 'error');
             if (errorMessage.includes('500')) {
                 addLog("Server Internal Error. Check api/debug.php", 'error');
             }
