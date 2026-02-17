@@ -17,11 +17,12 @@ use function MapaRD\Services\translate_data_class;
 // --------------------------------------------------------------------------
 // 1. SECURITY HEADERS (NSA Level Defense)
 // --------------------------------------------------------------------------
-header("Strict-Transport-Security: max-age=31536000; includeSubDomains; preload");
-header("X-Content-Type-Options: nosniff");
-header("X-Frame-Options: DENY");
-header("X-XSS-Protection: 1; mode=block");
-header("Content-Security-Policy: default-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'self';");
+// ROLLBACK: Temporarily disabled for Android Debugging
+// header("Strict-Transport-Security: max-age=31536000; includeSubDomains; preload");
+// header("X-Content-Type-Options: nosniff");
+// header("X-Frame-Options: DENY");
+// header("X-XSS-Protection: 1; mode=block");
+// header("Content-Security-Policy: default-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'self';");
 header("Content-Type: application/json");
 
 // --------------------------------------------------------------------------
@@ -57,6 +58,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 // --------------------------------------------------------------------------
 // 3. RATE LIMITING (Token Bucket - File Based)
 // --------------------------------------------------------------------------
+/*
+// ROLLBACK: Rate Limiting Disabled
 $ip = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
 $limitDir = __DIR__ . '/temp/ratelimit';
 if (!is_dir($limitDir))
@@ -81,6 +84,7 @@ if ($data['count'] > $limit) {
     exit;
 }
 @file_put_contents($limitFile, json_encode($data));
+*/
 // Register Shutdown Function to catch Fatal Errors
 register_shutdown_function(function () {
 
