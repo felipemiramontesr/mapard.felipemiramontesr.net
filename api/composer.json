@@ -30,8 +30,8 @@
     ],
     "scripts": {
         "test": "phpunit --colors=always",
-        "lint": "phpcs --standard=PSR12 services/ core/",
-        "fix": "phpcbf --standard=PSR12 services/ core/",
-        "analyze": "phpstan analyse services core --level 5"
+        "lint": "phpcs --standard=PSR12 services/",
+        "fix": "phpcbf --standard=PSR12 services/",
+        "analyze": "phpstan analyse services --level 5"
     }
 }
