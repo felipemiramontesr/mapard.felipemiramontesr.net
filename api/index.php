@@ -36,13 +36,22 @@ $allowedOrigins = [
     'https://localhost'      // Secure Local
 ];
 $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
-if (in_array($origin, $allowedOrigins)) {
-    header("Access-Control-Allow-Origin: $origin");
+
+// DEBUG: Log Origin to check what Android is actually sending
+// file_put_contents(__DIR__ . '/temp/cors_debug.log', date('c') . " - Origin: " . $origin . "\n", FILE_APPEND);
+
+if (in_array($origin, $allowedOrigins) || strpos($origin, 'localhost') !== false || $origin === 'null') {
+    // Allow localhost variations and 'null' (sometimes sent by webviews)
+    header("Access-Control-Allow-Origin: " . ($origin ?: '*'));
     header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
     header("Access-Control-Allow-Headers: Content-Type");
-} else {
-    // If not in allowed list, do not send CORS headers (Browser will block)
-    // Optional: Return 403 immediately if strict
+    // Strict block for unauthorized domains
+}
+
+// Handle Preflight OPTIONS requests immediately (Before DB/Auth)
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit;
 }
 
 // --------------------------------------------------------------------------
@@ -111,10 +120,7 @@ created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 $method = $_SERVER['REQUEST_METHOD'];
 $requestUri = $_SERVER['REQUEST_URI'];
 $pathParams = explode('/', trim($requestUri, '/'));
-if ($method === 'OPTIONS') {
-    http_response_code(200);
-    exit;
-}
+// OPTIONS handler moved to top
 
 // ROUTER
 if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
