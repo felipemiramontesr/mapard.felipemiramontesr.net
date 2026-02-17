@@ -25,7 +25,7 @@ jobs:
     - name: Create Dummy Config (For Testing)
       run: |
         cd api
-        echo "<?php define('HIBP_API_KEY', 'test'); define('GEMINI_API_KEY', 'test'); define('GEMINI_MODEL', 'gemini-1.5-flash'); ?>" > config.php
+        echo "<?php if(!defined('HIBP_API_KEY')) define('HIBP_API_KEY', 'test'); if(!defined('GEMINI_API_KEY')) define('GEMINI_API_KEY', 'test'); if(!defined('GEMINI_MODEL')) define('GEMINI_MODEL', 'gemini-1.5-flash'); ?>" > config.php
 
     - name: Install Composer Dependencies
       run: |
