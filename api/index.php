@@ -30,7 +30,10 @@ header("Content-Type: application/json");
 $allowedOrigins = [
     'https://mapa-rd.felipemiramontesr.net',
     'http://localhost:5173', // Dev
-    'http://localhost:4173'  // Preview
+    'http://localhost:4173', // Preview
+    'capacitor://localhost', // iOS App
+    'http://localhost',      // Android App
+    'https://localhost'      // Secure Local
 ];
 $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
 if (in_array($origin, $allowedOrigins)) {
