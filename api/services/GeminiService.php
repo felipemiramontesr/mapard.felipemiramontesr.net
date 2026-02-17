@@ -12,8 +12,10 @@ class GeminiService
 
     public function __construct()
     {
-        require_once __DIR__ . '/../config.php';
-        $this->apiKey = GEMINI_API_KEY;
+        if (file_exists(__DIR__ . '/../config.php')) {
+            require_once __DIR__ . '/../config.php';
+        }
+        $this->apiKey = defined('GEMINI_API_KEY') ? GEMINI_API_KEY : 'test_key';
         $this->model = defined('GEMINI_MODEL') ? GEMINI_MODEL : 'gemini-1.5-flash';
     }
 

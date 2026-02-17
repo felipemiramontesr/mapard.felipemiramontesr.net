@@ -22,6 +22,11 @@ jobs:
         extensions: mbstring, intl, gd, xml, dom, json, fileinfo, curl, zip
         coverage: none
 
+    - name: Create Dummy Config (For Testing)
+      run: |
+        cd api
+        echo "<?php define('HIBP_API_KEY', 'test'); define('GEMINI_API_KEY', 'test'); define('GEMINI_MODEL', 'gemini-1.5-flash'); ?>" > config.php
+
     - name: Install Composer Dependencies
       run: |
         cd api
