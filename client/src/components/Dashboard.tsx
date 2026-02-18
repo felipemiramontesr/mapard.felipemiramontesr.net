@@ -7,7 +7,7 @@ import { Capacitor } from '@capacitor/core';
 
 // Native App needs absolute URL. Web uses relative (proxy).
 const API_BASE = Capacitor.isNativePlatform()
-    ? 'https://mapa-rd.felipemiramontesr.net'
+    ? 'https://mapard.felipemiramontesr.net'
     : '';
 
 interface Log {

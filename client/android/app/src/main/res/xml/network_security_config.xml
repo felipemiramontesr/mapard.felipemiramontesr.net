@@ -8,7 +8,7 @@
     </base-config>
     <domain-config cleartextTrafficPermitted="true">
         <domain includeSubdomains="true">localhost</domain>
-        <domain includeSubdomains="true">mapa-rd.felipemiramontesr.net</domain>
+        <domain includeSubdomains="true">mapard.felipemiramontesr.net</domain>
         <domain includeSubdomains="true">10.0.2.2</domain>
     </domain-config>
 </network-security-config>

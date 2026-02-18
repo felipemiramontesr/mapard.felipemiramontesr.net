@@ -35,7 +35,7 @@ header("Content-Type: application/json");
 // 2. STRICT CORS (No Wildcards)
 // --------------------------------------------------------------------------
 $allowedOrigins = [
-    'https://mapa-rd.felipemiramontesr.net',
+    'https://mapard.felipemiramontesr.net',
     'http://localhost:5173', // Dev
     'http://localhost:4173', // Preview
     'capacitor://localhost', // iOS App
