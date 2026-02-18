@@ -1,15 +1,11 @@
 <?php
-// --------------------------------------------------------------------------
-// ☢️ NUCLEAR LOGGER (DEBUGGING CONNECTION)
-// --------------------------------------------------------------------------
-@mkdir(__DIR__ . '/temp', 0755, true);
-@file_put_contents(__DIR__ . '/temp/nuclear_log.txt', date('c') . " - IP: " . ($_SERVER['REMOTE_ADDR'] ?? 'N/A') . " - Method: " . ($_SERVER['REQUEST_METHOD'] ?? 'N/A') . " - URI: " . ($_SERVER['REQUEST_URI'] ?? 'N/A') . "\n", FILE_APPEND);
-
 // Enable Error Reporting for Debugging (Return JSON, not HTML)
 ini_set('display_errors', 0);
-// Hide HTML errors to prevent JSON breakage
 ini_set('log_errors', 1);
 error_reporting(E_ALL);
+
+header('Content-Type: application/json');
+
 // Load Composer Autoloader
 require_once __DIR__ . '/vendor/autoload.php';
 // Load Config
@@ -20,16 +16,17 @@ use function MapaRD\Services\text_sanitize;
 use function MapaRD\Services\translate_data_class;
 // api/index.php - Real OSINT Engine
 // --------------------------------------------------------------------------
-// 1. SECURITY HEADERS (NSA Level Defense)
+// 1. SECURITY HEADERS (MILD - RESTORED)
 // --------------------------------------------------------------------------
-// ROLLBACK: Temporarily disabled for Android Debugging
+// HSTS: Neutral (Commented out to avoid cache issues for now)
 // header("Strict-Transport-Security: max-age=31536000; includeSubDomains; preload");
-header("Strict-Transport-Security: max-age=0"); // ☢️ FORCE CLEAR HSTS CACHE
-// header("X-Content-Type-Options: nosniff");
-// header("X-Frame-Options: DENY");
-// header("X-XSS-Protection: 1; mode=block");
-// header("Content-Security-Policy: default-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'self';");
-header("Content-Type: application/json");
+
+// CSP: Mild (Allow connections, block objects/base)
+header("Content-Security-Policy: default-src 'self'; connect-src *; img-src * data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; object-src 'none'; base-uri 'self';");
+
+header("X-Content-Type-Options: nosniff");
+header("X-Frame-Options: DENY");
+header("X-XSS-Protection: 1; mode=block"); // Legacy but good depth defense
 
 // --------------------------------------------------------------------------
 // 2. STRICT CORS (No Wildcards)
@@ -39,20 +36,24 @@ $allowedOrigins = [
     'http://localhost:5173', // Dev
     'http://localhost:4173', // Preview
     'capacitor://localhost', // iOS App
-    'http://localhost',      // Android App
-    'https://localhost'      // Secure Local
+    'http://localhost',      // Android WebView
+    'https://localhost'      // Android Https
 ];
+
 $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
 
 // DEBUG: Log Origin to check what Android is actually sending
 // file_put_contents(__DIR__ . '/temp/cors_debug.log', date('c') . " - Origin: " . $origin . "\n", FILE_APPEND);
 
-if (in_array($origin, $allowedOrigins) || strpos($origin, 'localhost') !== false || $origin === 'null') {
-    // Allow localhost variations and 'null' (sometimes sent by webviews)
-    header("Access-Control-Allow-Origin: " . ($origin ?: '*'));
+if (in_array($origin, $allowedOrigins)) {
+    header("Access-Control-Allow-Origin: $origin");
     header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
-    header("Access-Control-Allow-Headers: Content-Type");
-    // Strict block for unauthorized domains
+    header("Access-Control-Allow-Headers: Content-Type, Authorization, X-API-KEY");
+    header("Access-Control-Allow-Credentials: true");
+} else {
+    // Fallback for non-browser clients or unauthorized origins
+    // header("HTTP/1.1 403 Forbidden");
+    // exit;
 }
 
 // Handle Preflight OPTIONS requests immediately (Before DB/Auth)
@@ -62,35 +63,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 // --------------------------------------------------------------------------
-// 3. RATE LIMITING (Token Bucket - File Based)
+// 3. RATE LIMITING (RESTORED)
 // --------------------------------------------------------------------------
-/*
-// ROLLBACK: Rate Limiting Disabled
-$ip = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
-$limitDir = __DIR__ . '/temp/ratelimit';
-if (!is_dir($limitDir))
-    @mkdir($limitDir, 0755, true);
+$ip = $_SERVER['REMOTE_ADDR'];
+$limit = 100; // Requests per minute (Relaxed from 60)
+$timeFrame = 60;
+$limitFile = __DIR__ . '/temp/ratelimit_' . md5($ip) . '.json';
 
-$limitFile = $limitDir . '/' . md5($ip) . '.lock';
-$now = time();
-$window = 60; // 1 Minute
-$limit = 60;  // Requests per minute (Relaxed for polling)
-
-$data = @file_exists($limitFile) ? json_decode(file_get_contents($limitFile), true) : ['start' => $now, 'count' => 0];
-
-if ($data['start'] < ($now - $window)) {
-    $data = ['start' => $now, 'count' => 1]; // Reset window
-} else {
-    $data['count']++;
+// Ensure temp directory exists
+if (!is_dir(__DIR__ . '/temp')) {
+    @mkdir(__DIR__ . '/temp', 0755, true);
 }
 
+// Read current data
+$data = ['count' => 0, 'startTime' => time()];
+if (file_exists($limitFile)) {
+    $content = @file_get_contents($limitFile);
+    if ($content) {
+        $data = json_decode($content, true);
+    }
+}
+
+// Reset if timeframe passed
+if (time() - $data['startTime'] > $timeFrame) {
+    $data = ['count' => 0, 'startTime' => time()];
+}
+
+// Increment
+$data['count']++;
+
+// Check Limit
 if ($data['count'] > $limit) {
     http_response_code(429);
     echo json_encode(["error" => "Rate Limit Exceeded. Try again in 60 seconds."]);
     exit;
 }
+
+// Save
 @file_put_contents($limitFile, json_encode($data));
-*/
 // Register Shutdown Function to catch Fatal Errors
 register_shutdown_function(function () {
 
