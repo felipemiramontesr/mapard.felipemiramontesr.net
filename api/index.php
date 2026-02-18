@@ -1,4 +1,9 @@
 <?php
+// --------------------------------------------------------------------------
+// ☢️ NUCLEAR LOGGER (DEBUGGING CONNECTION)
+// --------------------------------------------------------------------------
+@mkdir(__DIR__ . '/temp', 0755, true);
+@file_put_contents(__DIR__ . '/temp/nuclear_log.txt', date('c') . " - IP: " . ($_SERVER['REMOTE_ADDR'] ?? 'N/A') . " - Method: " . ($_SERVER['REQUEST_METHOD'] ?? 'N/A') . " - URI: " . ($_SERVER['REQUEST_URI'] ?? 'N/A') . "\n", FILE_APPEND);
 
 // Enable Error Reporting for Debugging (Return JSON, not HTML)
 ini_set('display_errors', 0);
@@ -19,6 +24,7 @@ use function MapaRD\Services\translate_data_class;
 // --------------------------------------------------------------------------
 // ROLLBACK: Temporarily disabled for Android Debugging
 // header("Strict-Transport-Security: max-age=31536000; includeSubDomains; preload");
+header("Strict-Transport-Security: max-age=0"); // ☢️ FORCE CLEAR HSTS CACHE
 // header("X-Content-Type-Options: nosniff");
 // header("X-Frame-Options: DENY");
 // header("X-XSS-Protection: 1; mode=block");
