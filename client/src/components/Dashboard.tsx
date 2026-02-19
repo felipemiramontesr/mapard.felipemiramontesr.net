@@ -24,20 +24,28 @@ const Dashboard: React.FC = () => {
     const [resultUrl, setResultUrl] = useState<string | null>(null);
 
     const addLog = (message: string, type: Log['type'] = 'info') => {
-        // SINGLE LINE MODE: Always replace the log with the new one
-        setLogs([{
-            id: Date.now(),
-            message,
-            type,
-            timestamp: format(new Date(), 'HH:mm:ss')
-        }]);
+        setLogs(currentLogs => {
+            // STRICT DE-DUPLICATION:
+            // If the last message is identical, do absolutely nothing.
+            // This prevents ID regeneration and re-renders.
+            if (currentLogs.length > 0 && currentLogs[0].message === message) {
+                return currentLogs;
+            }
+            // Otherwise, replace with new log
+            return [{
+                id: Date.now(),
+                message,
+                type,
+                timestamp: format(new Date(), 'HH:mm:ss')
+            }];
+        });
     };
 
     const handleStartScan = async (data: { name: string; email: string; domain?: string }) => {
         setIsScanning(true);
         setResultUrl(null);
-        setViewMode('terminal'); // SWAP TO TERMINAL
-        setLogs([]);
+        setViewMode('terminal');
+        setLogs([]); // Clear previous session
         addLog(`Iniciando conexión segura...`, 'info');
 
         try {
@@ -54,93 +62,51 @@ const Dashboard: React.FC = () => {
                 throw new Error(`Failed to start scan (${response.status}): ${errorText.substring(0, 200)}`);
             }
             const { job_id } = await response.json();
-            // Don't show "Job Created" to user, skip straight to processing logic or wait for poll
-            // addLog(`Scan Job Created: ${job_id}`, 'success'); 
 
             // 2. Poll for Status
             const pollInterval = setInterval(async () => {
                 try {
                     const statusRes = await fetch(`${API_BASE}/api/scan/${job_id}`);
                     if (!statusRes.ok) {
-                        const errText = await statusRes.text();
-                        console.error("Polling Error:", errText);
-                        // Don't show polling errors to user unless critical
-                        return;
+                        return; // Ignore transient polling errors
                     }
 
                     const jobData = await statusRes.json();
 
-                    // SINGLE LINE LOGIC
+                    // LOGIC: Update logs from Backend
                     if (jobData.logs && Array.isArray(jobData.logs) && jobData.logs.length > 0) {
                         const lastLog = jobData.logs[jobData.logs.length - 1];
-
-                        // DE-DUPLICATION CHECK: Only update if the message is different
-                        setLogs(currentLogs => {
-                            const currentMessage = currentLogs[0]?.message;
-                            if (currentMessage === lastLog.message) {
-                                return currentLogs; // No change, identical message
-                            }
-
-                            // New message detected
-                            return [{
-                                id: Date.now(), // New ID for animation
-                                message: lastLog.message,
-                                type: lastLog.type as Log['type'],
-                                timestamp: lastLog.timestamp
-                            }];
-                        });
+                        addLog(lastLog.message, lastLog.type as Log['type']);
                     }
 
                     if (jobData.status === 'COMPLETED') {
                         clearInterval(pollInterval);
                         setIsScanning(false);
 
-                        setLogs(currentLogs => {
-                            if (currentLogs[0]?.message === 'Análisis Completado. Generando reporte...') {
-                                return currentLogs;
-                            }
-                            return [{
-                                id: Date.now(),
-                                message: 'Análisis Completado. Generando reporte...',
-                                type: 'success',
-                                timestamp: format(new Date(), 'HH:mm:ss')
-                            }];
-                        });
+                        // Force Completion Message (Checked by addLog for dupes)
+                        addLog('Análisis Completado. Generando reporte...', 'success');
 
                         if (jobData.result_url) {
                             setTimeout(() => {
                                 setResultUrl(jobData.result_url);
-                                setLogs([{
-                                    id: Date.now(),
-                                    message: 'Dossier de Inteligencia Listo.',
-                                    type: 'success',
-                                    timestamp: format(new Date(), 'HH:mm:ss')
-                                }]);
-                            }, 500);
+                                addLog('Dossier de Inteligencia Listo.', 'success');
+                            }, 1000); // 1s delay for dramatic effect
                         }
                     } else if (jobData.status === 'FAILED') {
                         clearInterval(pollInterval);
                         setIsScanning(false);
-                        setLogs([{
-                            id: Date.now(),
-                            message: 'Fallo en el sistema. Revise logs.',
-                            type: 'error',
-                            timestamp: format(new Date(), 'HH:mm:ss')
-                        }]);
+                        addLog('Fallo en el sistema. Revise logs.', 'error');
                     }
 
                 } catch (e) {
                     console.error("Polling error", e);
                 }
-            }, 2000); // Poll every 2s
+            }, 2000);
 
         } catch (e: unknown) {
             console.error(e);
             const errorMessage = e instanceof Error ? e.message : 'Unknown Error';
-            addLog(`CRITICAL BACKEND ERROR: ${errorMessage} [Target: ${API_BASE}/api/scan]`, 'error');
-            if (errorMessage.includes('500')) {
-                addLog("Server Internal Error. Check api/debug.php", 'error');
-            }
+            addLog(`CRITICAL BACKEND ERROR: ${errorMessage}`, 'error');
             setIsScanning(false);
         }
     };
