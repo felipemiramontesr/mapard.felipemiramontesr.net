@@ -20,7 +20,13 @@ interface StatusTerminalProps {
 
 const StatusTerminal: React.FC<StatusTerminalProps> = ({ logs, isVisible, onReset, resultUrl }) => {
     const endRef = useRef<HTMLDivElement>(null);
-    const isCompleted = logs.some(l => l.message.includes('Scan Complete') || l.message.includes('Scan Failed'));
+    // FIX: Check for Spanish messages used in Dashboard.tsx
+    const isCompleted = logs.some(l =>
+        l.message.includes('Completado') ||
+        l.message.includes('Listo') ||
+        l.message.includes('Failed') ||
+        l.message.includes('Error')
+    );
 
     useEffect(() => {
         endRef.current?.scrollIntoView({ behavior: 'smooth' });

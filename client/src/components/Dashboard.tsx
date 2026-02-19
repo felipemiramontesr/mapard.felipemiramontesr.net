@@ -72,26 +72,40 @@ const Dashboard: React.FC = () => {
 
                     // SINGLE LINE LOGIC
                     if (jobData.logs && Array.isArray(jobData.logs) && jobData.logs.length > 0) {
-                        // Take ONLY the last log from backend
                         const lastLog = jobData.logs[jobData.logs.length - 1];
-                        setLogs([{
-                            id: Date.now(),
-                            message: lastLog.message,
-                            type: lastLog.type as Log['type'],
-                            timestamp: lastLog.timestamp
-                        }]);
+
+                        // DE-DUPLICATION CHECK: Only update if the message is different
+                        setLogs(currentLogs => {
+                            const currentMessage = currentLogs[0]?.message;
+                            if (currentMessage === lastLog.message) {
+                                return currentLogs; // No change, identical message
+                            }
+
+                            // New message detected
+                            return [{
+                                id: Date.now(), // New ID for animation
+                                message: lastLog.message,
+                                type: lastLog.type as Log['type'],
+                                timestamp: lastLog.timestamp
+                            }];
+                        });
                     }
 
                     if (jobData.status === 'COMPLETED') {
                         clearInterval(pollInterval);
                         setIsScanning(false);
 
-                        setLogs([{
-                            id: Date.now(),
-                            message: 'Análisis Completado. Generando reporte...',
-                            type: 'success',
-                            timestamp: format(new Date(), 'HH:mm:ss')
-                        }]);
+                        setLogs(currentLogs => {
+                            if (currentLogs[0]?.message === 'Análisis Completado. Generando reporte...') {
+                                return currentLogs;
+                            }
+                            return [{
+                                id: Date.now(),
+                                message: 'Análisis Completado. Generando reporte...',
+                                type: 'success',
+                                timestamp: format(new Date(), 'HH:mm:ss')
+                            }];
+                        });
 
                         if (jobData.result_url) {
                             setTimeout(() => {
@@ -107,7 +121,12 @@ const Dashboard: React.FC = () => {
                     } else if (jobData.status === 'FAILED') {
                         clearInterval(pollInterval);
                         setIsScanning(false);
-                        addLog('Scan Failed. Check system logs.', 'error');
+                        setLogs([{
+                            id: Date.now(),
+                            message: 'Fallo en el sistema. Revise logs.',
+                            type: 'error',
+                            timestamp: format(new Date(), 'HH:mm:ss')
+                        }]);
                     }
 
                 } catch (e) {
