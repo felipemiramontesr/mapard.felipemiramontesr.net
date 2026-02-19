@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Zap, Activity, ShieldAlert, FileCheck } from 'lucide-react';
+import { Zap, Activity, FileCheck } from 'lucide-react';
 import { Capacitor } from '@capacitor/core';
 import { Browser } from '@capacitor/browser';
 
@@ -56,8 +56,8 @@ const StatusTerminal: React.FC<StatusTerminalProps> = ({ logs, isVisible, onRese
                             exit={{ opacity: 0, scale: 1.05 }}
                             transition={{ duration: 0.2 }}
                             className={`text-center space-y-2 max-w-lg ${log.type === 'error' ? 'text-ops-danger' :
-                                    log.type === 'success' ? 'text-ops-cyan' :
-                                        'text-white'
+                                log.type === 'success' ? 'text-ops-cyan' :
+                                    'text-white'
                                 }`}
                         >
                             <span className="block text-xs uppercase tracking-widest opacity-50 mb-2">

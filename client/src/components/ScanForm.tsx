@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Mail, Globe, User, Rocket } from 'lucide-react';
+import { Mail, Rocket } from 'lucide-react';
 
 interface ScanFormProps {
     onScan: (data: { name: string; email: string; domain: string }) => void;
@@ -7,9 +7,8 @@ interface ScanFormProps {
 }
 
 const ScanForm: React.FC<ScanFormProps> = ({ onScan, isLoading }) => {
-    const [name, setName] = useState('');
+    // Removed unused name/domain state
     const [email, setEmail] = useState('');
-    const [domain, setDomain] = useState('');
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
