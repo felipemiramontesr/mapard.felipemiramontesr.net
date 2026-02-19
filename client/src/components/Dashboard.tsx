@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import ScanForm from './ScanForm';
 import StatusTerminal from './StatusTerminal';
-import TacticalTelemetry from './TacticalTelemetry';
 import { format } from 'date-fns';
 import { Capacitor } from '@capacitor/core';
 
@@ -161,10 +160,6 @@ const Dashboard: React.FC = () => {
                     />
                 </div>
             )}
-            {/* Tactical Telemetry Module (Fills Void) */}
-            <div className="w-full px-4 mt-2">
-                <TacticalTelemetry />
-            </div>
         </div>
     );
 };
