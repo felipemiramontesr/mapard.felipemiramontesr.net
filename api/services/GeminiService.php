@@ -216,19 +216,26 @@ class GeminiService
 
         // 1. Generate Story
         if ($isSensitive) {
-            $story = "Nuestros sistemas de monitoreo en Dark Web han detectado un lote de credenciales de alta seguridad vinculado a $breachName. " .
-                "Los análisis forenses indican que actores maliciosos podrían estar comercializando esta base de datos en foros privados. " .
-                "Debido a la naturaleza de los datos (Contraseñas/Financieros), este incidente se clasifica como CRÍTICO.";
+            $story = "Nuestros sistemas de monitoreo en Dark Web han detectado un lote de credenciales " .
+                "de alta seguridad vinculado a $breachName. " .
+                "Los análisis forenses indican que actores maliciosos podrían estar comercializando " .
+                "esta base de datos en foros privados. " .
+                "Debido a la naturaleza de los datos (Contraseñas/Financieros), " .
+                "este incidente se clasifica como CRÍTICO.";
         } else {
-            $story = "Se ha identificado la presencia de sus datos de identificación personal (PII) en listas de distribución masiva asociadas a $breachName. " .
-                "Aunque no se detectaron credenciales bancarias en esta muestra específica, la información expuesta es utilizada frecuentemente " .
+            $story = "Se ha identificado la presencia de sus datos de identificación personal (PII) " .
+                "en listas de distribución masiva asociadas a $breachName. " .
+                "Aunque no se detectaron credenciales bancarias en esta muestra específica, " .
+                "la información expuesta es utilizada frecuentemente " .
                 "para campañas de Phishing (Suplantación) y Spam dirigido.";
         }
 
         // 2. Generate Risk
         $risk = $isSensitive
-            ? "ALTO RIESGO: Al haberse filtrado credenciales o datos sensibles, existe una probabilidad inminente de acceso no autorizado a sus cuentas, robo de identidad o fraude financiero."
-            : "RIESGO MODERADO: La exposición de correos y nombres facilita ataques de Ingeniería Social. Los criminales pueden hacerse pasar por servicios legítimos para engañarlo.";
+            ? "ALTO RIESGO: Al haberse filtrado credenciales o datos sensibles, existe una probabilidad " .
+            "inminente de acceso no autorizado a sus cuentas, robo de identidad o fraude financiero."
+            : "RIESGO MODERADO: La exposición de correos y nombres facilita ataques de Ingeniería Social. " .
+            "Los criminales pueden hacerse pasar por servicios legítimos para engañarlo.";
 
         // 3. Generate Remediation
         $remediation = $isSensitive
@@ -259,16 +266,19 @@ class GeminiService
 
         $analysis = [
             'threat_level' => 'HIGH', // Assume high if system fails
-            'executive_summary' => 'Durante el escaneo de sus activos digitales, se detectaron múltiples vectores de compromiso. ' .
-                'Nuestros sistemas de inteligencia han correlacionado sus datos con incidentes conocidos de filtración masiva. ' .
+            'executive_summary' => 'Durante el escaneo de sus activos digitales, se detectaron múltiples ' .
+                'vectores de compromiso. Nuestros sistemas de inteligencia han correlacionado sus datos ' .
+                'con incidentes conocidos de filtración masiva. ' .
                 'A continuación se detalla el análisis táctico de cada exposición detectada.',
             'detailed_analysis' => [],
             'dynamic_glossary' => [
-                'Dark Web' => 'Red superpuesta a internet que requiere software específico, usada frecuentemente para tráfico ilegal de datos.',
+                'Dark Web' => 'Red superpuesta a internet que requiere software específico, ' .
+                    'usada frecuentemente para tráfico ilegal de datos.',
                 'Phishing' => 'Técnica de ingeniería social usada para engañar a usuarios y robar datos sensibles.'
             ],
             'strategic_conclusion' => 'Dada la cantidad de incidentes detectados, su perfil de riesgo es elevado. ' .
-                'Se recomienda ejecutar el plan de remediación "Tierra Quemada": asuma que todas sus contraseñas antiguas están comprometidas y renuévelas.'
+                'Se recomienda ejecutar el plan de remediación "Tierra Quemada": ' .
+                'asuma que todas sus contraseñas antiguas están comprometidas y renuévelas.'
         ];
 
         foreach ($breaches as $b) {
