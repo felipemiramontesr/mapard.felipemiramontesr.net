@@ -48,6 +48,9 @@ const Dashboard: React.FC = () => {
         setLogs([]); // Clear previous session
         addLog(`Iniciando conexión segura...`, 'info');
 
+        // FLAG: Prevent multiple completions if multiple polls return at once
+        let completionHandled = false;
+
         try {
             // 1. Start Scan
             const response = await fetch(`${API_BASE}/api/scan`, {
@@ -65,37 +68,50 @@ const Dashboard: React.FC = () => {
 
             // 2. Poll for Status
             const pollInterval = setInterval(async () => {
+                if (completionHandled) {
+                    clearInterval(pollInterval);
+                    return;
+                }
+
                 try {
-                    const statusRes = await fetch(`${API_BASE}/api/scan/${job_id}`);
+                    // Cache: no-store to prevent stale status on mobile
+                    const statusRes = await fetch(`${API_BASE}/api/scan/${job_id}`, { cache: 'no-store' });
                     if (!statusRes.ok) {
                         return; // Ignore transient polling errors
                     }
 
                     const jobData = await statusRes.json();
 
-                    // LOGIC: Update logs from Backend
-                    if (jobData.logs && Array.isArray(jobData.logs) && jobData.logs.length > 0) {
-                        const lastLog = jobData.logs[jobData.logs.length - 1];
-                        addLog(lastLog.message, lastLog.type as Log['type']);
-                    }
+                    // STOP if we already handled completion (Double check)
+                    if (completionHandled) return;
 
                     if (jobData.status === 'COMPLETED') {
+                        completionHandled = true; // LOCK
                         clearInterval(pollInterval);
                         setIsScanning(false);
 
-                        // Force Completion Message (Checked by addLog for dupes)
+                        // Force Completion Message 
                         addLog('Análisis Completado. Generando reporte...', 'success');
 
                         if (jobData.result_url) {
                             setTimeout(() => {
                                 setResultUrl(jobData.result_url);
                                 addLog('Dossier de Inteligencia Listo.', 'success');
-                            }, 1000); // 1s delay for dramatic effect
+                            }, 1500); // 1.5s delay for smooth transition
                         }
-                    } else if (jobData.status === 'FAILED') {
+                    }
+                    else if (jobData.status === 'FAILED') {
+                        completionHandled = true; // LOCK
                         clearInterval(pollInterval);
                         setIsScanning(false);
                         addLog('Fallo en el sistema. Revise logs.', 'error');
+                    }
+                    else {
+                        // LOGIC: Update logs from Backend ONLY if not complete
+                        if (jobData.logs && Array.isArray(jobData.logs) && jobData.logs.length > 0) {
+                            const lastLog = jobData.logs[jobData.logs.length - 1];
+                            addLog(lastLog.message, lastLog.type as Log['type']);
+                        }
                     }
 
                 } catch (e) {
