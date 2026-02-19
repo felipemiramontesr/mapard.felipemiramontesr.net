@@ -24,7 +24,8 @@ const Dashboard: React.FC = () => {
     const [resultUrl, setResultUrl] = useState<string | null>(null);
 
     const addLog = (message: string, type: Log['type'] = 'info') => {
-        setLogs(prev => [...prev, {
+        // SINGLE LINE MODE: Always replace the log with the new one
+        setLogs([{
             id: Date.now(),
             message,
             type,
@@ -37,7 +38,7 @@ const Dashboard: React.FC = () => {
         setResultUrl(null);
         setViewMode('terminal'); // SWAP TO TERMINAL
         setLogs([]);
-        addLog(`Initiating connection to MAPARD Graph...`, 'info');
+        addLog(`Iniciando conexión segura...`, 'info');
 
         try {
             // 1. Start Scan
@@ -53,7 +54,8 @@ const Dashboard: React.FC = () => {
                 throw new Error(`Failed to start scan (${response.status}): ${errorText.substring(0, 200)}`);
             }
             const { job_id } = await response.json();
-            addLog(`Scan Job Created: ${job_id}`, 'success');
+            // Don't show "Job Created" to user, skip straight to processing logic or wait for poll
+            // addLog(`Scan Job Created: ${job_id}`, 'success'); 
 
             // 2. Poll for Status
             const pollInterval = setInterval(async () => {
@@ -62,59 +64,44 @@ const Dashboard: React.FC = () => {
                     if (!statusRes.ok) {
                         const errText = await statusRes.text();
                         console.error("Polling Error:", errText);
-                        addLog(`POLLING ERROR (${statusRes.status}): ${errText.substring(0, 150)}`, 'error');
-                        return; // Keep polling? Maybe it's transient.
+                        // Don't show polling errors to user unless critical
+                        return;
                     }
 
                     const jobData = await statusRes.json();
 
-                    // Update Logs (Diffing logic could be better, but replacing for now is safe)
-                    // In a real app we'd append only new ones. For now, trusting backend array.
-                    // However, backend sends "logs" as a list of dicts.
-                    // We map them to our frontend format.
-                    if (jobData.logs && Array.isArray(jobData.logs)) {
-                        // We reconstruct logs from backend source of truth
-                        const backendLogs = jobData.logs.map((l: { message: string, type: string, timestamp: string }, idx: number) => ({
-                            id: idx, // Simple index as ID
-                            message: l.message,
-                            type: l.type as Log['type'],
-                            timestamp: l.timestamp
-                        }));
-                        setLogs(backendLogs);
+                    // SINGLE LINE LOGIC
+                    if (jobData.logs && Array.isArray(jobData.logs) && jobData.logs.length > 0) {
+                        // Take ONLY the last log from backend
+                        const lastLog = jobData.logs[jobData.logs.length - 1];
+                        setLogs([{
+                            id: Date.now(),
+                            message: lastLog.message,
+                            type: lastLog.type as Log['type'],
+                            timestamp: lastLog.timestamp
+                        }]);
                     }
 
                     if (jobData.status === 'COMPLETED') {
                         clearInterval(pollInterval);
                         setIsScanning(false);
 
-                        // Fix: Check if log already exists to prevent duplication loop
-                        setLogs(currentLogs => {
-                            const hasCompletionLog = currentLogs.some(l => l.message === 'Scan Complete. Report ready.');
-                            if (!hasCompletionLog) {
-                                return [...currentLogs, {
-                                    id: Date.now(),
-                                    message: 'Scan Complete. Report ready.',
-                                    type: 'success',
-                                    timestamp: format(new Date(), 'HH:mm:ss')
-                                }];
-                            }
-                            return currentLogs;
-                        });
+                        setLogs([{
+                            id: Date.now(),
+                            message: 'Análisis Completado. Generando reporte...',
+                            type: 'success',
+                            timestamp: format(new Date(), 'HH:mm:ss')
+                        }]);
 
                         if (jobData.result_url) {
                             setTimeout(() => {
                                 setResultUrl(jobData.result_url);
-                                setLogs(currentLogs => {
-                                    if (!currentLogs.some(l => l.message.includes('Dossier generated'))) {
-                                        return [...currentLogs, {
-                                            id: Date.now(),
-                                            message: 'Dossier generated. Waiting for manual download.',
-                                            type: 'info',
-                                            timestamp: format(new Date(), 'HH:mm:ss')
-                                        }];
-                                    }
-                                    return currentLogs;
-                                });
+                                setLogs([{
+                                    id: Date.now(),
+                                    message: 'Dossier de Inteligencia Listo.',
+                                    type: 'success',
+                                    timestamp: format(new Date(), 'HH:mm:ss')
+                                }]);
                             }, 500);
                         }
                     } else if (jobData.status === 'FAILED') {

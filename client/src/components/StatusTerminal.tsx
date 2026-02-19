@@ -30,53 +30,45 @@ const StatusTerminal: React.FC<StatusTerminalProps> = ({ logs, isVisible, onRese
 
     return (
         <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            // FORCED UPDATE: Re-triggering build for button styles
-            className="ops-card mt-2 sm:mt-4 font-mono text-xs border-ops-cyan shadow-none flex flex-col w-full max-w-full overflow-hidden relative bg-black h-[50vh] sm:h-[350px]"
+            className="ops-card mt-4 font-mono text-xs border-ops-cyan shadow-none flex flex-col w-full max-w-2xl mx-auto overflow-hidden relative bg-black min-h-[160px]"
         >
-            {/* Header Fijo */}
-            <div className="bg-ops-bg_alt/90 px-3 sm:px-4 py-2 flex items-center justify-between border-b border-white/5 flex-none z-10">
-                <div className="flex items-center gap-2 text-ops-cyan animate-pulse">
-                    <Activity className="w-3 h-3 sm:w-4 sm:h-4" />
-                    <span className="tracking-widest font-bold text-[10px] sm:text-xs">SYSTEM_LOG :: LIVE</span>
+            {/* Minimal Header */}
+            <div className="bg-ops-bg_alt/50 px-4 py-1.5 flex items-center justify-between border-b border-white/5 flex-none z-10">
+                <div className="flex items-center gap-2 text-ops-cyan/70">
+                    <Activity className="w-3 h-3" />
+                    <span className="tracking-widest font-bold text-[9px]">ESTADO DE OPERACIÓN</span>
                 </div>
-                <div className="flex gap-1.5 hidden sm:flex">
-                    <div className="w-2 h-2 rounded-none bg-ops-danger" />
-                    <div className="w-2 h-2 rounded-none bg-ops-warning" />
-                    <div className="w-2 h-2 rounded-none bg-ops-cyan" />
+                <div className="flex gap-1">
+                    <div className="w-1.5 h-1.5 bg-ops-cyan/50 animate-pulse" />
                 </div>
             </div>
 
-            {/* Area de scroll para logs (Flex Grow) */}
-            <div className="flex-grow overflow-y-auto p-4 space-y-2 font-mono custom-scrollbar bg-black/50 relative h-full">
-                <AnimatePresence>
-                    {logs.map((log) => {
-                        // Format timestamp: 2026-02-13T07:10:07+00:00 -> 07:10:07
-                        const timeStr = log.timestamp.includes('T')
-                            ? log.timestamp.split('T')[1].split('.')[0].split('+')[0]
-                            : log.timestamp;
-
-                        return (
-                            <motion.div
-                                key={log.id}
-                                initial={{ opacity: 0, x: -10 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                className={`flex items-start gap-2 text-[10px] sm:text-xs ${log.type === 'error' ? 'text-ops-danger font-bold' :
-                                    log.type === 'success' ? 'text-ops-cyan font-bold' :
-                                        log.type === 'warning' ? 'text-ops-warning' : 'text-ops-text_dim'
-                                    }`}
-                            >
-                                <span className="opacity-40 font-mono whitespace-nowrap pt-[2px]">[{timeStr}]</span>
-                                <span className={`flex-1 break-words ${log.type === 'info' ? 'text-opacity-80' : ''}`}>
-                                    {log.message}
-                                    {log.type === 'error' && <ShieldAlert className="w-3 h-3 inline ml-1 align-text-bottom" />}
-                                </span>
-                            </motion.div>
-                        );
-                    })}
+            {/* Content Area - Single Line Centered */}
+            <div className="flex-grow flex flex-col items-center justify-center p-6 space-y-4 relative bg-black/50">
+                <AnimatePresence mode="wait">
+                    {logs.map((log) => (
+                        <motion.div
+                            key={log.id}
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 1.05 }}
+                            transition={{ duration: 0.2 }}
+                            className={`text-center space-y-2 max-w-lg ${log.type === 'error' ? 'text-ops-danger' :
+                                    log.type === 'success' ? 'text-ops-cyan' :
+                                        'text-white'
+                                }`}
+                        >
+                            <span className="block text-xs uppercase tracking-widest opacity-50 mb-2">
+                                {log.timestamp}
+                            </span>
+                            <span className="block text-sm md:text-base font-bold tracking-wider leading-relaxed">
+                                {log.message}
+                            </span>
+                        </motion.div>
+                    ))}
                 </AnimatePresence>
-                <div ref={endRef} />
             </div>
 
             {/* Footer de Acciones (Fijo al fondo) */}
