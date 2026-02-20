@@ -45,14 +45,24 @@ class ScanService
             // Helper to add log
             $addLog = function (&$logs, $msg, $type = 'info') {
                 foreach ($logs as $l) {
-                    if ($l['message'] === $msg)
+                    if ($l['message'] === $msg) {
                         return;
+                    }
                 }
                 $logs[] = ["message" => $msg, "type" => $type, "timestamp" => date('c')];
             };
 
             // Step 1: DNS Recon
-            $publicProviders = ['gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com', 'icloud.com', 'protonmail.com', 'proton.me', 'live.com'];
+            $publicProviders = [
+                'gmail.com',
+                'yahoo.com',
+                'hotmail.com',
+                'outlook.com',
+                'icloud.com',
+                'protonmail.com',
+                'proton.me',
+                'live.com'
+            ];
             if ($domain && !in_array(strtolower($domain), $publicProviders)) {
                 $addLog($logs, "Resolving DNS records for $domain...", "info");
                 $dns = @dns_get_record($domain, DNS_A + DNS_MX);
@@ -60,10 +70,12 @@ class ScanService
                     $count = count($dns);
                     $addLog($logs, "Found $count DNS records.", "success");
                     foreach ($dns as $r) {
-                        if (isset($r['ip']))
+                        if (isset($r['ip'])) {
                             $findings[] = "A Record: " . $r['ip'];
-                        if (isset($r['target']))
+                        }
+                        if (isset($r['target'])) {
                             $findings[] = "MX Record: " . $r['target'];
+                        }
                     }
                 } else {
                     $addLog($logs, "No DNS records found for $domain.", "warning");
@@ -72,7 +84,8 @@ class ScanService
 
             // Step 2: HIBP Breach Check
             $addLog($logs, "Querying Intelligence Databases for $email...", "info");
-            $ch = curl_init("https://haveibeenpwned.com/api/v3/breachedaccount/" . urlencode($email) . "?truncateResponse=false");
+            $hibpUrl = "https://haveibeenpwned.com/api/v3/breachedaccount/" . urlencode($email);
+            $ch = curl_init($hibpUrl . "?truncateResponse=false");
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($ch, CURLOPT_HTTPHEADER, [
                 "hibp-api-key: " . (defined('HIBP_API_KEY') ? HIBP_API_KEY : ''),
@@ -129,15 +142,18 @@ class ScanService
             $this->renderPdfReport($pdf, $email, $riskLevel, $riskColor, $aiIntel, $breachData);
 
             $outputPath = __DIR__ . "/../reports/mapard_report_$jobId.pdf";
-            if (!is_dir(__DIR__ . '/../reports'))
+            if (!is_dir(__DIR__ . '/../reports')) {
                 mkdir(__DIR__ . '/../reports', 0777, true);
+            }
             $pdf->Output('F', $outputPath);
 
             // Save Progress
             $encryptedFindings = SecurityUtils::encrypt(json_encode($findings));
             $encryptedLogs = SecurityUtils::encrypt(json_encode($logs));
 
-            $this->pdo->prepare("UPDATE scans SET status='COMPLETED', result_path=?, logs=?, findings=?, is_encrypted=1 WHERE job_id=?")
+            $scanUpdateSql = "UPDATE scans SET status='COMPLETED', result_path=?, logs=?, findings=?, is_encrypted=1 ";
+            $scanUpdateSql .= "WHERE job_id=?";
+            $this->pdo->prepare($scanUpdateSql)
                 ->execute([
                     "api/reports/mapard_report_$jobId.pdf",
                     $encryptedLogs,
@@ -164,12 +180,15 @@ class ScanService
 
     private function getRiskColor($level)
     {
-        if ($level === 'CRITICAL' || $level === 'CRÍTICO')
+        if ($level === 'CRITICAL' || $level === 'CRÍTICO') {
             return [255, 0, 80];
-        if ($level === 'HIGH' || $level === 'ALTO')
+        }
+        if ($level === 'HIGH' || $level === 'ALTO') {
             return [255, 130, 0];
-        if ($level === 'MEDIUM' || $level === 'MEDIO')
+        }
+        if ($level === 'MEDIUM' || $level === 'MEDIO') {
             return [255, 200, 0];
+        }
         return [0, 243, 255];
     }
 
@@ -227,17 +246,20 @@ class ScanService
 
         foreach ($users as $user) {
             // Check if scan already done today
-            $check = $this->pdo->prepare("SELECT COUNT(*) FROM scans WHERE user_id = ? AND created_at > datetime('now', '-24 hours')");
+            $scanCheckSql = "SELECT COUNT(*) FROM scans WHERE user_id = ? AND created_at > datetime('now', '-24 hours')";
+            $check = $this->pdo->prepare($scanCheckSql);
             $check->execute([$user['id']]);
-            if ($check->fetchColumn() > 0)
+            if ($check->fetchColumn() > 0) {
                 continue;
+            }
 
             // Trigger New Scan
             $jobId = uniqid('auto_', true);
             $email = $user['email_target'];
             $domain = explode('@', $email)[1] ?? '';
 
-            $this->pdo->prepare("INSERT INTO scans (job_id, user_id, email, domain, status) VALUES (?, ?, ?, ?, 'PENDING')")
+            $insertSql = "INSERT INTO scans (job_id, user_id, email, domain, status) VALUES (?, ?, ?, ?, 'PENDING')";
+            $this->pdo->prepare($insertSql)
                 ->execute([$jobId, $user['id'], $email, $domain]);
 
             try {
@@ -251,7 +273,9 @@ class ScanService
 
     private function fetchBaselineFindings($email, $currentJobId)
     {
-        $stmt = $this->pdo->prepare("SELECT findings, is_encrypted FROM scans WHERE email = ? AND status = 'COMPLETED' AND job_id != ? ORDER BY created_at ASC LIMIT 1");
+        $baselineSql = "SELECT findings, is_encrypted FROM scans WHERE email = ? AND status = 'COMPLETED' ";
+        $baselineSql .= "AND job_id != ? ORDER BY created_at ASC LIMIT 1";
+        $stmt = $this->pdo->prepare($baselineSql);
         $stmt->execute([$email, $currentJobId]);
         $baseline = $stmt->fetch(PDO::FETCH_ASSOC);
 
