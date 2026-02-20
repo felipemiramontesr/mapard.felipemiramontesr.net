@@ -12,6 +12,7 @@ require_once __DIR__ . '/vendor/autoload.php';
 require_once __DIR__ . '/config.php';
 use MapaRD\Services\GeminiService;
 use MapaRD\Services\ReportService;
+use MapaRD\Services\SecurityUtils;
 use function MapaRD\Services\text_sanitize;
 use function MapaRD\Services\translate_data_class;
 // api/index.php - Real OSINT Engine
@@ -121,16 +122,35 @@ try {
 
     $pdo = new PDO("sqlite:$dbPath");
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+    // USERS Table (Phase 21)
+    $pdo->exec("CREATE TABLE IF NOT EXISTS users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        email_target TEXT UNIQUE,
+        password_hash TEXT,
+        is_verified INTEGER DEFAULT 0,
+        fa_code TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )");
+
+    // SCANS Table (Updated)
     $pdo->exec("CREATE TABLE IF NOT EXISTS scans (
-job_id TEXT PRIMARY KEY,
-email TEXT,
-domain TEXT,
-status TEXT,
-result_path TEXT,
-logs TEXT,
-findings TEXT,
-created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-)");
+        job_id TEXT PRIMARY KEY,
+        user_id INTEGER,
+        email TEXT,
+        domain TEXT,
+        status TEXT,
+        result_path TEXT,
+        logs TEXT,
+        findings TEXT,
+        is_encrypted INTEGER DEFAULT 0,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )");
+
+    // Migration: Add user_id and is_encrypted to scans if they don't exist
+    @$pdo->exec("ALTER TABLE scans ADD COLUMN user_id INTEGER");
+    @$pdo->exec("ALTER TABLE scans ADD COLUMN is_encrypted INTEGER DEFAULT 0");
+
 } catch (Exception $e) {
     http_response_code(500);
     echo json_encode(["error" => "Database Init Failed: " . $e->getMessage()]);
@@ -143,6 +163,76 @@ $pathParams = explode('/', trim($requestUri, '/'));
 // OPTIONS handler moved to top
 
 // ROUTER
+if (isset($pathParams[1]) && $pathParams[1] === 'auth') {
+    // AUTH SETUP (Register/Initial Login)
+    if ($pathParams[2] === 'setup' && $method === 'POST') {
+        $input = json_decode(file_get_contents('php://input'), true);
+        $email = $input['email'] ?? '';
+        $password = $input['password'] ?? '';
+
+        if (empty($email) || empty($password)) {
+            http_response_code(400);
+            echo json_encode(["error" => "Email and password required"]);
+            exit;
+        }
+
+        // Check if user exists
+        $stmt = $pdo->prepare("SELECT * FROM users WHERE email_target = ?");
+        $stmt->execute([$email]);
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        $faCode = SecurityUtils::generate2FA();
+        $hashedPassword = SecurityUtils::hashPassword($password);
+
+        if (!$user) {
+            // Create New User
+            $stmt = $pdo->prepare("INSERT INTO users (email_target, password_hash, fa_code) VALUES (?, ?, ?)");
+            $stmt->execute([$email, $hashedPassword, $faCode]);
+        } else {
+            // Update Existing User (Reset Password/2FA if re-setting up)
+            $stmt = $pdo->prepare("UPDATE users SET password_hash = ?, fa_code = ?, is_verified = 0 WHERE email_target = ?");
+            $stmt->execute([$hashedPassword, $faCode, $email]);
+        }
+
+        // TACTICAL: In a real op, we would send an actual email here.
+        // For the MVP, we return the code in the response or log it.
+        // The user asked for it to be sent to "correo Target".
+        // [SIMULATION]
+        file_put_contents(__DIR__ . '/temp/2fa_tactical.log', "[2FA] CODE FOR $email: $faCode\n", FILE_APPEND);
+
+        echo json_encode(["status" => "2FA_SENT", "message" => "Tactical code sent to target email."]);
+        exit;
+    }
+
+    // AUTH VERIFY (2FA)
+    if ($pathParams[2] === 'verify' && $method === 'POST') {
+        $input = json_decode(file_get_contents('php://input'), true);
+        $email = $input['email'] ?? '';
+        $code = $input['code'] ?? '';
+
+        $stmt = $pdo->prepare("SELECT * FROM users WHERE email_target = ? AND fa_code = ?");
+        $stmt->execute([$email, $code]);
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$user) {
+            http_response_code(401);
+            echo json_encode(["error" => "Invalid verification code"]);
+            exit;
+        }
+
+        // Mark as verified
+        $pdo->prepare("UPDATE users SET is_verified = 1, fa_code = NULL WHERE id = ?")->execute([$user['id']]);
+
+        echo json_encode([
+            "status" => "VERIFIED",
+            "token" => "blind_ops_" . bin2hex(random_bytes(16)), // Simple token for now
+            "email" => $email
+        ]);
+        exit;
+    }
+}
+
+// ROUTER - SCAN
 if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
     // START SCAN
     if ($method === 'POST') {
@@ -177,11 +267,14 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
         }
 
         if ($job['status'] === 'COMPLETED') {
+            $findings = $job['is_encrypted'] ? SecurityUtils::decrypt($job['findings']) : $job['findings'];
+            $logs = $job['is_encrypted'] ? SecurityUtils::decrypt($job['logs']) : $job['logs'];
+
             echo json_encode([
                 "job_id" => $jobId,
                 "status" => "COMPLETED",
-                "logs" => json_decode($job['logs']),
-                "findings" => json_decode($job['findings']), // Return detailed analysis
+                "logs" => json_decode($logs),
+                "findings" => json_decode($findings),
                 "result_url" => $job['result_path']
             ]);
             exit;
@@ -189,12 +282,11 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
 
         // RACE CONDITION FIX: Prevent multiple executions
         if ($job['status'] === 'RUNNING') {
-            // If it's been running for too long (> 2 mins), maybe reset?
-            // For now, just return specific status so client keeps polling
+            $logs = $job['is_encrypted'] ? SecurityUtils::decrypt($job['logs']) : $job['logs'];
             echo json_encode([
                 "job_id" => $jobId,
                 "status" => "RUNNING",
-                "logs" => json_decode($job['logs']),
+                "logs" => json_decode($logs),
                 "message" => "Scan in progress..."
             ]);
             exit;
@@ -486,20 +578,19 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
             $pdf->Output('F', $outputPath);
             // COMPLETE JOB
             addLog($logs, "Report generated successfully.", "success");
-            
-            // SAVE DETAILED ANALYSIS IN FINDINGS COLUMN
-            // If AI failed, fall back to basic simple findings
-            $finalFindings = ($aiIntel && isset($aiIntel['detailed_analysis'])) 
-                ? $aiIntel['detailed_analysis'] 
-                : $findings; // Fallback to simple strings if AI failed
 
-            $pdo->prepare("UPDATE scans SET status='COMPLETED', result_path=?, logs=?, findings=? WHERE job_id=?")
+            // ENCRYPT BEFORE SAVE (Phase 21)
+            $encryptedFindings = SecurityUtils::encrypt(json_encode($finalFindings));
+            $encryptedLogs = SecurityUtils::encrypt(json_encode($logs));
+
+            $pdo->prepare("UPDATE scans SET status='COMPLETED', result_path=?, logs=?, findings=?, is_encrypted=1 WHERE job_id=?")
                 ->execute([
                     "api/reports/mapard_report_$jobId.pdf",
-                    json_encode($logs),
-                    json_encode($finalFindings), // Save Full JSON or Array
+                    $encryptedLogs,
+                    $encryptedFindings,
                     $jobId
                 ]);
+
             // Final Response for this request
             echo json_encode([
                 "status" => "COMPLETED",
@@ -509,7 +600,8 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
             ]);
         } catch (Exception $e) {
             addLog($logs, "CRITICAL FAILURE: " . $e->getMessage(), "error");
-            $pdo->prepare("UPDATE scans SET status='FAILED', logs=? WHERE job_id=?")->execute([json_encode($logs), $jobId]);
+            $encryptedLogs = SecurityUtils::encrypt(json_encode($logs));
+            $pdo->prepare("UPDATE scans SET status='FAILED', logs=?, is_encrypted=1 WHERE job_id=?")->execute([$encryptedLogs, $jobId]);
             echo json_encode(["error" => $e->getMessage(), "logs" => $logs]);
         }
     }
