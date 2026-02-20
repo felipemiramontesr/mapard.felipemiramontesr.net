@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import ScanForm from './ScanForm';
 import StatusTerminal from './StatusTerminal';
 import { format } from 'date-fns';
+import { Shield } from 'lucide-react';
 import { Capacitor } from '@capacitor/core';
 
 // Native App needs absolute URL. Web uses relative (proxy).
@@ -137,11 +138,22 @@ const Dashboard: React.FC = () => {
             {/* Title Section: Responsive Vertical Sizing */}
             {/* Mobile Compact (Default): text-3xl, mb-2 */}
             {/* Mobile Tall (>700px): text-5xl, mb-8 */}
-            <div className="text-center mb-2 tall:mb-6 md:mb-6 relative z-10 px-4 w-full block">
-                <h1 className="text-3xl tall:text-5xl md:text-6xl font-black text-white tracking-widest uppercase mb-1 tall:mb-3 md:mb-3 drop-shadow-[0_0_15px_rgba(255,255,255,0.15)] break-words transition-all duration-300">
-                    MAPARD
-                </h1>
-                <p className="text-ops-text_dim max-w-4xl mx-auto font-mono text-[8px] tall:text-[10px] sm:text-xs md:text-sm tracking-[0.15em] sm:tracking-[0.2em] uppercase leading-relaxed text-white/60 transition-all duration-300 whitespace-nowrap overflow-hidden text-ellipsis">
+            {/* Title Section: Re-designed with Logo and 40px spacing (mb-10) - STATIC (No Animation) */}
+            <div className="flex flex-col items-center justify-center mb-10 relative z-10 w-full">
+
+                {/* Logo + Brand Container */}
+                <div className="flex items-center justify-center gap-4 mb-2">
+                    {/* Shield Logo */}
+                    <Shield className="w-10 h-10 md:w-16 md:h-16 text-ops-cyan drop-shadow-[0_0_15px_rgba(0,243,255,0.5)]" strokeWidth={2} />
+
+                    {/* Brand Name */}
+                    <h1 className="text-4xl md:text-7xl font-black text-white tracking-[0.2em] uppercase drop-shadow-[0_0_15px_rgba(255,255,255,0.15)]">
+                        MAPARD
+                    </h1>
+                </div>
+
+                {/* Subtitle */}
+                <p className="text-ops-text_dim font-mono text-[10px] md:text-sm tracking-[0.3em] uppercase opacity-70">
                     INTELIGENCIA TÁCTICA Y VIGILANCIA
                 </p>
             </div>
