@@ -91,7 +91,10 @@ const RiskNeutralization: React.FC<RiskNeutralizationProps> = ({ findings, onClo
                     <ShieldAlert className="text-ops-radioactive" />
                     Protocolo de Neutralización
                 </h3>
-                <button onClick={onClose} className="text-xs text-ops-text_dim hover:text-white uppercase tracking-wider">
+                <button
+                    onClick={onClose}
+                    className="border border-white/10 bg-black/50 px-4 py-2 rounded text-xs font-bold text-ops-text_dim hover:text-white hover:bg-white/5 hover:border-white/30 uppercase tracking-widest transition-all"
+                >
                     [ Cerrar Panel ]
                 </button>
             </div>
@@ -145,7 +148,12 @@ const RiskNeutralization: React.FC<RiskNeutralizationProps> = ({ findings, onClo
                                             : 'text-gray-500 opacity-20 cursor-not-allowed border border-white/5'
                                         }`}
                                 >
-                                    {vector.steps.every(s => s.completed) ? 'NEUTRALIZAR' : 'PENDIENTE'}
+                                    {vector.isNeutralized
+                                        ? 'NEUTRALIZADO'
+                                        : vector.steps.every(s => s.completed)
+                                            ? 'NEUTRALIZAR'
+                                            : 'PENDIENTE'
+                                    }
                                 </button>
                             </div>
 
