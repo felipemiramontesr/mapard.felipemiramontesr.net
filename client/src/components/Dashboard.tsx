@@ -148,48 +148,51 @@ const Dashboard: React.FC = () => {
 
     return (
         <div className="w-full max-w-4xl mx-auto relative flex flex-col items-center flex-grow justify-center py-0">
-            {/* Title Section: Re-designed with Logo and 40px spacing (mb-10) - STATIC (No Animation) */}
-            <div className="flex flex-col items-center justify-center my-4 md:my-8 relative z-10 w-full">
+            {/* Content Wrapper for Vertical Centering */}
+            <div className="flex flex-col items-center justify-center w-full gap-6 md:gap-10">
+                {/* Title Section: Re-designed with Logo */}
+                <div className="flex flex-col items-center justify-center relative z-10 w-full">
 
-                {/* Logo + Brand Container */}
-                <div className="flex items-center justify-center gap-4 mb-2">
-                    {/* Shield Logo */}
-                    <Shield className="w-10 h-10 md:w-16 md:h-16 text-ops-cyan drop-shadow-[0_0_15px_rgba(0,243,255,0.5)]" strokeWidth={2} />
+                    {/* Logo + Brand Container */}
+                    <div className="flex items-center justify-center gap-4 mb-2">
+                        {/* Shield Logo */}
+                        <Shield className="w-10 h-10 md:w-16 md:h-16 text-ops-cyan drop-shadow-[0_0_15px_rgba(0,243,255,0.5)]" strokeWidth={2} />
 
-                    {/* Brand Name */}
-                    <h1 className="text-4xl md:text-7xl font-black text-white tracking-[0.2em] uppercase drop-shadow-[0_0_15px_rgba(255,255,255,0.15)]">
-                        MAPARD
-                    </h1>
+                        {/* Brand Name */}
+                        <h1 className="text-4xl md:text-7xl font-black text-white tracking-[0.2em] uppercase drop-shadow-[0_0_15px_rgba(255,255,255,0.15)]">
+                            MAPARD
+                        </h1>
+                    </div>
+
+                    {/* Subtitle */}
+                    <p className="text-ops-text_dim font-mono text-[10px] md:text-sm tracking-[0.3em] uppercase opacity-70">
+                        INTELIGENCIA TÁCTICA Y VIGILANCIA
+                    </p>
                 </div>
 
-                {/* Subtitle */}
-                <p className="text-ops-text_dim font-mono text-[10px] md:text-sm tracking-[0.3em] uppercase opacity-70">
-                    INTELIGENCIA TÁCTICA Y VIGILANCIA
-                </p>
+                {viewMode === 'form' ? (
+                    <div className="animate-[fadeIn_0.5s_ease-out] w-full px-4 flex flex-col">
+                        <ScanForm onScan={handleStartScan} isLoading={isScanning} />
+                    </div>
+                ) : (
+                    <div className="animate-[slideUp_0.5s_ease-out] w-full px-4 flex flex-col">
+                        {!showNeutralization ? (
+                            <StatusTerminal
+                                logs={logs}
+                                isVisible={true}
+                                onReset={!isScanning ? handleReset : undefined}
+                                resultUrl={resultUrl}
+                                onNeutralize={findings.length > 0 ? () => setShowNeutralization(true) : undefined}
+                            />
+                        ) : (
+                            <RiskNeutralization
+                                findings={findings}
+                                onClose={() => setShowNeutralization(false)}
+                            />
+                        )}
+                    </div>
+                )}
             </div>
-
-            {viewMode === 'form' ? (
-                <div className="animate-[fadeIn_0.5s_ease-out] w-full px-4 flex flex-col">
-                    <ScanForm onScan={handleStartScan} isLoading={isScanning} />
-                </div>
-            ) : (
-                <div className="animate-[slideUp_0.5s_ease-out] w-full px-4 flex flex-col">
-                    {!showNeutralization ? (
-                        <StatusTerminal
-                            logs={logs}
-                            isVisible={true}
-                            onReset={!isScanning ? handleReset : undefined}
-                            resultUrl={resultUrl}
-                            onNeutralize={findings.length > 0 ? () => setShowNeutralization(true) : undefined}
-                        />
-                    ) : (
-                        <RiskNeutralization
-                            findings={findings}
-                            onClose={() => setShowNeutralization(false)}
-                        />
-                    )}
-                </div>
-            )}
         </div>
     );
 };
