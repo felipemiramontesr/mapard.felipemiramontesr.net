@@ -147,7 +147,8 @@ const Dashboard: React.FC = () => {
     };
 
     return (
-        <div className="w-full max-w-4xl mx-auto relative flex flex-col items-center flex-grow justify-center py-0">
+        <div className={`w-full max-w-4xl mx-auto relative flex flex-col items-center flex-grow py-0 transition-all duration-500 ${showNeutralization ? 'justify-start mt-6' : 'justify-center'
+            }`}>
             {/* Content Wrapper for Vertical Centering */}
             <div className="flex flex-col items-center justify-center w-full gap-6 md:gap-10">
                 {/* Title Section: Re-designed with Logo */}
