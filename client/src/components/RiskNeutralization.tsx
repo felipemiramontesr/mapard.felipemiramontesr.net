@@ -108,32 +108,43 @@ const RiskNeutralization: React.FC<RiskNeutralizationProps> = ({ findings, onClo
                     >
                         {/* Status Bar / Header */}
                         <div
-                            className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 cursor-pointer hover:bg-white/5 transition-colors"
+                            className="relative flex flex-col p-4 cursor-pointer hover:bg-white/5 transition-colors gap-4"
                             onClick={() => setExpandedId(expandedId === vector.id ? null : vector.id)}
                         >
-                            <div className="flex items-center gap-3 flex-grow">
-                                <span className={`p-2 rounded-full ${vector.isNeutralized ? 'bg-ops-radioactive/10 text-ops-radioactive' : 'bg-ops-danger/10 text-ops-danger'}`}>
-                                    {vector.isNeutralized ? <ShieldCheck size={20} /> : <ShieldAlert size={20} />}
-                                </span>
-                                <div>
-                                    <h4 className="font-bold text-lg text-white tracking-wide">{vector.data.source_name}</h4>
-                                    <p className="text-xs text-ops-text_dim uppercase tracking-wider">
-                                        {vector.isNeutralized ? 'AMENAZA NEUTRALIZADA' : 'RIESGO ACTIVO DETECTADO'}
-                                    </p>
+                            {/* Top Row: Icon/Name (Left) + Chevron (Right Absolute) */}
+                            <div className="flex items-start justify-between w-full pr-8">
+                                <div className="flex items-center gap-3">
+                                    <span className={`p-2 rounded-full ${vector.isNeutralized ? 'bg-ops-radioactive/10 text-ops-radioactive' : 'bg-ops-danger/10 text-ops-danger'}`}>
+                                        {vector.isNeutralized ? <ShieldCheck size={20} /> : <ShieldAlert size={20} />}
+                                    </span>
+                                    <div>
+                                        <h4 className="font-bold text-lg text-white tracking-wide">{vector.data.source_name}</h4>
+                                        <p className="text-xs text-ops-text_dim uppercase tracking-wider">
+                                            {vector.isNeutralized ? 'AMENAZA NEUTRALIZADA' : 'RIESGO ACTIVO DETECTADO'}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                {/* Absolute positioned chevron */}
+                                <div className="absolute top-4 right-4 text-ops-text_dim">
+                                    <ChevronRight className={`transition-transform duration-300 ${expandedId === vector.id ? 'rotate-90' : ''}`} />
                                 </div>
                             </div>
 
-                            {/* Manual Toggle Buttons */}
-                            <div className="flex items-center gap-2 bg-black/50 p-1 rounded-lg border border-white/10" onClick={(e) => e.stopPropagation()}>
+                            {/* Bottom Row: Manual Toggle Buttons (Left Red - Right Green) */}
+                            <div className="flex items-center justify-between w-full gap-4 mt-2" onClick={(e) => e.stopPropagation()}>
+                                {/* Red Button (Left) */}
                                 <button
                                     onClick={() => toggleNeutralization(vector.id, false)}
-                                    className={`px-4 py-2 rounded text-xs font-bold uppercase tracking-wider transition-all duration-300 ${!vector.isNeutralized
+                                    className={`flex-1 px-4 py-3 rounded text-xs font-bold uppercase tracking-wider transition-all duration-300 max-w-[140px] flex justify-center items-center ${!vector.isNeutralized
                                         ? 'bg-ops-danger text-black shadow-[0_0_15px_rgba(255,0,80,0.6)] scale-105'
-                                        : 'text-ops-danger opacity-50 hover:opacity-100 hover:bg-ops-danger/10'
+                                        : 'text-ops-danger border border-ops-danger/30 hover:bg-ops-danger/10'
                                         }`}
                                 >
                                     EN RIESGO
                                 </button>
+
+                                {/* Green Button (Right) */}
                                 <button
                                     disabled={!vector.steps.every(s => s.completed) && !vector.isNeutralized}
                                     onClick={() => {
@@ -141,7 +152,7 @@ const RiskNeutralization: React.FC<RiskNeutralizationProps> = ({ findings, onClo
                                             toggleNeutralization(vector.id, true);
                                         }
                                     }}
-                                    className={`px-4 py-2 rounded text-xs font-bold uppercase tracking-wider transition-all duration-300 ${vector.isNeutralized
+                                    className={`flex-1 px-4 py-3 rounded text-xs font-bold uppercase tracking-wider transition-all duration-300 max-w-[140px] flex justify-center items-center ${vector.isNeutralized
                                         ? 'bg-ops-radioactive text-black shadow-[0_0_15px_rgba(57,255,20,0.6)] scale-105'
                                         : vector.steps.every(s => s.completed)
                                             ? 'text-ops-radioactive border border-ops-radioactive/50 hover:bg-ops-radioactive/10 animate-pulse'
@@ -156,8 +167,6 @@ const RiskNeutralization: React.FC<RiskNeutralizationProps> = ({ findings, onClo
                                     }
                                 </button>
                             </div>
-
-                            <ChevronRight className={`transition-transform duration-300 ${expandedId === vector.id ? 'rotate-90' : ''}`} />
                         </div>
 
                         {/* Expandable Content (Details + Checklist) */}
