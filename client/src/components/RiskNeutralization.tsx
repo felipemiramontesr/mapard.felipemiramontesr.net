@@ -94,7 +94,7 @@ const RiskNeutralization: React.FC<RiskNeutralizationProps> = ({ findings, onClo
             initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 50 }}
-            className="w-full max-w-4xl mx-auto mt-8 relative z-20"
+            className="w-full max-w-4xl mx-auto mt-8 relative z-20 pb-10"
         >
             <div className="flex items-center justify-between mb-6 border-b border-white/10 pb-4">
                 <h3 className="text-xl font-bold text-white tracking-widest uppercase flex items-center gap-3">
@@ -113,12 +113,12 @@ const RiskNeutralization: React.FC<RiskNeutralizationProps> = ({ findings, onClo
                 {vectors.map((vector) => (
                     <div
                         key={vector.id}
-                        className={`ops-card relative overflow-hidden transition-all duration-300 ${vector.isNeutralized ? 'border-ops-radioactive/30' : 'border-ops-danger/50'
+                        className={`ops-card relative overflow-hidden transition-all duration-300 hover:-translate-y-[2px] ${vector.isNeutralized ? 'border-ops-radioactive/30 hover:border-ops-radioactive/80' : 'border-ops-danger/50 hover:border-ops-danger/80'
                             }`}
                     >
                         {/* Status Bar / Header */}
                         <div
-                            className="relative flex flex-col p-4 cursor-pointer hover:bg-white/5 transition-colors gap-4"
+                            className="relative flex flex-col p-4 cursor-pointer transition-colors gap-4"
                             onClick={() => setExpandedId(expandedId === vector.id ? null : vector.id)}
                         >
                             {/* Top Row: Icon/Name (Left) + Chevron (Right Absolute) */}
