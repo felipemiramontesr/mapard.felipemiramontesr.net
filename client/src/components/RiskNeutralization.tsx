@@ -57,6 +57,16 @@ const RiskNeutralization: React.FC<RiskNeutralizationProps> = ({ findings, onClo
             const allCompleted = newSteps.every(s => s.completed);
             const shouldBeNeutralized = v.isNeutralized && allCompleted;
 
+            // Auto-scroll to neutralize button if just completed
+            if (allCompleted && !v.isNeutralized && !shouldBeNeutralized) {
+                setTimeout(() => {
+                    document.getElementById(`action-panel-${vectorId}`)?.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'center'
+                    });
+                }, 300);
+            }
+
             return {
                 ...v,
                 steps: newSteps,
@@ -95,7 +105,7 @@ const RiskNeutralization: React.FC<RiskNeutralizationProps> = ({ findings, onClo
                     onClick={onClose}
                     className="border border-white/10 bg-black/50 px-4 py-2 rounded text-xs font-bold text-ops-text_dim hover:text-white hover:bg-white/5 hover:border-white/30 uppercase tracking-widest transition-all"
                 >
-                    [ Cerrar Panel ]
+                    Cerrar Panel
                 </button>
             </div>
 
@@ -132,7 +142,11 @@ const RiskNeutralization: React.FC<RiskNeutralizationProps> = ({ findings, onClo
                             </div>
 
                             {/* Bottom Row: Manual Toggle Buttons (Left Red - Right Green) */}
-                            <div className="flex items-center justify-between w-full gap-4 mt-2" onClick={(e) => e.stopPropagation()}>
+                            <div
+                                id={`action-panel-${vector.id}`}
+                                className="flex items-center justify-between w-full gap-4 mt-2"
+                                onClick={(e) => e.stopPropagation()}
+                            >
                                 {/* Red Button (Left) */}
                                 <button
                                     onClick={() => toggleNeutralization(vector.id, false)}
@@ -156,7 +170,7 @@ const RiskNeutralization: React.FC<RiskNeutralizationProps> = ({ findings, onClo
                                         ? 'bg-ops-radioactive text-black shadow-[0_0_15px_rgba(57,255,20,0.6)] scale-105'
                                         : vector.steps.every(s => s.completed)
                                             ? 'text-ops-radioactive border border-ops-radioactive/50 hover:bg-ops-radioactive/10 animate-pulse'
-                                            : 'text-gray-500 opacity-20 cursor-not-allowed border border-white/5'
+                                            : 'text-gray-500 opacity-20 cursor-not-allowed border border-white/20'
                                         }`}
                                 >
                                     {vector.isNeutralized

@@ -145,7 +145,7 @@ const Dashboard: React.FC = () => {
     return (
         <div className="w-full max-w-4xl mx-auto relative flex flex-col items-center flex-grow justify-center py-0">
             {/* Title Section: Re-designed with Logo and 40px spacing (mb-10) - STATIC (No Animation) */}
-            <div className="flex flex-col items-center justify-center mb-10 relative z-10 w-full">
+            <div className="flex flex-col items-center justify-center my-4 md:my-8 relative z-10 w-full">
 
                 {/* Logo + Brand Container */}
                 <div className="flex items-center justify-center gap-4 mb-2">
