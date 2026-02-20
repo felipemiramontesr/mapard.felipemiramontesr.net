@@ -54,7 +54,7 @@ const ScanForm: React.FC<ScanFormProps> = ({ onScan, isLoading }) => {
                 <button
                     type="submit"
                     disabled={isLoading}
-                    className="btn-ops w-full flex items-center justify-center gap-2 group mt-4 h-12 text-sm md:text-base font-bold tracking-widest hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
+                    className="btn-ops w-full flex items-center justify-center gap-2 group mt-4 h-12 text-xs sm:text-sm md:text-base font-bold tracking-widest hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 whitespace-nowrap overflow-hidden"
                 >
                     {isLoading ? (
                         <span className="animate-pulse flex items-center gap-2">
@@ -63,8 +63,8 @@ const ScanForm: React.FC<ScanFormProps> = ({ onScan, isLoading }) => {
                         </span>
                     ) : (
                         <>
-                            <Rocket className="w-4 h-4 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform duration-300" />
-                            ANALIZAR OBJETIVO
+                            <Rocket className="w-4 h-4 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform duration-300 flex-shrink-0" />
+                            EJECUTAR ANÁLISIS
                         </>
                     )}
                 </button>
