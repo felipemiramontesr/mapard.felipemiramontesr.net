@@ -138,8 +138,8 @@ class ScanService
             // Set Risk Color
             $riskColor = $this->getRiskColor($riskLevel);
 
-            // Render Report Sections (Logic moved from index.php)
-            $this->renderPdfReport($pdf, $email, $riskLevel, $riskColor, $aiIntel, $breachData);
+            // Render Report Sections
+            $this->renderPdfReport($pdf, $email, $riskLevel, $riskColor, $aiIntel, $breachData, $isFirstScan, $newFindingsCount, $baselineFindings);
 
             $outputPath = __DIR__ . "/../reports/mapard_report_$jobId.pdf";
             if (!is_dir(__DIR__ . '/../reports')) {
@@ -191,8 +191,9 @@ class ScanService
         return [0, 243, 255];
     }
 
-    private function renderPdfReport($pdf, $email, $riskLevel, $riskColor, $aiIntel, $breachData)
+    private function renderPdfReport($pdf, $email, $riskLevel, $riskColor, $aiIntel, $breachData, $isBaseline, $deltaNew, $baselineFindings)
     {
+        $pdf->header($isBaseline);
         $pdf->SetY(40);
         $pdf->SetFont('Helvetica', 'B', 9);
         $pdf->SetTextColor(107, 116, 144);
@@ -206,7 +207,11 @@ class ScanService
         $pdf->SetFont('Helvetica', 'B', 10);
         $pdf->SetTextColor($riskColor[0], $riskColor[1], $riskColor[2]);
         $pdf->Cell(0, 6, text_sanitize($riskLevel), 0, 1);
-        $pdf->Ln(10);
+        $pdf->Ln(5);
+
+        // Phase 24: Trend Analysis
+        $pdf->renderTrendAnalysis($deltaNew, $isBaseline);
+        $pdf->Ln(5);
 
         if ($aiIntel && isset($aiIntel['executive_summary'])) {
             $pdf->RenderExecutiveSummary($aiIntel['executive_summary']);
@@ -224,7 +229,19 @@ class ScanService
                     }
                 }
                 if ($original) {
-                    $pdf->RenderIntelCard($original, $analysis, $riskColor);
+                    // Phase 24: Tag as new if not in baseline
+                    $isNew = false;
+                    if (!$isBaseline) {
+                        $matchFound = false;
+                        foreach ($baselineFindings as $bf) {
+                            if (stripos($bf, $original['name']) !== false) {
+                                $matchFound = true;
+                                break;
+                            }
+                        }
+                        $isNew = !$matchFound;
+                    }
+                    $pdf->RenderIntelCard($original, $analysis, $riskColor, $isNew);
                     $pdf->Ln(5);
                 }
             }

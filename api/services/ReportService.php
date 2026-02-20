@@ -48,7 +48,7 @@ class ReportService extends FPDF
         $this->SetAutoPageBreak(true, 20);
     }
 
-    public function header()
+    public function header($isBaseline = true)
     {
         $this->SetFillColor(10, 14, 39);
         $this->Rect(0, 0, 210, 35, 'F');
@@ -60,7 +60,8 @@ class ReportService extends FPDF
         $this->SetTextColor(255, 255, 255);
         $this->SetFont('Helvetica', 'B', 16);
         $this->SetXY(12, 10);
-        $this->Cell(0, 10, 'MAPARD - DOSSIER DE INTELIGENCIA', 0, 1, 'L');
+        $title = $isBaseline ? 'MAPARD - DOSSIER DE INTELIGENCIA' : 'MAPARD - HISTORIAL ACTIVO';
+        $this->Cell(0, 10, $title, 0, 1, 'L');
 
         $this->SetFont('Helvetica', '', 8);
         $this->SetXY(12, 18);
@@ -137,7 +138,7 @@ class ReportService extends FPDF
         $this->Ln(6);
     }
 
-    public function renderIntelCard($breach, $analysis, $riskColor)
+    public function renderIntelCard($breach, $analysis, $riskColor, $isNew = false)
     {
         $source = $breach['name'];
         $date = $breach['date'];
@@ -212,7 +213,18 @@ class ReportService extends FPDF
 
         $this->SetFont('Helvetica', '', 8); // Reduced from 9
         $this->SetTextColor(107, 116, 144);
-        $this->Cell(60, 5, text_sanitize("Incidente: $date"), 0, 1, 'R');
+
+        if ($isNew) {
+            $this->SetFillColor(255, 0, 80);
+            $this->SetTextColor(255, 255, 255);
+            $this->SetFont('Helvetica', 'B', 7);
+            $this->Cell(15, 4, 'NUEVA', 0, 0, 'C', true);
+            $this->SetTextColor(107, 116, 144);
+            $this->SetFont('Helvetica', '', 8);
+            $this->Cell(45, 5, text_sanitize("Incidente: $date"), 0, 1, 'R');
+        } else {
+            $this->Cell(60, 5, text_sanitize("Incidente: $date"), 0, 1, 'R');
+        }
 
         // Classes
         $this->SetX(16);
@@ -339,5 +351,38 @@ class ReportService extends FPDF
 
         $this->SetY($this->GetY() + 4);
         $this->Ln(5);
+    }
+
+    public function renderTrendAnalysis($deltaNew, $isBaseline)
+    {
+        $this->checkPageSpace(40);
+        $this->Ln(5);
+
+        $baseY = $this->GetY();
+        $this->SetFillColor(240, 245, 255);
+        $this->SetDrawColor(138, 159, 202);
+        $this->Rect(10, $baseY, 190, 25, 'DF');
+
+        $this->SetXY(15, $baseY + 5);
+        $this->SetFont('Helvetica', 'B', 10);
+        $this->SetTextColor(26, 31, 58);
+        $this->Cell(0, 5, utf8_decode("ANÁLISIS DE TENDENCIA"), 0, 1);
+
+        $this->SetX(15);
+        $this->SetFont('Helvetica', '', 9);
+        $this->SetTextColor(71, 85, 105);
+        if ($isBaseline) {
+            $msg = "Análisis inicial realizado. Este dossier servirá como Baseline para futuras detecciones tácticas.";
+        } else {
+            if ($deltaNew > 0) {
+                $msg = "ALERTA: Se han detectado $deltaNew nuevas brechas de seguridad desde el análisis inicial.";
+                $this->SetTextColor(200, 0, 0);
+            } else {
+                $msg = "Estado Neutralizado: No se han detectado nuevas filtraciones de datos en este ciclo de monitoreo.";
+                $this->SetTextColor(40, 120, 80);
+            }
+        }
+        $this->MultiCell(180, 5, text_sanitize($msg));
+        $this->Ln(10);
     }
 }

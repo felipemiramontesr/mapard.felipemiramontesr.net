@@ -34,6 +34,7 @@ const Dashboard: React.FC = () => {
     const [userEmail, setUserEmail] = useState<string | null>(null);
     const [authError, setAuthError] = useState<string | null>(null);
     const [isAuthLoading, setIsAuthLoading] = useState(false);
+    const [deltaNew, setDeltaNew] = useState<number>(0);
 
     useEffect(() => {
         const checkAuth = async () => {
@@ -52,6 +53,7 @@ const Dashboard: React.FC = () => {
                         setFindings(statusData.findings || []);
                         setLogs(statusData.logs || []);
                         setResultUrl(statusData.result_url || null);
+                        setDeltaNew(statusData.delta_new || 0);
                         setViewMode('terminal');
                     }
                 } catch (e) {
@@ -279,6 +281,23 @@ const Dashboard: React.FC = () => {
                                 TARGET LOCKED: <span className="text-white font-bold">{userEmail}</span>
                             </span>
                         </div>
+
+                        {/* Phase 24: Tactical Alert Banner */}
+                        {deltaNew > 0 && (
+                            <div className="w-full max-w-lg mb-6 border border-red-500/50 bg-red-500/10 p-4 rounded-lg animate-pulse backdrop-blur-sm self-center">
+                                <div className="flex items-center">
+                                    <Target className="text-red-500 mr-3 h-5 w-5" />
+                                    <div className="flex-1">
+                                        <h3 className="text-red-500 font-bold uppercase tracking-[0.2em] text-[10px] md:text-xs">
+                                            ALERTA: NUEVA FILTRACIÓN DETECTADA
+                                        </h3>
+                                        <p className="text-gray-400 text-[9px] md:text-[10px] mt-1 font-mono leading-relaxed">
+                                            Se han detectado {deltaNew} nuevos compromisos desde el Baseline. Dossier actualizado disponible.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
 
                         {viewMode === 'form' ? (
                             <div className="animate-[fadeIn_0.5s_ease-out] w-full px-4 flex flex-col">
