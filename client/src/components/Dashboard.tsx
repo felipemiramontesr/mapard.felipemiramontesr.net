@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import ScanForm from './ScanForm';
 import StatusTerminal from './StatusTerminal';
-import RiskNeutralization from './RiskNeutralization';
+import RiskNeutralization, { type Vector } from './RiskNeutralization';
 import { format } from 'date-fns';
 import { Shield } from 'lucide-react';
 import { Capacitor } from '@capacitor/core';
@@ -23,7 +23,7 @@ const Dashboard: React.FC = () => {
     const [isScanning, setIsScanning] = useState(false);
     const [viewMode, setViewMode] = useState<'form' | 'terminal'>('form');
     const [resultUrl, setResultUrl] = useState<string | null>(null);
-    const [findings, setFindings] = useState<any[]>([]); // Store detailed analysis
+    const [findings, setFindings] = useState<Vector[]>([]); // Store detailed analysis
     const [showNeutralization, setShowNeutralization] = useState(false);
 
     const addLog = (message: string, type: Log['type'] = 'info') => {
@@ -179,9 +179,9 @@ const Dashboard: React.FC = () => {
                             onNeutralize={findings.length > 0 ? () => setShowNeutralization(true) : undefined}
                         />
                     ) : (
-                        <RiskNeutralization 
-                            findings={findings} 
-                            onClose={() => setShowNeutralization(false)} 
+                        <RiskNeutralization
+                            findings={findings}
+                            onClose={() => setShowNeutralization(false)}
                         />
                     )}
                 </div>
