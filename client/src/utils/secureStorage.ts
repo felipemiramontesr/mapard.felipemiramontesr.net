@@ -36,7 +36,7 @@ export const secureStorage = {
     async clear(): Promise<void> {
         try {
             await clearSecureStorage();
-        } catch (e) {
+        } catch {
             localStorage.clear();
         }
     }

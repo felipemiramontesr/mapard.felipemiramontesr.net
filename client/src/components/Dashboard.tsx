@@ -66,7 +66,7 @@ const Dashboard: React.FC = () => {
             } else {
                 setAuthError(data.error || 'Fallo de autenticación');
             }
-        } catch (e) {
+        } catch {
             setAuthError('Error de red al conectar con el servidor táctico');
         } finally {
             setIsAuthLoading(false);
@@ -90,7 +90,7 @@ const Dashboard: React.FC = () => {
             } else {
                 setAuthError(data.error || 'Código inválido');
             }
-        } catch (e) {
+        } catch {
             setAuthError('Error de validación táctica');
         } finally {
             setIsAuthLoading(false);
