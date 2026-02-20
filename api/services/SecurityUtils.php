@@ -1,4 +1,5 @@
 <?php
+
 namespace MapaRD\Services;
 
 class SecurityUtils
@@ -10,8 +11,9 @@ class SecurityUtils
      */
     public static function encrypt($data)
     {
-        if (!defined('MAPARD_SECRET_KEY'))
+        if (!defined('MAPARD_SECRET_KEY')) {
             return $data;
+        }
 
         $key = hash('sha256', MAPARD_SECRET_KEY, true);
         $iv = openssl_random_pseudo_bytes(openssl_cipher_iv_length(self::$cipher));
@@ -25,8 +27,9 @@ class SecurityUtils
      */
     public static function decrypt($data)
     {
-        if (!defined('MAPARD_SECRET_KEY'))
+        if (!defined('MAPARD_SECRET_KEY')) {
             return $data;
+        }
 
         $data = base64_decode($data);
         $key = hash('sha256', MAPARD_SECRET_KEY, true);
