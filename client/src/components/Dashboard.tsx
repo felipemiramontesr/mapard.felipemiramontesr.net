@@ -43,6 +43,20 @@ const Dashboard: React.FC = () => {
             if (token && storedEmail) {
                 setUserEmail(storedEmail);
                 setAuthStep('dashboard');
+
+                // Phase 23: Automatic Status Retrieval
+                try {
+                    const statusRes = await fetch(`${API_BASE}/api/user/status?email=${storedEmail}`);
+                    const statusData = await statusRes.json();
+                    if (statusData.has_scans) {
+                        setFindings(statusData.findings || []);
+                        setLogs(statusData.logs || []);
+                        setResultUrl(statusData.result_url || null);
+                        setViewMode('terminal');
+                    }
+                } catch (e) {
+                    console.error("Error fetching initial status", e);
+                }
             } else {
                 setAuthStep('login');
             }
