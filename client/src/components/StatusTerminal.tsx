@@ -28,6 +28,7 @@ const StatusTerminal: React.FC<StatusTerminalProps> = ({ logs, isVisible, onRese
         l.message.includes('Failed') ||
         l.message.includes('Error')
     );
+    const hasError = logs.some(l => l.type === 'error');
     // ... (rest of logic)
 
     useEffect(() => {
@@ -80,7 +81,7 @@ const StatusTerminal: React.FC<StatusTerminalProps> = ({ logs, isVisible, onRese
             </div>
 
             {/* Footer de Acciones (Fijo al fondo) */}
-            {(isCompleted && onReset) && (
+            {(isCompleted && onReset && (hasError || resultUrl)) && (
                 <div className="p-4 border-t border-white/10 bg-ops-bg_alt flex-none z-20 space-y-3">
                     <button
                         onClick={(e) => {
@@ -122,9 +123,9 @@ const StatusTerminal: React.FC<StatusTerminalProps> = ({ logs, isVisible, onRese
                                         alert("Error al abrir documento: " + JSON.stringify(err));
                                     }
                                 }}
-                                className="flex-1 py-3 border border-ops-radioactive text-ops-radioactive font-bold tracking-[0.15em] hover:bg-ops-radioactive/10 transition-all uppercase text-xs sm:text-sm flex items-center justify-center gap-3 shadow-[0_0_10px_rgba(57,255,20,0.2)] active:scale-[0.98]"
+                                className="flex-1 py-3 border border-ops-radioactive text-ops-radioactive font-bold tracking-[0.15em] hover:bg-ops-radioactive/10 transition-all uppercase text-[10px] sm:text-xs md:text-sm flex items-center justify-center gap-2 sm:gap-3 shadow-[0_0_10px_rgba(57,255,20,0.2)] active:scale-[0.98] whitespace-nowrap"
                             >
-                                <FileCheck className="w-4 h-4" />
+                                <FileCheck className="w-4 h-4 hidden sm:block" />
                                 DESCARGAR DOSSIER
                             </button>
                         )}
@@ -136,9 +137,9 @@ const StatusTerminal: React.FC<StatusTerminalProps> = ({ logs, isVisible, onRese
                                     e.stopPropagation();
                                     onNeutralize();
                                 }}
-                                className="flex-1 py-3 border border-ops-radioactive text-ops-radioactive font-bold tracking-[0.15em] hover:bg-ops-radioactive/10 transition-all uppercase text-xs sm:text-sm flex items-center justify-center gap-3 shadow-[0_0_10px_rgba(0,255,255,0.2)] active:scale-[0.98]"
+                                className="flex-1 py-3 border border-ops-radioactive text-ops-radioactive font-bold tracking-[0.15em] hover:bg-ops-radioactive/10 transition-all uppercase text-[10px] sm:text-xs md:text-sm flex items-center justify-center gap-2 sm:gap-3 shadow-[0_0_10px_rgba(0,255,255,0.2)] active:scale-[0.98] whitespace-nowrap"
                             >
-                                <ShieldAlert className="w-4 h-4" />
+                                <ShieldAlert className="w-4 h-4 hidden sm:block" />
                                 NEUTRALIZAR RIESGOS
                             </button>
                         )}
