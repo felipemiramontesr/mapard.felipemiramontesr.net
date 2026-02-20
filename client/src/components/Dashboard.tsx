@@ -92,19 +92,23 @@ const Dashboard: React.FC = () => {
                         clearInterval(pollInterval);
                         setIsScanning(false);
 
-                        // Capture Findings (Detailed Analysis)
-                        if (jobData.findings && Array.isArray(jobData.findings)) {
-                            setFindings(jobData.findings);
-                        }
-
                         // Force Completion Message 
                         addLog('Análisis Completado. Generando reporte...', 'success');
 
                         if (jobData.result_url) {
                             setTimeout(() => {
                                 setResultUrl(jobData.result_url);
+                                // Sync "Neutralizar" button appearance with "Descargar Dossier"
+                                if (jobData.findings && Array.isArray(jobData.findings)) {
+                                    setFindings(jobData.findings);
+                                }
                                 addLog('Dossier de Inteligencia Listo.', 'success');
                             }, 1500); // 1.5s delay for smooth transition
+                        } else {
+                            // Fallback if no result URL
+                            if (jobData.findings && Array.isArray(jobData.findings)) {
+                                setFindings(jobData.findings);
+                            }
                         }
                     }
                     else if (jobData.status === 'FAILED') {

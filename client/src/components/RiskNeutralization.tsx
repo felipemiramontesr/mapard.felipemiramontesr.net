@@ -149,7 +149,10 @@ const RiskNeutralization: React.FC<RiskNeutralizationProps> = ({ findings, onClo
                             >
                                 {/* Red Button (Left) */}
                                 <button
-                                    onClick={() => toggleNeutralization(vector.id, false)}
+                                    onClick={() => {
+                                        toggleNeutralization(vector.id, false);
+                                        setExpandedId(vector.id); // Expand when marking as Risk
+                                    }}
                                     className={`flex-1 px-4 py-3 rounded text-xs font-bold uppercase tracking-wider transition-all duration-300 max-w-[140px] flex justify-center items-center ${!vector.isNeutralized
                                         ? 'bg-ops-danger text-black shadow-[0_0_15px_rgba(255,0,80,0.6)] scale-105'
                                         : 'text-ops-danger border border-ops-danger/30 hover:bg-ops-danger/10'
@@ -164,6 +167,7 @@ const RiskNeutralization: React.FC<RiskNeutralizationProps> = ({ findings, onClo
                                     onClick={() => {
                                         if (vector.steps.every(s => s.completed)) {
                                             toggleNeutralization(vector.id, true);
+                                            setExpandedId(null); // Collapse when Neutralized
                                         }
                                     }}
                                     className={`flex-1 px-4 py-3 rounded text-xs font-bold uppercase tracking-wider transition-all duration-300 max-w-[140px] flex justify-center items-center ${vector.isNeutralized
