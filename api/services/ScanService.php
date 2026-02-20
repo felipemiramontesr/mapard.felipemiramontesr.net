@@ -168,7 +168,6 @@ class ScanService
                 "delta_new" => $newFindingsCount ?? 0,
                 "is_baseline" => $isFirstScan
             ];
-
         } catch (Exception $e) {
             $addLog($logs, "CRITICAL FAILURE: " . $e->getMessage(), "error");
             $encryptedLogs = SecurityUtils::encrypt(json_encode($logs));
@@ -246,7 +245,8 @@ class ScanService
 
         foreach ($users as $user) {
             // Check if scan already done today
-            $scanCheckSql = "SELECT COUNT(*) FROM scans WHERE user_id = ? AND created_at > datetime('now', '-24 hours')";
+            $scanCheckSql = "SELECT COUNT(*) FROM scans WHERE user_id = ? ";
+            $scanCheckSql .= "AND created_at > datetime('now', '-24 hours')";
             $check = $this->pdo->prepare($scanCheckSql);
             $check->execute([$user['id']]);
             if ($check->fetchColumn() > 0) {
