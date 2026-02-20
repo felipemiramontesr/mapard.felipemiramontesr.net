@@ -42,7 +42,7 @@ function App() {
       <header className="border-b border-white/10 bg-ops-bg/80 backdrop-blur-xl relative z-50 flex-none shadow-2xl pt-[env(safe-area-inset-top)] transition-all duration-300">
         <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2 sm:gap-3">
-            <Shield className="w-6 h-6 sm:w-8 sm:h-8 text-ops-cyan animate-pulse drop-shadow-[0_0_8px_rgba(0,243,255,0.5)]" />
+            <Shield className="w-6 h-6 sm:w-8 sm:h-8 text-ops-cyan drop-shadow-[0_0_8px_rgba(0,243,255,0.5)]" />
             <span className="text-xl sm:text-2xl font-black tracking-widest text-white drop-shadow-md">MAPARD</span>
           </div>
 
