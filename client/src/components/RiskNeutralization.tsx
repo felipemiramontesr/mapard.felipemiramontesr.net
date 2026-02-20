@@ -96,14 +96,14 @@ const RiskNeutralization: React.FC<RiskNeutralizationProps> = ({ findings, onClo
             exit={{ opacity: 0, y: 50 }}
             className="w-full max-w-4xl mx-auto mt-8 relative z-20 pb-10"
         >
-            <div className="flex items-center justify-between mb-6 border-b border-white/10 pb-4">
-                <h3 className="text-xl font-bold text-white tracking-widest uppercase flex items-center gap-3">
-                    <ShieldAlert className="text-ops-radioactive" />
-                    Protocolo de Neutralización
+            <div className="flex items-center justify-between mb-6 border-b border-white/10 pb-4 gap-4">
+                <h3 className="text-sm md:text-xl font-bold text-white tracking-widest uppercase flex items-center gap-2 md:gap-3">
+                    <ShieldAlert className="text-ops-radioactive w-5 h-5 md:w-6 md:h-6 flex-shrink-0" />
+                    <span>Protocolo de Neutralización</span>
                 </h3>
                 <button
                     onClick={onClose}
-                    className="border border-white/10 bg-black/50 px-4 py-2 rounded text-xs font-bold text-ops-text_dim hover:text-white hover:bg-white/5 hover:border-white/30 uppercase tracking-widest transition-all whitespace-nowrap"
+                    className="border border-white/10 bg-black/50 px-3 py-1.5 md:px-4 md:py-2 rounded text-[10px] md:text-xs font-bold text-ops-text_dim hover:text-white hover:bg-white/5 hover:border-white/30 uppercase tracking-widest transition-all whitespace-nowrap flex-shrink-0"
                 >
                     Cerrar Panel
                 </button>
@@ -123,13 +123,13 @@ const RiskNeutralization: React.FC<RiskNeutralizationProps> = ({ findings, onClo
                         >
                             {/* Top Row: Icon/Name (Left) + Chevron (Right Absolute) */}
                             <div className="flex items-start justify-between w-full pr-8">
-                                <div className="flex items-center gap-3">
-                                    <span className={`p-2 rounded-full ${vector.isNeutralized ? 'bg-ops-radioactive/10 text-ops-radioactive' : 'bg-ops-danger/10 text-ops-danger'}`}>
+                                <div className="flex items-center gap-3 w-full">
+                                    <span className={`p-2 rounded-full flex-shrink-0 ${vector.isNeutralized ? 'bg-ops-radioactive/10 text-ops-radioactive' : 'bg-ops-danger/10 text-ops-danger'}`}>
                                         {vector.isNeutralized ? <ShieldCheck size={20} /> : <ShieldAlert size={20} />}
                                     </span>
-                                    <div>
-                                        <h4 className="font-bold text-lg text-white tracking-wide">{vector.data.source_name}</h4>
-                                        <p className="text-xs text-ops-text_dim uppercase tracking-wider">
+                                    <div className="min-w-0 flex-1">
+                                        <h4 className="font-bold text-sm md:text-lg text-white tracking-wide break-all leading-tight">{vector.data.source_name}</h4>
+                                        <p className="text-[10px] md:text-xs text-ops-text_dim uppercase tracking-wider mt-0.5">
                                             {vector.isNeutralized ? 'AMENAZA NEUTRALIZADA' : 'RIESGO ACTIVO DETECTADO'}
                                         </p>
                                     </div>
