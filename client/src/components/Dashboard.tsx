@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import ScanForm from './ScanForm';
 import StatusTerminal from './StatusTerminal';
+import RiskNeutralization from './RiskNeutralization';
 import { format } from 'date-fns';
 import { Shield } from 'lucide-react';
 import { Capacitor } from '@capacitor/core';
@@ -22,16 +23,15 @@ const Dashboard: React.FC = () => {
     const [isScanning, setIsScanning] = useState(false);
     const [viewMode, setViewMode] = useState<'form' | 'terminal'>('form');
     const [resultUrl, setResultUrl] = useState<string | null>(null);
+    const [findings, setFindings] = useState<any[]>([]); // Store detailed analysis
+    const [showNeutralization, setShowNeutralization] = useState(false);
 
     const addLog = (message: string, type: Log['type'] = 'info') => {
         setLogs(currentLogs => {
             // STRICT DE-DUPLICATION:
-            // If the last message is identical, do absolutely nothing.
-            // This prevents ID regeneration and re-renders.
             if (currentLogs.length > 0 && currentLogs[0].message === message) {
                 return currentLogs;
             }
-            // Otherwise, replace with new log
             return [{
                 id: Date.now(),
                 message,
@@ -44,6 +44,8 @@ const Dashboard: React.FC = () => {
     const handleStartScan = async (data: { name: string; email: string; domain?: string }) => {
         setIsScanning(true);
         setResultUrl(null);
+        setFindings([]);
+        setShowNeutralization(false);
         setViewMode('terminal');
         setLogs([]); // Clear previous session
         addLog(`Iniciando conexión segura...`, 'info');
@@ -90,6 +92,11 @@ const Dashboard: React.FC = () => {
                         clearInterval(pollInterval);
                         setIsScanning(false);
 
+                        // Capture Findings (Detailed Analysis)
+                        if (jobData.findings && Array.isArray(jobData.findings)) {
+                            setFindings(jobData.findings);
+                        }
+
                         // Force Completion Message 
                         addLog('Análisis Completado. Generando reporte...', 'success');
 
@@ -131,13 +138,12 @@ const Dashboard: React.FC = () => {
         setViewMode('form');
         setLogs([]);
         setResultUrl(null);
+        setFindings([]);
+        setShowNeutralization(false);
     };
 
     return (
         <div className="w-full max-w-4xl mx-auto relative flex flex-col items-center flex-grow justify-center py-0">
-            {/* Title Section: Responsive Vertical Sizing */}
-            {/* Mobile Compact (Default): text-3xl, mb-2 */}
-            {/* Mobile Tall (>700px): text-5xl, mb-8 */}
             {/* Title Section: Re-designed with Logo and 40px spacing (mb-10) - STATIC (No Animation) */}
             <div className="flex flex-col items-center justify-center mb-10 relative z-10 w-full">
 
@@ -164,12 +170,20 @@ const Dashboard: React.FC = () => {
                 </div>
             ) : (
                 <div className="animate-[slideUp_0.5s_ease-out] w-full px-4 flex flex-col">
-                    <StatusTerminal
-                        logs={logs}
-                        isVisible={true}
-                        onReset={!isScanning ? handleReset : undefined}
-                        resultUrl={resultUrl}
-                    />
+                    {!showNeutralization ? (
+                        <StatusTerminal
+                            logs={logs}
+                            isVisible={true}
+                            onReset={!isScanning ? handleReset : undefined}
+                            resultUrl={resultUrl}
+                            onNeutralize={findings.length > 0 ? () => setShowNeutralization(true) : undefined}
+                        />
+                    ) : (
+                        <RiskNeutralization 
+                            findings={findings} 
+                            onClose={() => setShowNeutralization(false)} 
+                        />
+                    )}
                 </div>
             )}
         </div>

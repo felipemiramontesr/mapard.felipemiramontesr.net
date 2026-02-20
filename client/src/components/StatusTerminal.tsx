@@ -16,17 +16,19 @@ interface StatusTerminalProps {
     isVisible: boolean;
     onReset?: () => void;
     resultUrl?: string | null;
+    onNeutralize?: () => void;
 }
 
-const StatusTerminal: React.FC<StatusTerminalProps> = ({ logs, isVisible, onReset, resultUrl }) => {
+const StatusTerminal: React.FC<StatusTerminalProps> = ({ logs, isVisible, onReset, resultUrl, onNeutralize }) => {
+    // ... (existing code logs setup) ...
     const endRef = useRef<HTMLDivElement>(null);
-    // FIX: Check for Spanish messages used in Dashboard.tsx
     const isCompleted = logs.some(l =>
         l.message.includes('Completado') ||
         l.message.includes('Listo') ||
         l.message.includes('Failed') ||
         l.message.includes('Error')
     );
+    // ... (rest of logic)
 
     useEffect(() => {
         endRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -92,42 +94,55 @@ const StatusTerminal: React.FC<StatusTerminalProps> = ({ logs, isVisible, onRese
                         EJECUTAR ANÁLISIS
                     </button>
 
-                    {resultUrl && (
-                        <button
-                            onClick={async (e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-
-                                console.log("Attempting download:", resultUrl);
-
-                                try {
-                                    if (Capacitor.isNativePlatform()) {
-                                        const API_BASE = 'https://mapard.felipemiramontesr.net';
-                                        let fullUrl = resultUrl;
-                                        if (fullUrl && !fullUrl.startsWith('http')) {
-                                            fullUrl = `${API_BASE}${fullUrl.startsWith('/') ? '' : '/'}${fullUrl}`;
+                    <div className="flex gap-3">
+                        {resultUrl && (
+                            <button
+                                onClick={async (e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    console.log("Attempting download:", resultUrl);
+                                    try {
+                                        if (Capacitor.isNativePlatform()) {
+                                            const API_BASE = 'https://mapard.felipemiramontesr.net';
+                                            let fullUrl = resultUrl;
+                                            if (fullUrl && !fullUrl.startsWith('http')) {
+                                                fullUrl = `${API_BASE}${fullUrl.startsWith('/') ? '' : '/'}${fullUrl}`;
+                                            }
+                                            await Browser.open({ url: fullUrl });
+                                        } else {
+                                            const link = document.createElement('a');
+                                            link.href = resultUrl;
+                                            link.download = `MAPARD_DOSSIER.pdf`;
+                                            document.body.appendChild(link);
+                                            link.click();
+                                            document.body.removeChild(link);
                                         }
-                                        console.log("Opening Native URL:", fullUrl);
-                                        await Browser.open({ url: fullUrl });
-                                    } else {
-                                        const link = document.createElement('a');
-                                        link.href = resultUrl;
-                                        link.download = `MAPARD_DOSSIER.pdf`;
-                                        document.body.appendChild(link);
-                                        link.click();
-                                        document.body.removeChild(link);
+                                    } catch (err) {
+                                        console.error("Download Error", err);
+                                        alert("Error al abrir documento: " + JSON.stringify(err));
                                     }
-                                } catch (err) {
-                                    console.error("Download Error", err);
-                                    alert("Error al abrir documento: " + JSON.stringify(err));
-                                }
-                            }}
-                            className="w-full py-3 border border-ops-radioactive text-ops-radioactive font-bold tracking-[0.15em] hover:bg-ops-radioactive/10 transition-all uppercase text-xs sm:text-sm flex items-center justify-center gap-3 shadow-[0_0_10px_rgba(57,255,20,0.2)] active:scale-[0.98]"
-                        >
-                            <FileCheck className="w-4 h-4" />
-                            DESCARGAR DOSSIER
-                        </button>
-                    )}
+                                }}
+                                className="flex-1 py-3 border border-ops-radioactive text-ops-radioactive font-bold tracking-[0.15em] hover:bg-ops-radioactive/10 transition-all uppercase text-xs sm:text-sm flex items-center justify-center gap-3 shadow-[0_0_10px_rgba(57,255,20,0.2)] active:scale-[0.98]"
+                            >
+                                <FileCheck className="w-4 h-4" />
+                                DESCARGAR DOSSIER
+                            </button>
+                        )}
+
+                        {onNeutralize && (
+                            <button
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    onNeutralize();
+                                }}
+                                className="flex-1 py-3 border border-ops-radioactive text-ops-radioactive font-bold tracking-[0.15em] hover:bg-ops-radioactive/10 transition-all uppercase text-xs sm:text-sm flex items-center justify-center gap-3 shadow-[0_0_10px_rgba(0,255,255,0.2)] active:scale-[0.98]"
+                            >
+                                <ShieldAlert className="w-4 h-4" />
+                                NEUTRALIZAR RIESGOS
+                            </button>
+                        )}
+                    </div>
                 </div>
             )}
         </motion.div>

@@ -181,6 +181,7 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
                 "job_id" => $jobId,
                 "status" => "COMPLETED",
                 "logs" => json_decode($job['logs']),
+                "findings" => json_decode($job['findings']), // Return detailed analysis
                 "result_url" => $job['result_path']
             ]);
             exit;
@@ -485,18 +486,26 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
             $pdf->Output('F', $outputPath);
             // COMPLETE JOB
             addLog($logs, "Report generated successfully.", "success");
+            
+            // SAVE DETAILED ANALYSIS IN FINDINGS COLUMN
+            // If AI failed, fall back to basic simple findings
+            $finalFindings = ($aiIntel && isset($aiIntel['detailed_analysis'])) 
+                ? $aiIntel['detailed_analysis'] 
+                : $findings; // Fallback to simple strings if AI failed
+
             $pdo->prepare("UPDATE scans SET status='COMPLETED', result_path=?, logs=?, findings=? WHERE job_id=?")
                 ->execute([
                     "api/reports/mapard_report_$jobId.pdf",
                     json_encode($logs),
-                    json_encode($findings),
+                    json_encode($finalFindings), // Save Full JSON or Array
                     $jobId
                 ]);
             // Final Response for this request
             echo json_encode([
                 "status" => "COMPLETED",
                 "result_url" => "api/reports/mapard_report_$jobId.pdf",
-                "logs" => $logs
+                "logs" => $logs,
+                "findings" => $finalFindings
             ]);
         } catch (Exception $e) {
             addLog($logs, "CRITICAL FAILURE: " . $e->getMessage(), "error");
