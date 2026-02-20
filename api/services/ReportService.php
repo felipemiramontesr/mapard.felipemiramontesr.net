@@ -378,7 +378,8 @@ class ReportService extends FPDF
                 $msg = "ALERTA: Se han detectado $deltaNew nuevas brechas de seguridad desde el análisis inicial.";
                 $this->SetTextColor(200, 0, 0);
             } else {
-                $msg = "Estado Neutralizado: No se han detectado nuevas filtraciones de datos en este ciclo de monitoreo.";
+                $msg = "Estado Neutralizado: No se han detectado nuevas filtraciones de datos ";
+                $msg .= "en este ciclo de monitoreo.";
                 $this->SetTextColor(40, 120, 80);
             }
         }

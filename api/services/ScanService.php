@@ -139,7 +139,17 @@ class ScanService
             $riskColor = $this->getRiskColor($riskLevel);
 
             // Render Report Sections
-            $this->renderPdfReport($pdf, $email, $riskLevel, $riskColor, $aiIntel, $breachData, $isFirstScan, $newFindingsCount, $baselineFindings);
+            $this->renderPdfReport(
+                $pdf,
+                $email,
+                $riskLevel,
+                $riskColor,
+                $aiIntel,
+                $breachData,
+                $isFirstScan,
+                $newFindingsCount,
+                $baselineFindings
+            );
 
             $outputPath = __DIR__ . "/../reports/mapard_report_$jobId.pdf";
             if (!is_dir(__DIR__ . '/../reports')) {
@@ -191,8 +201,17 @@ class ScanService
         return [0, 243, 255];
     }
 
-    private function renderPdfReport($pdf, $email, $riskLevel, $riskColor, $aiIntel, $breachData, $isBaseline, $deltaNew, $baselineFindings)
-    {
+    private function renderPdfReport(
+        $pdf,
+        $email,
+        $riskLevel,
+        $riskColor,
+        $aiIntel,
+        $breachData,
+        $isBaseline,
+        $deltaNew,
+        $baselineFindings
+    ) {
         $pdf->header($isBaseline);
         $pdf->SetY(40);
         $pdf->SetFont('Helvetica', 'B', 9);
