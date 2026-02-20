@@ -95,7 +95,7 @@ const StatusTerminal: React.FC<StatusTerminalProps> = ({ logs, isVisible, onRese
                         EJECUTAR ANÁLISIS
                     </button>
 
-                    <div className="flex gap-3">
+                    <div className="flex flex-col sm:flex-row gap-3">
                         {resultUrl && (
                             <button
                                 onClick={async (e) => {
