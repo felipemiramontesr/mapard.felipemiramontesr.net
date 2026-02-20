@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ShieldAlert, ShieldCheck, ChevronRight, CheckSquare, Square } from 'lucide-react';
+import { ShieldAlert, ShieldCheck, ChevronDown, CheckSquare, Square } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface RemediationStep {
@@ -103,7 +103,7 @@ const RiskNeutralization: React.FC<RiskNeutralizationProps> = ({ findings, onClo
                 </h3>
                 <button
                     onClick={onClose}
-                    className="border border-white/10 bg-black/50 px-4 py-2 rounded text-xs font-bold text-ops-text_dim hover:text-white hover:bg-white/5 hover:border-white/30 uppercase tracking-widest transition-all"
+                    className="border border-white/10 bg-black/50 px-4 py-2 rounded text-xs font-bold text-ops-text_dim hover:text-white hover:bg-white/5 hover:border-white/30 uppercase tracking-widest transition-all whitespace-nowrap"
                 >
                     Cerrar Panel
                 </button>
@@ -136,8 +136,8 @@ const RiskNeutralization: React.FC<RiskNeutralizationProps> = ({ findings, onClo
                                 </div>
 
                                 {/* Absolute positioned chevron */}
-                                <div className="absolute top-4 right-4 text-ops-text_dim">
-                                    <ChevronRight className={`transition-transform duration-300 ${expandedId === vector.id ? 'rotate-90' : ''}`} />
+                                <div className={`absolute top-4 right-4 p-1 rounded-full bg-ops-cyan/10 text-ops-cyan border border-ops-cyan/20 transition-transform duration-300 ${expandedId === vector.id ? 'rotate-180' : ''}`}>
+                                    <ChevronDown size={18} />
                                 </div>
                             </div>
 
@@ -170,7 +170,7 @@ const RiskNeutralization: React.FC<RiskNeutralizationProps> = ({ findings, onClo
                                         ? 'bg-ops-radioactive text-black shadow-[0_0_15px_rgba(57,255,20,0.6)] scale-105'
                                         : vector.steps.every(s => s.completed)
                                             ? 'text-ops-radioactive border border-ops-radioactive/50 hover:bg-ops-radioactive/10 animate-pulse'
-                                            : 'text-gray-500 opacity-20 cursor-not-allowed border border-white/20'
+                                            : 'bg-white/5 text-white/40 border border-white/10 cursor-not-allowed hover:bg-white/10 transition-colors'
                                         }`}
                                 >
                                     {vector.isNeutralized
