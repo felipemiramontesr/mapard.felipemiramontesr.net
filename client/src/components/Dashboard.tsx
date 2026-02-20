@@ -1,9 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import ScanForm from './ScanForm';
 import StatusTerminal from './StatusTerminal';
 import RiskNeutralization, { type Vector } from './RiskNeutralization';
+import LoginView from './Auth/LoginView';
+import VerificationView from './Auth/VerificationView';
+import { secureStorage } from '../utils/secureStorage';
 import { format } from 'date-fns';
-import { Shield } from 'lucide-react';
+import { Shield, Target } from 'lucide-react';
 import { Capacitor } from '@capacitor/core';
 
 // Native App needs absolute URL. Web uses relative (proxy).
@@ -23,8 +26,76 @@ const Dashboard: React.FC = () => {
     const [isScanning, setIsScanning] = useState(false);
     const [viewMode, setViewMode] = useState<'form' | 'terminal'>('form');
     const [resultUrl, setResultUrl] = useState<string | null>(null);
-    const [findings, setFindings] = useState<Vector[]>([]); // Store detailed analysis
+    const [findings, setFindings] = useState<Vector[]>([]);
     const [showNeutralization, setShowNeutralization] = useState(false);
+
+    // AUTH STATE (Phase 22)
+    const [authStep, setAuthStep] = useState<'initial_check' | 'login' | 'verify' | 'dashboard'>('initial_check');
+    const [userEmail, setUserEmail] = useState<string | null>(null);
+    const [authError, setAuthError] = useState<string | null>(null);
+    const [isAuthLoading, setIsAuthLoading] = useState(false);
+
+    useEffect(() => {
+        const checkAuth = async () => {
+            const token = await secureStorage.get('auth_token');
+            const storedEmail = await secureStorage.get('target_email');
+
+            if (token && storedEmail) {
+                setUserEmail(storedEmail);
+                setAuthStep('dashboard');
+            } else {
+                setAuthStep('login');
+            }
+        };
+        checkAuth();
+    }, []);
+
+    const handleLoginSubmit = async (email: string, pass: string) => {
+        setIsAuthLoading(true);
+        setAuthError(null);
+        try {
+            const res = await fetch(`${API_BASE}/api/auth/setup`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password: pass })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                setUserEmail(email);
+                setAuthStep('verify');
+            } else {
+                setAuthError(data.error || 'Fallo de autenticación');
+            }
+        } catch (e) {
+            setAuthError('Error de red al conectar con el servidor táctico');
+        } finally {
+            setIsAuthLoading(false);
+        }
+    };
+
+    const handleVerifySubmit = async (code: string) => {
+        setIsAuthLoading(true);
+        setAuthError(null);
+        try {
+            const res = await fetch(`${API_BASE}/api/auth/verify`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: userEmail, code })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                await secureStorage.set('auth_token', data.token);
+                await secureStorage.set('target_email', userEmail!);
+                setAuthStep('dashboard');
+            } else {
+                setAuthError(data.error || 'Código inválido');
+            }
+        } catch (e) {
+            setAuthError('Error de validación táctica');
+        } finally {
+            setIsAuthLoading(false);
+        }
+    };
 
     const addLog = (message: string, type: Log['type'] = 'info') => {
         setLogs(currentLogs => {
@@ -171,26 +242,61 @@ const Dashboard: React.FC = () => {
                     </p>
                 </div>
 
-                {viewMode === 'form' ? (
-                    <div className="animate-[fadeIn_0.5s_ease-out] w-full px-4 flex flex-col">
-                        <ScanForm onScan={handleStartScan} isLoading={isScanning} />
-                    </div>
-                ) : (
-                    <div className="animate-[slideUp_0.5s_ease-out] w-full px-4 flex flex-col">
-                        {!showNeutralization ? (
-                            <StatusTerminal
-                                logs={logs}
-                                isVisible={true}
-                                onReset={!isScanning ? handleReset : undefined}
-                                resultUrl={resultUrl}
-                                onNeutralize={findings.length > 0 ? () => setShowNeutralization(true) : undefined}
-                            />
+                {authStep === 'login' && (
+                    <LoginView onLogin={handleLoginSubmit} isLoading={isAuthLoading} />
+                )}
+
+                {authStep === 'verify' && (
+                    <VerificationView
+                        email={userEmail || ''}
+                        onVerify={handleVerifySubmit}
+                        onResend={() => handleLoginSubmit(userEmail!, '')} // Re-trigger setup for new code
+                        isLoading={isAuthLoading}
+                        error={authError}
+                    />
+                )}
+
+                {authStep === 'dashboard' && (
+                    <>
+                        {/* PERSISTENT TARGET LABEL (Phase 22) */}
+                        <div className="flex items-center gap-2 border border-white/10 px-4 py-2 bg-black/40 backdrop-blur-md rounded-full mb-2 animate-in fade-in slide-in-from-top-4 duration-700">
+                            <Target className="w-4 h-4 text-ops-accent" />
+                            <span className="text-[10px] md:text-xs font-mono text-ops-text_dim uppercase tracking-widest">
+                                TARGET LOCKED: <span className="text-white font-bold">{userEmail}</span>
+                            </span>
+                        </div>
+
+                        {viewMode === 'form' ? (
+                            <div className="animate-[fadeIn_0.5s_ease-out] w-full px-4 flex flex-col">
+                                <ScanForm
+                                    onScan={(data) => handleStartScan({ ...data, email: userEmail! })}
+                                    isLoading={isScanning}
+                                />
+                            </div>
                         ) : (
-                            <RiskNeutralization
-                                findings={findings}
-                                onClose={() => setShowNeutralization(false)}
-                            />
+                            <div className="animate-[slideUp_0.5s_ease-out] w-full px-4 flex flex-col">
+                                {!showNeutralization ? (
+                                    <StatusTerminal
+                                        logs={logs}
+                                        isVisible={true}
+                                        onReset={!isScanning ? handleReset : undefined}
+                                        resultUrl={resultUrl}
+                                        onNeutralize={findings.length > 0 ? () => setShowNeutralization(true) : undefined}
+                                    />
+                                ) : (
+                                    <RiskNeutralization
+                                        findings={findings}
+                                        onClose={() => setShowNeutralization(false)}
+                                    />
+                                )}
+                            </div>
                         )}
+                    </>
+                )}
+
+                {authStep === 'initial_check' && (
+                    <div className="flex items-center justify-center p-20">
+                        <div className="w-10 h-10 border-4 border-ops-accent border-t-transparent rounded-full animate-spin"></div>
                     </div>
                 )}
             </div>
