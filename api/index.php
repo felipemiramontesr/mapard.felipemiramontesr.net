@@ -1,10 +1,22 @@
 <?php
 // Enable Error Reporting for Debugging (Return JSON, not HTML)
-ini_set('display_errors', 0);
-ini_set('log_errors', 1);
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
 header('Content-Type: application/json');
+
+// Global Exception Handler for debugging 500s
+set_exception_handler(function ($e) {
+    http_response_code(500);
+    echo json_encode([
+        "error" => "CRITICAL_INTERNAL_ERROR",
+        "message" => $e->getMessage(),
+        "file" => basename($e->getFile()),
+        "line" => $e->getLine()
+    ]);
+    exit;
+});
 
 // Load Composer Autoloader
 require_once __DIR__ . '/vendor/autoload.php';
@@ -25,7 +37,8 @@ use function MapaRD\Services\translate_data_class;
 // header("Strict-Transport-Security: max-age=31536000; includeSubDomains; preload");
 
 // CSP: Mild (Allow connections, block objects/base)
-header("Content-Security-Policy: default-src 'self'; connect-src *; img-src * data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; object-src 'none'; base-uri 'self';");
+header("Content-Security-Policy: default-src 'self'; connect-src *; img-src * data:; style-src 'self' 'unsafe-inline';
+script-src 'self' 'unsafe-inline'; object-src 'none'; base-uri 'self';");
 
 header("X-Content-Type-Options: nosniff");
 header("X-Frame-Options: DENY");
@@ -39,8 +52,8 @@ $allowedOrigins = [
     'http://localhost:5173', // Dev
     'http://localhost:4173', // Preview
     'capacitor://localhost', // iOS App
-    'http://localhost',      // Android WebView
-    'https://localhost'      // Android Https
+    'http://localhost', // Android WebView
+    'https://localhost' // Android Https
 ];
 
 $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
@@ -55,8 +68,8 @@ if (in_array($origin, $allowedOrigins)) {
     header("Access-Control-Allow-Credentials: true");
 } else {
     // Fallback for non-browser clients or unauthorized origins
-    // header("HTTP/1.1 403 Forbidden");
-    // exit;
+// header("HTTP/1.1 403 Forbidden");
+// exit;
 }
 
 // Handle Preflight OPTIONS requests immediately (Before DB/Auth)
@@ -127,27 +140,27 @@ try {
 
     // USERS Table (Phase 21)
     $pdo->exec("CREATE TABLE IF NOT EXISTS users (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        email_target TEXT UNIQUE,
-        password_hash TEXT,
-        is_verified INTEGER DEFAULT 0,
-        fa_code TEXT,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    )");
+id INTEGER PRIMARY KEY AUTOINCREMENT,
+email_target TEXT UNIQUE,
+password_hash TEXT,
+is_verified INTEGER DEFAULT 0,
+fa_code TEXT,
+created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+)");
 
     // SCANS Table (Updated)
     $pdo->exec("CREATE TABLE IF NOT EXISTS scans (
-        job_id TEXT PRIMARY KEY,
-        user_id INTEGER,
-        email TEXT,
-        domain TEXT,
-        status TEXT,
-        result_path TEXT,
-        logs TEXT,
-        findings TEXT,
-        is_encrypted INTEGER DEFAULT 0,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    )");
+job_id TEXT PRIMARY KEY,
+user_id INTEGER,
+email TEXT,
+domain TEXT,
+status TEXT,
+result_path TEXT,
+logs TEXT,
+findings TEXT,
+is_encrypted INTEGER DEFAULT 0,
+created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+)");
 
     // Migration: Add user_id and is_encrypted to scans if they don't exist
     @$pdo->exec("ALTER TABLE scans ADD COLUMN user_id INTEGER");
@@ -241,7 +254,7 @@ if (isset($pathParams[1]) && $pathParams[1] === 'auth') {
     if (isset($pathParams[1]) && $pathParams[1] === 'user' && $pathParams[2] === 'status') {
         $email = $_GET['email'] ?? '';
         // In production, we would use the JWT token to identify the user.
-        // For now, we use the email as an identifier since it's already "locked" in the frontend.
+// For now, we use the email as an identifier since it's already "locked" in the frontend.
 
         $stmt = $pdo->prepare("SELECT * FROM scans WHERE email = ? ORDER BY created_at DESC LIMIT 1");
         $stmt->execute([$email]);
