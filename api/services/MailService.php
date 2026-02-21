@@ -26,7 +26,8 @@ class MailService
             $mail->CharSet = 'UTF-8';
 
             // Recipients
-            $mail->setFrom(defined('SMTP_USER') ? SMTP_USER : 'noreply@mapard.felipemiramontesr.net', 'MAPARD Intelligence');
+            $fromEmail = defined('SMTP_USER') ? SMTP_USER : 'noreply@mapard.felipemiramontesr.net';
+            $mail->setFrom($fromEmail, 'MAPARD Intelligence');
             $mail->addAddress($toEmail);
 
             // Content
@@ -37,11 +38,27 @@ class MailService
             <html>
             <head>
                 <style>
-                    body { background-color: #0a0e27; color: #ffffff; font-family: 'Courier New', Courier, monospace; padding: 20px; }
-                    .card { border: 1px solid #00f3ff; padding: 20px; max-width: 500px; margin: auto; box-shadow: 0 0 20px rgba(0, 243, 255, 0.2); }
-                    .header { color: #00f3ff; text-transform: uppercase; font-size: 18px; border-bottom: 1px solid #1e293b; padding-bottom: 10px; margin-bottom: 20px; }
-                    .code-box { background-color: #1e293b; padding: 20px; text-align: center; font-size: 32px; letter-spacing: 12px; color: #00f3ff; border: 1px dashed #00f3ff; margin: 20px 0; font-weight: bold; }
-                    .footer { margin-top: 30px; font-size: 11px; color: #64748b; border-top: 1px solid #1e293b; padding-top: 10px; }
+                    body {
+                        background-color: #0a0e27; color: #ffffff;
+                        font-family: 'Courier New', Courier, monospace; padding: 20px;
+                    }
+                    .card {
+                        border: 1px solid #00f3ff; padding: 20px; max-width: 500px;
+                        margin: auto; box-shadow: 0 0 20px rgba(0, 243, 255, 0.2);
+                    }
+                    .header {
+                        color: #00f3ff; text-transform: uppercase; font-size: 18px;
+                        border-bottom: 1px solid #1e293b; padding-bottom: 10px; margin-bottom: 20px;
+                    }
+                    .code-box {
+                        background-color: #1e293b; padding: 20px; text-align: center;
+                        font-size: 32px; letter-spacing: 12px; color: #00f3ff;
+                        border: 1px dashed #00f3ff; margin: 20px 0; font-weight: bold;
+                    }
+                    .footer {
+                        margin-top: 30px; font-size: 11px; color: #64748b;
+                        border-top: 1px solid #1e293b; padding-top: 10px;
+                    }
                 </style>
             </head>
             <body>
