@@ -1,44 +1,10 @@
 <?php
-// Enable Error Reporting for Debugging (Return JSON, not HTML)
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
+// Enable Error Reporting (Log only, no display in production)
+ini_set('display_errors', 0);
+ini_set('display_startup_errors', 0);
 error_reporting(E_ALL);
 
 header('Content-Type: application/json');
-
-// Global Exception Handler for debugging 500s
-set_exception_handler(function ($e) {
-    http_response_code(500);
-    echo json_encode([
-        "error" => "PHP_EXCEPTION",
-        "message" => $e->getMessage(),
-        "file" => basename($e->getFile()),
-        "line" => $e->getLine()
-    ]);
-    exit;
-});
-
-// Catch Fatal Errors (like missing classes or syntax errors in config)
-register_shutdown_function(function () {
-    $error = error_get_last();
-    if (
-        $error !== null &&
-        ($error['type'] === E_ERROR || $error['type'] === E_PARSE || $error['type'] === E_COMPILE_ERROR)
-    ) {
-        http_response_code(500);
-        if (ob_get_length()) {
-            ob_clean();
-        }
-        echo json_encode([
-            "error" => "FATAL_PHP_ERROR",
-            "message" => $error['message'],
-            "file" => basename($error['file']),
-            "line" => $error['line']
-        ]);
-    }
-});
-
-ob_start();
 
 // Load Composer Autoloader
 require_once __DIR__ . '/vendor/autoload.php';
@@ -59,8 +25,9 @@ use function MapaRD\Services\translate_data_class;
 // header("Strict-Transport-Security: max-age=31536000; includeSubDomains; preload");
 
 // CSP: Mild (Allow connections, block objects/base)
-header("Content-Security-Policy: default-src 'self'; connect-src *; img-src * data:; style-src 'self' 'unsafe-inline';
-script-src 'self' 'unsafe-inline'; object-src 'none'; base-uri 'self';");
+$csp = "default-src 'self'; connect-src *; img-src * data:; style-src 'self' 'unsafe-inline'; ";
+$csp .= "script-src 'self' 'unsafe-inline'; object-src 'none'; base-uri 'self';";
+header("Content-Security-Policy: $csp");
 
 header("X-Content-Type-Options: nosniff");
 header("X-Frame-Options: DENY");
@@ -185,8 +152,13 @@ created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 )");
 
     // Migration: Add user_id and is_encrypted to scans if they don't exist
-    @$pdo->exec("ALTER TABLE scans ADD COLUMN user_id INTEGER");
-    @$pdo->exec("ALTER TABLE scans ADD COLUMN is_encrypted INTEGER DEFAULT 0");
+    $columns = $pdo->query("PRAGMA table_info(scans)")->fetchAll(PDO::FETCH_COLUMN, 1);
+    if (!in_array('user_id', $columns)) {
+        $pdo->exec("ALTER TABLE scans ADD COLUMN user_id INTEGER");
+    }
+    if (!in_array('is_encrypted', $columns)) {
+        $pdo->exec("ALTER TABLE scans ADD COLUMN is_encrypted INTEGER DEFAULT 0");
+    }
 
 } catch (Exception $e) {
     http_response_code(500);
