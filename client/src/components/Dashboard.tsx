@@ -304,6 +304,7 @@ const Dashboard: React.FC = () => {
                                 <ScanForm
                                     onScan={(data) => handleStartScan({ ...data, email: userEmail! })}
                                     isLoading={isScanning}
+                                    lockedEmail={userEmail}
                                 />
                             </div>
                         ) : (
