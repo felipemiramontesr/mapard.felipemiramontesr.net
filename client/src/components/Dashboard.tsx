@@ -307,6 +307,25 @@ const Dashboard: React.FC = () => {
         }
     };
 
+    const handleNeutralizeUpdate = async (updatedFindings: Vector[]) => {
+        // Optimistic update of local state
+        setFindings(updatedFindings);
+
+        // Persist to backend
+        try {
+            await fetch(`${API_BASE}/api/scan/update-findings`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    email: userEmail,
+                    findings: updatedFindings
+                })
+            });
+        } catch (e) {
+            console.error("Error persisting tactical state", e);
+        }
+    };
+
     const refreshStatus = async () => {
         setIsScanning(true);
         addLog(`Sincronizando Dossier con el Servidor...`, 'info');
@@ -427,7 +446,26 @@ const Dashboard: React.FC = () => {
                             </div>
                         )}
 
-                        {viewMode === 'form' ? (
+                        {findings.length > 0 ? (
+                            <div className="animate-[slideUp_0.5s_ease-out] w-full px-4 flex flex-col">
+                                {!showNeutralization ? (
+                                    <StatusTerminal
+                                        logs={logs}
+                                        isVisible={true}
+                                        onReset={!isScanning ? refreshStatus : undefined}
+                                        resetLabel="SINCRONIZAR DOSSIER"
+                                        resultUrl={resultUrl}
+                                        onNeutralize={() => setShowNeutralization(true)}
+                                    />
+                                ) : (
+                                    <RiskNeutralization
+                                        findings={findings}
+                                        onUpdate={handleNeutralizeUpdate}
+                                        onClose={handleReset}
+                                    />
+                                )}
+                            </div>
+                        ) : viewMode === 'form' ? (
                             <div className="animate-[fadeIn_0.5s_ease-out] w-full px-4 flex flex-col">
                                 <ScanForm
                                     onScan={(data) => handleStartScan({ ...data, email: userEmail! })}
@@ -437,21 +475,13 @@ const Dashboard: React.FC = () => {
                             </div>
                         ) : (
                             <div className="animate-[slideUp_0.5s_ease-out] w-full px-4 flex flex-col">
-                                {!showNeutralization ? (
-                                    <StatusTerminal
-                                        logs={logs}
-                                        isVisible={true}
-                                        onReset={!isScanning ? (findings.length > 0 ? refreshStatus : handleReset) : undefined}
-                                        resetLabel={findings.length > 0 ? 'SINCRONIZAR DOSSIER' : 'EJECUTAR ANÁLISIS'}
-                                        resultUrl={resultUrl}
-                                        onNeutralize={findings.length > 0 ? () => setShowNeutralization(true) : undefined}
-                                    />
-                                ) : (
-                                    <RiskNeutralization
-                                        findings={findings}
-                                        onClose={handleReset} // Use handleReset as toggle back to terminal logs
-                                    />
-                                )}
+                                <StatusTerminal
+                                    logs={logs}
+                                    isVisible={true}
+                                    onReset={!isScanning ? handleReset : undefined}
+                                    resultUrl={resultUrl}
+                                    onNeutralize={undefined}
+                                />
                             </div>
                         )}
                     </>

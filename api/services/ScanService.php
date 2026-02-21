@@ -129,6 +129,34 @@ class ScanService
                 }
             }
 
+            // Phase 26: Merging tactical state from baseline BEFORE PDF generation
+            $richFindings = $aiIntel['detailed_analysis'] ?? [];
+            foreach ($richFindings as &$finding) {
+                // Initialize default state
+                $finding['isNeutralized'] = false;
+                $finding['steps'] = array_map(function ($s) {
+                    return ['text' => $s, 'completed' => false];
+                }, $finding['specific_remediation'] ?? []);
+
+                // Try to migrate state from baseline
+                if (!empty($baselineFindings)) {
+                    foreach ($baselineFindings as $bf) {
+                        if (is_array($bf) && isset($bf['source_name']) && $bf['source_name'] === $finding['source_name']) {
+                            $finding['isNeutralized'] = $bf['isNeutralized'] ?? false;
+
+                            // Map steps completion
+                            foreach ($finding['steps'] as &$step) {
+                                foreach ($bf['steps'] ?? [] as $bStep) {
+                                    if ($bStep['text'] === $step['text']) {
+                                        $step['completed'] = $bStep['completed'];
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
             // Step 4: PDF Report
             $addLog($logs, "Generating Intelligence Report...", "info");
             $pdf = new ReportService();
@@ -148,7 +176,8 @@ class ScanService
                 $breachData,
                 $isFirstScan,
                 $newFindingsCount,
-                $baselineFindings
+                $baselineFindings,
+                $richFindings // Pass the enriched findings here
             );
 
             $outputPath = __DIR__ . "/../reports/mapard_report_$jobId.pdf";
@@ -158,7 +187,7 @@ class ScanService
             $pdf->Output('F', $outputPath);
 
             // Save Progress
-            $encryptedFindings = SecurityUtils::encrypt(json_encode($findings));
+            $encryptedFindings = SecurityUtils::encrypt(json_encode($richFindings));
             $encryptedLogs = SecurityUtils::encrypt(json_encode($logs));
 
             $scanUpdateSql = "UPDATE scans SET status='COMPLETED', result_path=?, logs=?, findings=?, is_encrypted=1 ";
@@ -174,7 +203,7 @@ class ScanService
             return [
                 "status" => "COMPLETED",
                 "result_url" => "api/reports/mapard_report_$jobId.pdf",
-                "findings" => $findings,
+                "findings" => $richFindings,
                 "delta_new" => $newFindingsCount ?? 0,
                 "is_baseline" => $isFirstScan
             ];
@@ -210,7 +239,8 @@ class ScanService
         $breachData,
         $isBaseline,
         $deltaNew,
-        $baselineFindings
+        $baselineFindings,
+        $richFindings = [] // Added Phase 26
     ) {
         $pdf->header($isBaseline);
         $pdf->SetY(40);
@@ -253,14 +283,28 @@ class ScanService
                     if (!$isBaseline) {
                         $matchFound = false;
                         foreach ($baselineFindings as $bf) {
-                            if (stripos($bf, $original['name']) !== false) {
+                            $bfName = is_array($bf) ? ($bf['source_name'] ?? '') : $bf;
+                            if (stripos($bfName, $original['name']) !== false) {
                                 $matchFound = true;
                                 break;
                             }
                         }
                         $isNew = !$matchFound;
+                        if ($isNew) {
+                            $newFindingsCount++;
+                        }
                     }
-                    $pdf->RenderIntelCard($original, $analysis, $riskColor, $isNew);
+
+                    // Phase 26: Determine if this specific card is neutralized
+                    $isNeutralized = false;
+                    foreach ($richFindings as $rf) {
+                        if ($rf['source_name'] === ($analysis['source_name'] ?? '')) {
+                            $isNeutralized = $rf['isNeutralized'] ?? false;
+                            break;
+                        }
+                    }
+
+                    $pdf->RenderIntelCard($original, $analysis, $riskColor, $isNew, $isNeutralized);
                     $pdf->Ln(5);
                 }
             }

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ShieldAlert, ShieldCheck, ChevronDown, CheckSquare, Square } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -12,7 +12,9 @@ export interface Vector {
     source_name: string;
     incident_story: string;
     risk_explanation: string;
-    specific_remediation: string[]; // Raw strings from API
+    specific_remediation: string[];
+    isNeutralized?: boolean; // Phase 26
+    steps?: RemediationStep[]; // Phase 26
 }
 
 interface RiskVectorState {
@@ -25,24 +27,42 @@ interface RiskVectorState {
 interface RiskNeutralizationProps {
     findings: Vector[];
     onClose: () => void;
+    onUpdate?: (updatedFindings: Vector[]) => void; // Phase 26
 }
 
-const RiskNeutralization: React.FC<RiskNeutralizationProps> = ({ findings, onClose }) => {
+const RiskNeutralization: React.FC<RiskNeutralizationProps> = ({ findings, onClose, onUpdate }) => {
     // Transform API data into local state with checkboxes
     const [vectors, setVectors] = useState<RiskVectorState[]>(() =>
-        findings.map((f, i) => ({
-            id: `vec-${i}`,
-            data: f,
-            isNeutralized: false,
-            steps: f.specific_remediation.map((step, sI) => ({
-                id: `step-${i}-${sI}`,
-                text: step,
-                completed: false
-            }))
-        }))
+        findings.map((f, i) => {
+            // Check if backend already provided the state
+            const hasPersistentState = f.steps && f.steps.length > 0;
+
+            return {
+                id: `vec-${i}`,
+                data: f,
+                isNeutralized: f.isNeutralized ?? false,
+                steps: hasPersistentState ? (f.steps as RemediationStep[]) : f.specific_remediation.map((step, sI) => ({
+                    id: `step-${i}-${sI}`,
+                    text: step,
+                    completed: false
+                }))
+            };
+        })
     );
 
     const [expandedId, setExpandedId] = useState<string | null>(vectors[0]?.id || null);
+
+    // Phase 26: Notify parent of state changes for persistence
+    useEffect(() => {
+        if (onUpdate) {
+            const updatedFindings: Vector[] = vectors.map(v => ({
+                ...v.data,
+                isNeutralized: v.isNeutralized,
+                steps: v.steps
+            }));
+            onUpdate(updatedFindings);
+        }
+    }, [vectors, onUpdate]);
 
     const toggleStep = (vectorId: string, stepId: string) => {
         setVectors(prev => prev.map(v => {

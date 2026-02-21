@@ -374,4 +374,36 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
         }
         exit;
     }
+
+    // UPDATE FINDINGS (Phase 26: Persistence)
+    if ($pathParams[2] === 'update-findings' && $method === 'POST') {
+        $input = json_decode(file_get_contents('php://input'), true);
+        $email = $input['email'] ?? '';
+        $findings = $input['findings'] ?? [];
+
+        if (empty($email)) {
+            http_response_code(400);
+            echo json_encode(["error" => "Email required"]);
+            exit;
+        }
+
+        // We update findings in the LATEST completed scan for this user
+        $stmt = $pdo->prepare("SELECT job_id, is_encrypted FROM scans WHERE email = ? AND status = 'COMPLETED' ORDER BY created_at DESC LIMIT 1");
+        $stmt->execute([$email]);
+        $lastScan = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($lastScan) {
+            $jsonData = json_encode($findings);
+            $finalData = $lastScan['is_encrypted'] ? SecurityUtils::encrypt($jsonData) : $jsonData;
+
+            $update = $pdo->prepare("UPDATE scans SET findings = ? WHERE job_id = ?");
+            $update->execute([$finalData, $lastScan['job_id']]);
+
+            echo json_encode(["status" => "UPDATED", "job_id" => $lastScan['job_id']]);
+        } else {
+            http_response_code(404);
+            echo json_encode(["error" => "No completed scans found to update."]);
+        }
+        exit;
+    }
 }

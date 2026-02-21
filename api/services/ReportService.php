@@ -138,7 +138,7 @@ class ReportService extends FPDF
         $this->Ln(6);
     }
 
-    public function renderIntelCard($breach, $analysis, $riskColor, $isNew = false)
+    public function renderIntelCard($breach, $analysis, $riskColor, $isNew = false, $isNeutralized = false)
     {
         $source = $breach['name'];
         $date = $breach['date'];
@@ -178,12 +178,10 @@ class ReportService extends FPDF
             $nb = $this->wordWrapCount($act, 165);
             $actionsHeight += ($nb * $lineH) + 1; // Reduced gap
         }
-        $actionsHeight += 6; // Header padding reduced
-        $actionsHeight += 4; // Add 4mm (~10-15px) bottom padding to container
+        $actionsHeight += 6; // Header padding
+        $actionsHeight += 4; // Add bottom padding
 
-        // Calculate total card height (Compact)
-        // Header (15) + Classes (Lines*4) + Gap(2) + StoryTitle(5) + Story(Lines*4) + Gap(2)
-        // + RiskTitle(5) + Risk(Lines*4) + Gap(2) + Actions
+        // Calculate total card height
         $cardHeight = 15 + ($classLines * 4) + 2 + 5 +
             ($storyLines * $lineH) + 2 + 5 +
             ($riskLines * $lineH) + 3 + $actionsHeight + 5;
@@ -201,30 +199,39 @@ class ReportService extends FPDF
         $this->SetLineWidth(0.2);
         $this->Rect(10, $baseY, 190, $cardHeight, 'DF');
 
-        // Risk Border Color
-        $this->SetFillColor($riskColor[0], $riskColor[1], $riskColor[2]);
+        // Risk Border Color (Gray if neutralized, colored otherwise)
+        if ($isNeutralized) {
+            $this->SetFillColor(40, 120, 80); // Success Green for border
+        } else {
+            $this->SetFillColor($riskColor[0], $riskColor[1], $riskColor[2]);
+        }
         $this->Rect(10, $baseY, 2, $cardHeight, 'F');
 
-        // Header (Compact)
+        // Header
         $this->SetXY(16, $baseY + 4);
-        $this->SetFont('Helvetica', 'B', 11); // Reduced from 12
+        $this->SetFont('Helvetica', 'B', 11);
         $this->SetTextColor(26, 31, 58);
-        $this->Cell(120, 5, text_sanitize($source), 0, 0);
+        $this->Cell(110, 5, text_sanitize($source), 0, 0);
 
-        $this->SetFont('Helvetica', '', 8); // Reduced from 9
-        $this->SetTextColor(107, 116, 144);
+        // Badges
+        $this->SetFont('Helvetica', 'B', 7);
+        if ($isNeutralized) {
+            $this->SetFillColor(40, 120, 80);
+            $this->SetTextColor(255, 255, 255);
+            $this->Cell(25, 4, 'NEUTRALIZADO', 0, 0, 'C', true);
+            $this->SetX($this->GetX() + 2);
+        }
 
         if ($isNew) {
             $this->SetFillColor(255, 0, 80);
             $this->SetTextColor(255, 255, 255);
-            $this->SetFont('Helvetica', 'B', 7);
             $this->Cell(15, 4, 'NUEVA', 0, 0, 'C', true);
-            $this->SetTextColor(107, 116, 144);
-            $this->SetFont('Helvetica', '', 8);
-            $this->Cell(45, 5, text_sanitize("Incidente: $date"), 0, 1, 'R');
-        } else {
-            $this->Cell(60, 5, text_sanitize("Incidente: $date"), 0, 1, 'R');
         }
+
+        $this->SetFont('Helvetica', '', 8);
+        $this->SetTextColor(107, 116, 144);
+        $this->SetX(145);
+        $this->Cell(55, 5, text_sanitize("Incidente: $date"), 0, 1, 'R');
 
         // Classes
         $this->SetX(16);
@@ -241,7 +248,7 @@ class ReportService extends FPDF
         $this->SetX(16);
         $this->SetFont('Helvetica', 'B', 9);
         $this->SetTextColor(26, 31, 58);
-        $this->Cell(0, 5, utf8_decode("CONTEXTO:"), 0, 1); // Shortened title
+        $this->Cell(0, 5, utf8_decode("CONTEXTO:"), 0, 1);
 
         $this->SetX(16);
         $this->SetFont('Helvetica', '', 9);
@@ -253,31 +260,48 @@ class ReportService extends FPDF
         $this->SetX(16);
         $this->SetFont('Helvetica', 'B', 9);
         $this->SetTextColor(26, 31, 58);
-        $this->Cell(0, 5, utf8_decode("IMPACTO:"), 0, 1); // Shortened title
+        $this->Cell(0, 5, utf8_decode("IMPACTO:"), 0, 1);
 
         $this->SetX(16);
         $this->SetFont('Helvetica', '', 9);
         $this->SetTextColor(60, 70, 90);
+
+        if ($isNeutralized) {
+            $risk = "[RIESGO MITIGADO]: " . $risk;
+            $this->SetTextColor(40, 120, 80);
+        }
         $this->MultiCell(180, $lineH, text_sanitize($risk));
         $this->Ln(2);
 
         // Actions
         $remY = $this->GetY();
-        $this->SetFillColor(245, 250, 247);
-        $this->SetDrawColor(200, 220, 210);
+        if ($isNeutralized) {
+            $this->SetFillColor(240, 250, 245);
+            $this->SetDrawColor(180, 220, 200);
+        } else {
+            $this->SetFillColor(245, 250, 247);
+            $this->SetDrawColor(200, 220, 210);
+        }
         $this->Rect(15, $remY, 180, $actionsHeight, 'DF');
 
         $this->SetXY(20, $remY + 2);
         $this->SetFont('Helvetica', 'B', 9);
         $this->SetTextColor(40, 120, 80);
-        $this->Cell(0, 5, utf8_decode("PLAN DE ACCIÓN:"), 0, 1);
+        $title = $isNeutralized ? "ACCIONES COMPLETADAS:" : "PLAN DE ACCIÓN:";
+        $this->Cell(0, 5, utf8_decode($title), 0, 1);
 
         $this->SetFont('Helvetica', '', 9);
         $this->SetTextColor(50, 60, 70);
 
         foreach ($rawActions as $i => $act) {
             $this->SetX(20);
-            $this->Cell(5, $lineH, ($i + 1) . ".", 0, 0);
+            if ($isNeutralized) {
+                $this->SetTextColor(40, 120, 80);
+                $this->Cell(5, $lineH, "[X]", 0, 0);
+            } else {
+                $this->SetTextColor(50, 60, 70);
+                $this->Cell(5, $lineH, ($i + 1) . ".", 0, 0);
+            }
             $this->MultiCell(165, $lineH, text_sanitize($act));
             $this->Ln(1);
         }
