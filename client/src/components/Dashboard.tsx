@@ -106,7 +106,9 @@ const Dashboard: React.FC = () => {
         };
 
         initHardwareGate();
+    }, [performHardwareChallenge]);
 
+    useEffect(() => {
         // 4. App Resume Listener (Re-lock on background)
         const resumeListener = App.addListener('appStateChange', async (state: AppState) => {
             if (state.isActive) {
@@ -125,7 +127,7 @@ const Dashboard: React.FC = () => {
         return () => {
             resumeListener.then(l => l.remove());
         };
-    }, []);
+    }, [isBiometricLocked, performHardwareChallenge]);
 
     const handleLoginSubmit = async (email: string, pass: string) => {
         setIsAuthLoading(true);
