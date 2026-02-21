@@ -13,6 +13,7 @@ require_once __DIR__ . '/config.php';
 use MapaRD\Services\GeminiService;
 use MapaRD\Services\ReportService;
 use MapaRD\Services\SecurityUtils;
+use MapaRD\Services\MailService;
 use MapaRD\Services\ScanService;
 use function MapaRD\Services\text_sanitize;
 use function MapaRD\Services\translate_data_class;
@@ -195,11 +196,15 @@ if (isset($pathParams[1]) && $pathParams[1] === 'auth') {
             $stmt->execute([$hashedPassword, $faCode, $email]);
         }
 
-        // TACTICAL: In a real op, we would send an actual email here.
-        // For the MVP, we return the code in the response or log it.
-        // The user asked for it to be sent to "correo Target".
-        // [SIMULATION]
-        file_put_contents(__DIR__ . '/temp/2fa_tactical.log', "[2FA] CODE FOR $email: $faCode\n", FILE_APPEND);
+        // TACTICAL: Send real 2FA email
+        try {
+            MailService::send2FA($email, $faCode);
+            $logMsg = "[2FA] CODE FOR $email: $faCode - SENT VIA SMTP\n";
+            file_put_contents(__DIR__ . '/temp/2fa_tactical.log', $logMsg, FILE_APPEND);
+        } catch (Exception $e) {
+            $logError = "[2FA ERROR] For $email: " . $e->getMessage() . "\n";
+            file_put_contents(__DIR__ . '/temp/2fa_tactical.log', $logError, FILE_APPEND);
+        }
 
         echo json_encode(["status" => "2FA_SENT", "message" => "Tactical code sent to target email."]);
         exit;
