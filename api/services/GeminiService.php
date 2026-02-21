@@ -46,40 +46,36 @@ class GeminiService
             $totalBatches = count($batches);
 
             // Analysis Prompt
-            $systemPrompt = "Eres un Asesor de Seguridad Personal. " .
-                "Tu cliente es un INDIVIDUO (B2C), NO una empresa. \n" .
-                "OBJETIVO: Explicar riesgos y soluciones a una persona común.\n" .
+            $systemPrompt = "Eres el Operativo Principal de MAPARD, un sistema de inteligencia militar y vigilancia. " .
+                "Tu objetivo es analizar brechas de datos para tu COMANDANTE (el usuario individual, NO una empresa).\n" .
                 "REGLAS DE TONO: \n" .
-                "1. Usa 'Tú', 'Tus datos', 'Tu cuenta'. \n" .
-                "2. PROHIBIDO hablar de: 'empleados', 'capacitación', 'reputación corporativa', " .
-                "'sistemas internos'. \n" .
-                "3. Idioma: Español (ES_MX).";
-            $userPrompt = "Analiza este lote de brechas ($batchNum de $totalBatches) para una persona:\n" .
+                "1. Eres un analista táctico: directo, preciso, ligeramente urgente pero frío y analítico.\n" .
+                "2. PROHIBIDO jerga corporativa: 'empleados', 'capacitación', 'sistemas internos', 'reputación'.\n" .
+                "3. Usa lenguaje táctico: 'dossier', 'vector de ataque', 'neutralización', 'perímetro', 'adversario'.\n" .
+                "4. Usa 'Tú', 'Tu dossier', 'Tus credenciales'. Idioma: Español (ES_MX).";
+
+            $userPrompt = "Analiza este lote de brechas ($batchNum de $totalBatches) para el COMANDANTE:\n" .
                 json_encode($batch) . "\n\n" .
                 "Genera UNICAMENTE un JSON válido con esta estructura (sin markdown). \n" .
                 "REGLAS CRÍTICAS DE CONTENIDO:\n" .
-                "1. incident_story: DEBE contar la historia del incidente. " .
-                "NO uses frases genéricas como 'Ocurrió una brecha'. " .
-                "Di: 'En Mayo de 2023, atacantes accedieron a los servidores de X...'. " .
-                "Si no hay datos, di: 'No se encontraron detalles públicos específicos, " .
-                "pero sus datos aparecieron en una lista de tráfico ilegal.'\n" .
-                "2. specific_remediation: DEVUELVE UNA LISTA DE 3 ACCIONES CONCRETAS. " .
-                "Ejemplo: ['Cambiar contraseña en Netflix', 'Activar 2FA en ajustes de cuenta', " .
-                "'Revocar permisos de apps de terceros']. " .
-                "NO des consejos vagos.\n\n" .
+                "1. incident_story (Brief de Inteligencia): Narra el incidente como un reporte táctico. " .
+                "Ej: 'En Mayo 2023, agentes hostiles vulneraron la infraestructura central de X...'. " .
+                "Si no hay datos: 'Sin detalles públicos. Sus datos se interceptaron en canales clandestinos.'\n" .
+                "2. specific_remediation (Protocolos de Neutralización): LISTA DE 3 ACCIONES TÁCTICAS. " .
+                "Ej: ['Rotar credencial comprometida en X', 'Despliegue de 2FA', 'Purgar sesiones activas']. \n\n" .
                 "{\n" .
                 "  \"detailed_analysis\": [\n" .
                 "    { \n" .
                 "      \"source_name\": \"Nombre del servicio\", \n" .
-                "      \"incident_story\": \"Historia específica del incidente (Min 30 palabras).\", \n" .
-                "      \"risk_explanation\": \"Por qué es peligroso para MI como usuario (en Español).\", \n" .
-                "      \"specific_remediation\": [\"Acción 1 (Verbo Imperativo)\", \"Acción 2\", \"Acción 3\"] \n" .
+                "      \"incident_story\": \"Brief táctico del incidente (Min 30 palabras).\", \n" .
+                "      \"risk_explanation\": \"Nivel de amenaza directa para el COMANDANTE.\", \n" .
+                "      \"specific_remediation\": [\"Protocolo 1\", \"Protocolo 2\", \"Protocolo 3\"] \n" .
                 "    }\n" .
                 "  ]\n" .
                 "}\n\n" .
                 "REGLAS TÉCNICAS:\n" .
                 "1. Traduce todo al Español.\n" .
-                "2. 'source_name' original.\n" .
+                "2. Mantiene el 'source_name' original.\n" .
                 "3. EXACTAMENTE $count objetos.";
 
             $response = $this->callGemini($url, $systemPrompt, $userPrompt);
@@ -101,28 +97,25 @@ class GeminiService
             return $b['name'] . " (" . implode(",", $b['classes']) . ")";
         }, $data);
 
-        $sysSum = "Eres un Asesor de Ciberseguridad Personal Certificado. " .
-            "Tu cliente es una persona individual que ha sido vulnerada.\n" .
-            "OBJETIVO: Informar con seriedad y empatía, sin usar jerga corporativa.\n" .
-            "TONO: Profesional, Claro, Alerta y Directo. (Estilo soporte técnico premium).\n" .
-            "PROHIBIDO (Lenguaje Corporativo): 'Organización', 'Mitigación estratégica', " .
-            "'Cadena de suministro', 'Interdepartamental', 'Activos', 'Auditoría'.\n" .
-            "OBLIGATORIO (Lenguaje Personal): 'Sus datos', 'Su identidad', 'Sus cuentas', " .
-            "'Riesgo de fraude', 'Hackers'.\n" .
-            "REGLA DE LONGITUD: Resumen y Conclusión deben tener entre 70 y 90 palabras " .
-            "para llenar el espacio en el PDF.\n" .
-            "EJEMPLO: 'Hemos detectado que sus credenciales están expuestas. " .
-            "Es vital que cambie sus contraseñas ahora mismo para proteger sus cuentas bancarias.'";
+        $sysSum = "Eres un Analista Forense de MAPARD redactando el sumario ejecutivo " .
+            "del Dossier de Inteligencia.\n" .
+            "OBJETIVO: Informar a tu COMANDANTE (el usuario) de forma clara, directa y táctica.\n" .
+            "TONO: Operativo de Inteligencia de alto nivel. Serio, Analítico, Imperativo.\n" .
+            "PROHIBIDO: Jerga corporativa ('Organización', 'Mitigación', 'Empleados').\n" .
+            "OBLIGATORIO: 'Dossier', 'Vectores de compromiso', 'Protocolos', 'Hostiles'.\n" .
+            "REGLA DE LONGITUD: Resumen y Conclusión deben tener entre 70 y 90 palabras.\n" .
+            "EJEMPLO: 'Hemos detectado vulneraciones críticas en su perímetro. " .
+            "Se requiere la ejecución inmediata de los protocolos de neutralización listados.'";
 
-        $userSum = "Incidentes detectados: " . json_encode($metaData) . "\n\n" .
-            "Genera el JSON de respuesta (Para un USUARIO INDIVIDUAL):\n" .
+        $userSum = "Incidentes detectados en el perímetro: " . json_encode($metaData) . "\n\n" .
+            "Genera el JSON de respuesta (Brief Táctico para el COMANDANTE):\n" .
             "{ \n" .
             "  \"threat_level\": \"LOW|MEDIUM|HIGH|CRITICAL\", \n" .
-            "  \"executive_summary\": \"...Resumen profesional (70-90 palabras). " .
-            "Enfocado en el riesgo personal...\", \n" .
-            "  \"strategic_conclusion\": \"...Recomendación experta (70-90 palabras). " .
-            "Pasos claros y serios...\", \n" .
-            "  \"dynamic_glossary\": {\"Termino\": \"Definición\"} \n" .
+            "  \"executive_summary\": \"...Brief Forense (70-90 palabras). " .
+            "Enfocado en el panorama de amenaza actual...\", \n" .
+            "  \"strategic_conclusion\": \"...Orden Operativa (70-90 palabras). " .
+            "Directivas claras para asegurar el perímetro...\", \n" .
+            "  \"dynamic_glossary\": {\"Termino\": \"Definición Táctica\"} \n" .
             "}";
 
         $summary = $this->callGemini($url, $sysSum, $userSum);
@@ -216,38 +209,35 @@ class GeminiService
 
         // 1. Generate Story
         if ($isSensitive) {
-            $story = "Nuestros sistemas de monitoreo en Dark Web han detectado un lote de credenciales " .
-                "de alta seguridad vinculado a $breachName. " .
-                "Los análisis forenses indican que actores maliciosos podrían estar comercializando " .
-                "esta base de datos en foros privados. " .
-                "Debido a la naturaleza de los datos (Contraseñas/Financieros), " .
-                "este incidente se clasifica como CRÍTICO.";
+            $story = "Los radares de MAPARD en la Dark Web detectaron credenciales críticas vinculadas a $breachName. " .
+                "Agentes hostiles podrían estar traficando esta información estratégica en foros cerrados. " .
+                "Dada la naturaleza crítica de los activos (Financieros/Acceso), " .
+                "clasificamos este evento como una BRECHA DE NIVEL CRÍTICO.";
         } else {
-            $story = "Se ha identificado la presencia de sus datos de identificación personal (PII) " .
-                "en listas de distribución masiva asociadas a $breachName. " .
-                "Aunque no se detectaron credenciales bancarias en esta muestra específica, " .
-                "la información expuesta es utilizada frecuentemente " .
-                "para campañas de Phishing (Suplantación) y Spam dirigido.";
+            $story = "Trazas de nuestra vigilancia indican exposición de su identidad (PII) en listas hostiles " .
+                "relacionadas con el perímetro de $breachName. " .
+                "Aunque no hay evidencia inmediata de compromiso bancario en esta celda específica, " .
+                "los adversarios lo usarán para perfilar ataques de Ingeniería Social (Phishing) focalizados.";
         }
 
         // 2. Generate Risk
         $risk = $isSensitive
-            ? "ALTO RIESGO: Al haberse filtrado credenciales o datos sensibles, existe una probabilidad " .
-            "inminente de acceso no autorizado a sus cuentas, robo de identidad o fraude financiero."
-            : "RIESGO MODERADO: La exposición de correos y nombres facilita ataques de Ingeniería Social. " .
-            "Los criminales pueden hacerse pasar por servicios legítimos para engañarlo.";
+            ? "AMENAZA CRÍTICA: La exposición de activos de alto valor implica riesgo inminente de " .
+            "secuestro de cuentas, suplantación total de identidad digital y drenaje financiero."
+            : "AMENAZA MODERADA AL PERÍMETRO: Sus identificadores expuestos facilitan a los hostiles " .
+            "crear engaños altamente convincentes. Su vulnerabilidad a ataques de suplantación ha aumentado.";
 
         // 3. Generate Remediation
         $remediation = $isSensitive
             ? [
-                "Cambie INMEDIATAMENTE su contraseña en $breachName.",
-                "Active la Autenticación de Dos Factores (2FA) usando una App (Google Auth/Authy).",
-                "Monitoree sus movimientos bancarios y considere congelar su crédito temporalmente."
+                "Ejecute rotación INMEDIATA de credenciales en $breachName.",
+                "Despliegue contingencia 2FA (App Autenticadora) en perímetros vulnerables.",
+                "Inicie aislamiento telefónico y monitoreo exhaustivo de transacciones."
             ]
             : [
-                "Cambie su contraseña por precaución.",
-                "Esté alerta a correos sospechosos que aparenten venir de $breachName.",
-                "Revise si su correo ha sido usado para registrarse en otros servicios sin su permiso."
+                "Rote la contraseña actual como medida preventiva estándar.",
+                "Active alerta táctica ante comunicaciones entrantes de $breachName.",
+                "Audite el rastro de nuevas cuentas registradas bajo este identificador."
             ];
 
         return [
@@ -266,19 +256,18 @@ class GeminiService
 
         $analysis = [
             'threat_level' => 'HIGH', // Assume high if system fails
-            'executive_summary' => 'Durante el escaneo de sus activos digitales, se detectaron múltiples ' .
-                'vectores de compromiso. Nuestros sistemas de inteligencia han correlacionado sus datos ' .
-                'con incidentes conocidos de filtración masiva. ' .
-                'A continuación se detalla el análisis táctico de cada exposición detectada.',
+            'executive_summary' => 'Durante el barrido táctico superficial, detectamos múltiples ' .
+                'vectores de compromiso operando fuera de los umbrales de seguridad. ' .
+                'La evaluación de inteligencia cruza su identidad digital con puntos de extracción masiva conocidos. ' .
+                'Siga la lectura del dossier táctico individual.',
             'detailed_analysis' => [],
             'dynamic_glossary' => [
-                'Dark Web' => 'Red superpuesta a internet que requiere software específico, ' .
-                    'usada frecuentemente para tráfico ilegal de datos.',
-                'Phishing' => 'Técnica de ingeniería social usada para engañar a usuarios y robar datos sensibles.'
+                'Dark Web' => 'Plano clandestino de internet, santuario operativo de adversarios cibernéticos.',
+                'Phishing' => 'Ingeniería social armada diseñada para interceptar identidades y credenciales.'
             ],
-            'strategic_conclusion' => 'Dada la cantidad de incidentes detectados, su perfil de riesgo es elevado. ' .
-                'Se recomienda ejecutar el plan de remediación "Tierra Quemada": ' .
-                'asuma que todas sus contraseñas antiguas están comprometidas y renuévelas.'
+            'strategic_conclusion' => 'El volumen de incidentes indica que el perímetro inicial se halla fracturado. ' .
+                'Recomendamos iniciar el Protocolo "Tierra Quemada": ' .
+                'Invalide todas sus credenciales asumiendo compromiso total y despliegue nuevos mecanismos.'
         ];
 
         foreach ($breaches as $b) {
