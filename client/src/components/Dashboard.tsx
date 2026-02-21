@@ -6,8 +6,12 @@ import LoginView from './Auth/LoginView';
 import VerificationView from './Auth/VerificationView';
 import { secureStorage } from '../utils/secureStorage';
 import { format } from 'date-fns';
-import { Shield, Target } from 'lucide-react';
+import { Shield, Target, Lock, Fingerprint } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Capacitor } from '@capacitor/core';
+import { App, type AppState } from '@capacitor/app';
+import { Device } from '@capacitor/device';
+import { biometricService } from '../utils/biometricService';
 
 // Native App needs absolute URL. Web uses relative (proxy).
 const API_BASE = Capacitor.isNativePlatform()
@@ -35,13 +39,26 @@ const Dashboard: React.FC = () => {
     const [authError, setAuthError] = useState<string | null>(null);
     const [isAuthLoading, setIsAuthLoading] = useState(false);
     const [deltaNew, setDeltaNew] = useState<number>(0);
+    const [isBiometricLocked, setIsBiometricLocked] = useState(false);
+    const [deviceId, setDeviceId] = useState<string>('');
 
     useEffect(() => {
-        const checkAuth = async () => {
+        const initHardwareGate = async () => {
+            // 1. Get Device ID
+            const info = await Device.getId();
+            setDeviceId(info.identifier);
+
+            // 2. Check Auth Session
             const token = await secureStorage.get('auth_token');
             const storedEmail = await secureStorage.get('target_email');
 
             if (token && storedEmail) {
+                // 3. Hardware Challenge (Biometrics)
+                const success = await biometricService.authenticate();
+                if (!success) {
+                    setIsBiometricLocked(true);
+                }
+
                 setUserEmail(storedEmail);
                 setAuthStep('dashboard');
 
@@ -70,7 +87,24 @@ const Dashboard: React.FC = () => {
                 setAuthStep('login');
             }
         };
-        checkAuth();
+
+        initHardwareGate();
+
+        // 4. App Resume Listener (Re-lock on background)
+        const resumeListener = App.addListener('appStateChange', async (state: AppState) => {
+            if (state.isActive) {
+                const token = await secureStorage.get('auth_token');
+                if (token) {
+                    const success = await biometricService.authenticate();
+                    if (!success) setIsBiometricLocked(true);
+                    else setIsBiometricLocked(false);
+                }
+            }
+        });
+
+        return () => {
+            resumeListener.then(l => l.remove());
+        };
     }, []);
 
     const handleLoginSubmit = async (email: string, pass: string) => {
@@ -80,7 +114,7 @@ const Dashboard: React.FC = () => {
             const res = await fetch(`${API_BASE}/api/auth/setup`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, password: pass })
+                body: JSON.stringify({ email, password: pass, device_id: deviceId })
             });
             const data = await res.json();
             if (res.ok) {
@@ -103,7 +137,7 @@ const Dashboard: React.FC = () => {
             const res = await fetch(`${API_BASE}/api/auth/verify`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email: userEmail, code })
+                body: JSON.stringify({ email: userEmail, code, device_id: deviceId })
             });
             const data = await res.json();
             if (res.ok) {
@@ -264,30 +298,52 @@ const Dashboard: React.FC = () => {
     };
 
     return (
-        <div className={`w-full max-w-4xl mx-auto relative flex flex-col items-center flex-grow py-0 transition-all duration-500 ${showNeutralization ? 'justify-start mt-6' : 'justify-center'
-            }`}>
-            {/* Content Wrapper for Vertical Centering */}
-            <div className="flex flex-col items-center justify-center w-full gap-6 md:gap-10">
-                {/* Title Section: Re-designed with Logo */}
+        <div className="min-h-screen bg-black text-white selection:bg-ops-accent/30 selection:text-white flex flex-col p-4 md:p-8">
+            <AnimatePresence>
+                {isBiometricLocked && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-xl flex flex-col items-center justify-center p-6 text-center"
+                    >
+                        <div className="relative mb-8">
+                            <div className="absolute inset-0 bg-ops-danger/20 blur-3xl rounded-full animate-pulse" />
+                            <Lock className="w-16 h-16 text-ops-danger relative z-10" />
+                        </div>
+                        <h2 className="text-xl font-bold tracking-[0.3em] uppercase mb-4 text-white">Terminal Bloqueada</h2>
+                        <p className="text-ops-text_dim text-sm max-w-xs mb-8 font-mono">
+                            Acceso restringido. Se requiere autenticación biométrica de hardware para desencriptar el dossier.
+                        </p>
+                        <button
+                            onClick={async () => {
+                                const success = await biometricService.authenticate();
+                                if (success) setIsBiometricLocked(false);
+                            }}
+                            className="btn-ops px-8 py-4 flex items-center gap-3 group"
+                        >
+                            <Fingerprint className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                            REINTENTAR ACCESO
+                        </button>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            <header className="flex flex-col mb-4 md:mb-12 relative">
                 <div className="flex flex-col items-center justify-center relative z-10 w-full">
-
-                    {/* Logo + Brand Container */}
                     <div className="flex items-center justify-center gap-4 mb-2">
-                        {/* Shield Logo */}
                         <Shield className="w-10 h-10 md:w-16 md:h-16 text-ops-cyan drop-shadow-[0_0_15px_rgba(0,243,255,0.5)]" strokeWidth={2} />
-
-                        {/* Brand Name */}
                         <h1 className="text-4xl md:text-7xl font-black text-white tracking-[0.2em] uppercase drop-shadow-[0_0_15px_rgba(255,255,255,0.15)]">
                             MAPARD
                         </h1>
                     </div>
-
-                    {/* Subtitle */}
                     <p className="text-ops-text_dim font-mono text-[10px] md:text-sm tracking-[0.3em] uppercase opacity-70">
                         INTELIGENCIA TÁCTICA Y VIGILANCIA
                     </p>
                 </div>
+            </header>
 
+            <main className="flex-grow flex flex-col items-center w-full max-w-4xl mx-auto">
                 {authStep === 'login' && (
                     <LoginView onLogin={handleLoginSubmit} isLoading={isAuthLoading} />
                 )}
@@ -296,7 +352,7 @@ const Dashboard: React.FC = () => {
                     <VerificationView
                         email={userEmail || ''}
                         onVerify={handleVerifySubmit}
-                        onResend={() => handleLoginSubmit(userEmail!, '')} // Re-trigger setup for new code
+                        onResend={() => handleLoginSubmit(userEmail!, '')}
                         isLoading={isAuthLoading}
                         error={authError}
                     />
@@ -304,7 +360,6 @@ const Dashboard: React.FC = () => {
 
                 {authStep === 'dashboard' && (
                     <>
-                        {/* PERSISTENT TARGET LABEL (Phase 22) */}
                         <div className="flex items-center gap-2 border border-white/10 px-4 py-2 bg-black/40 backdrop-blur-md rounded-full mb-2 animate-in fade-in slide-in-from-top-4 duration-700">
                             <Target className="w-4 h-4 text-ops-accent" />
                             <span className="text-[10px] md:text-xs font-mono text-ops-text_dim uppercase tracking-widest">
@@ -312,7 +367,6 @@ const Dashboard: React.FC = () => {
                             </span>
                         </div>
 
-                        {/* Phase 24: Tactical Alert Banner */}
                         {deltaNew > 0 && (
                             <div className="w-full max-w-lg mb-6 border border-red-500/50 bg-red-500/10 p-4 rounded-lg animate-pulse backdrop-blur-sm self-center">
                                 <div className="flex items-center">
@@ -363,7 +417,7 @@ const Dashboard: React.FC = () => {
                         <div className="w-10 h-10 border-4 border-ops-accent border-t-transparent rounded-full animate-spin"></div>
                     </div>
                 )}
-            </div>
+            </main>
         </div>
     );
 };

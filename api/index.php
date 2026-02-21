@@ -127,15 +127,22 @@ try {
     $pdo = new PDO("sqlite:$dbPath");
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-    // USERS Table (Phase 21)
+    // USERS Table (Phase 21 + Phase 25)
     $pdo->exec("CREATE TABLE IF NOT EXISTS users (
-id INTEGER PRIMARY KEY AUTOINCREMENT,
-email_target TEXT UNIQUE,
-password_hash TEXT,
-is_verified INTEGER DEFAULT 0,
-fa_code TEXT,
-created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-)");
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        email_target TEXT UNIQUE,
+        password_hash TEXT,
+        is_verified INTEGER DEFAULT 0,
+        fa_code TEXT,
+        device_id TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )");
+
+    // Migration: Add device_id to users if it doesn't exist
+    $userCols = $pdo->query("PRAGMA table_info(users)")->fetchAll(PDO::FETCH_COLUMN, 1);
+    if (!in_array('device_id', $userCols)) {
+        $pdo->exec("ALTER TABLE users ADD COLUMN device_id TEXT");
+    }
 
     // SCANS Table (Updated)
     $pdo->exec("CREATE TABLE IF NOT EXISTS scans (
@@ -178,6 +185,7 @@ if (isset($pathParams[1]) && $pathParams[1] === 'auth') {
         $input = json_decode(file_get_contents('php://input'), true);
         $email = $input['email'] ?? '';
         $password = $input['password'] ?? '';
+        $deviceId = $input['device_id'] ?? '';
 
         if (empty($email) || empty($password)) {
             http_response_code(400);
@@ -194,13 +202,24 @@ if (isset($pathParams[1]) && $pathParams[1] === 'auth') {
         $hashedPassword = SecurityUtils::hashPassword($password);
 
         if (!$user) {
-            // Create New User
-            $stmt = $pdo->prepare("INSERT INTO users (email_target, password_hash, fa_code) VALUES (?, ?, ?)");
-            $stmt->execute([$email, $hashedPassword, $faCode]);
+            // Create New User & Bind Device
+            $stmt = $pdo->prepare("INSERT INTO users (email_target, password_hash, fa_code, device_id) VALUES (?, ?, ?, ?)");
+            $stmt->execute([$email, $hashedPassword, $faCode, $deviceId]);
         } else {
+            // Phase 25 Strict: Enforce Hardware Binding
+            if (!empty($user['device_id']) && !empty($deviceId) && $user['device_id'] !== $deviceId) {
+                http_response_code(403);
+                echo json_encode([
+                    "error" => "HARDWARE_MISMATCH",
+                    "message" => "Terminal locked to different hardware. Access Denied."
+                ]);
+                exit;
+            }
+
             // Update Existing User (Reset Password/2FA if re-setting up)
-            $stmt = $pdo->prepare("UPDATE users SET password_hash = ?, fa_code = ?, is_verified = 0 WHERE email_target = ?");
-            $stmt->execute([$hashedPassword, $faCode, $email]);
+            // Ensure device_id is set if it was NULL (Legacy users)
+            $stmt = $pdo->prepare("UPDATE users SET password_hash = ?, fa_code = ?, is_verified = 0, device_id = ? WHERE email_target = ?");
+            $stmt->execute([$hashedPassword, $faCode, $deviceId ?: $user['device_id'], $email]);
         }
 
         // TACTICAL: Send real 2FA email
@@ -222,6 +241,7 @@ if (isset($pathParams[1]) && $pathParams[1] === 'auth') {
         $input = json_decode(file_get_contents('php://input'), true);
         $email = $input['email'] ?? '';
         $code = $input['code'] ?? '';
+        $deviceId = $input['device_id'] ?? '';
 
         $stmt = $pdo->prepare("SELECT * FROM users WHERE email_target = ? AND fa_code = ?");
         $stmt->execute([$email, $code]);
@@ -230,6 +250,16 @@ if (isset($pathParams[1]) && $pathParams[1] === 'auth') {
         if (!$user) {
             http_response_code(401);
             echo json_encode(["error" => "Invalid verification code"]);
+            exit;
+        }
+
+        // Phase 25 Strict: Enforce Hardware Binding
+        if (!empty($user['device_id']) && !empty($deviceId) && $user['device_id'] !== $deviceId) {
+            http_response_code(403);
+            echo json_encode([
+                "error" => "HARDWARE_MISMATCH",
+                "message" => "Terminal locked to different hardware. Access Denied."
+            ]);
             exit;
         }
 
