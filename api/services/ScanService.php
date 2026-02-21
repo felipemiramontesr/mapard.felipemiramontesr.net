@@ -209,7 +209,8 @@ class ScanService
             $checksum = hash('sha256', $findingsJson);
 
             // Store Snapshot
-            $snapshotSql = "INSERT INTO analysis_snapshots (user_id, job_id, checksum, raw_data_json) VALUES (?, ?, ?, ?)";
+            $snapshotSql = "INSERT INTO analysis_snapshots ";
+            $snapshotSql .= "(user_id, job_id, checksum, raw_data_json) VALUES (?, ?, ?, ?)";
             $this->pdo->prepare($snapshotSql)->execute([
                 $userId,
                 $jobId,
@@ -218,7 +219,8 @@ class ScanService
             ]);
 
             // [NEW] Update FSM State: First analysis complete
-            $configSql = "UPDATE user_security_config SET is_first_analysis_complete = 1, updated_at = CURRENT_TIMESTAMP WHERE user_id = ?";
+            $configSql = "UPDATE user_security_config SET is_first_analysis_complete = 1, ";
+            $configSql .= "updated_at = CURRENT_TIMESTAMP WHERE user_id = ?";
             $this->pdo->prepare($configSql)->execute([$userId]);
 
             return [
