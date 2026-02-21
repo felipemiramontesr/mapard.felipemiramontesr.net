@@ -37,7 +37,7 @@ export const biometricService = {
                 description: 'Terminal Bloqueada: Se requiere biometría nativa.',
             });
             return true;
-        } catch (e: any) {
+        } catch (e: unknown) {
             console.error('Biometric auth failed', e);
             // Error codes like -8 (too many attempts) or -108 (user cancel)
             return false;
