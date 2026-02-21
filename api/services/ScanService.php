@@ -204,12 +204,30 @@ class ScanService
                     $jobId
                 ]);
 
+            // Phase 28: Analysis Snapshot & Checksum
+            $findingsJson = json_encode($richFindings);
+            $checksum = hash('sha256', $findingsJson);
+
+            // Store Snapshot
+            $snapshotSql = "INSERT INTO analysis_snapshots (user_id, job_id, checksum, raw_data_json) VALUES (?, ?, ?, ?)";
+            $this->pdo->prepare($snapshotSql)->execute([
+                $userId,
+                $jobId,
+                $checksum,
+                $encryptedFindings // Use the same encrypted findings for consistency
+            ]);
+
+            // [NEW] Update FSM State: First analysis complete
+            $configSql = "UPDATE user_security_config SET is_first_analysis_complete = 1, updated_at = CURRENT_TIMESTAMP WHERE user_id = ?";
+            $this->pdo->prepare($configSql)->execute([$userId]);
+
             return [
                 "status" => "COMPLETED",
                 "result_url" => "api/reports/mapard_report_$jobId.pdf",
                 "findings" => $richFindings,
                 "delta_new" => $newFindingsCount ?? 0,
-                "is_baseline" => $isFirstScan
+                "is_baseline" => $isFirstScan,
+                "checksum" => $checksum
             ];
         } catch (Exception $e) {
             $addLog($logs, "CRITICAL FAILURE: " . $e->getMessage(), "error");

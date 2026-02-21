@@ -138,6 +138,34 @@ try {
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )");
 
+    // [NEW] USER_SECURITY_CONFIG Table (Phase 28)
+    $pdo->exec("CREATE TABLE IF NOT EXISTS user_security_config (
+        user_id INTEGER PRIMARY KEY,
+        is_first_analysis_complete INTEGER DEFAULT 0,
+        biometric_enabled INTEGER DEFAULT 1,
+        security_level TEXT DEFAULT 'TACTICAL',
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )");
+
+    // [NEW] ANALYSIS_SNAPSHOTS Table (Phase 28)
+    $pdo->exec("CREATE TABLE IF NOT EXISTS analysis_snapshots (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER,
+        job_id TEXT,
+        checksum TEXT,
+        raw_data_json TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )");
+
+    // [NEW] NEUTRALIZATION_LOGS Table (Phase 28)
+    $pdo->exec("CREATE TABLE IF NOT EXISTS neutralization_logs (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER,
+        finding_id TEXT,
+        status TEXT,
+        timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+    )");
+
     // Migration: Add device_id to users if it doesn't exist
     $userCols = $pdo->query("PRAGMA table_info(users)")->fetchAll(PDO::FETCH_COLUMN, 1);
     if (!in_array('device_id', $userCols)) {
@@ -205,6 +233,10 @@ if (isset($pathParams[1]) && $pathParams[1] === 'auth') {
             // Create New User & Bind Device
             $stmt = $pdo->prepare("INSERT INTO users (email_target, password_hash, fa_code, device_id) VALUES (?, ?, ?, ?)");
             $stmt->execute([$email, $hashedPassword, $faCode, $deviceId]);
+            $newUserId = $pdo->lastInsertId();
+
+            // Phase 28: Initialize Security Config
+            $pdo->prepare("INSERT INTO user_security_config (user_id) VALUES (?)")->execute([$newUserId]);
         } else {
             // Phase 25/27: Floating Hardware Binding
             // We no longer block with 403 in setup. 
@@ -255,7 +287,8 @@ if (isset($pathParams[1]) && $pathParams[1] === 'auth') {
         echo json_encode([
             "status" => "VERIFIED",
             "token" => "blind_ops_" . bin2hex(random_bytes(16)),
-            "email" => $email
+            "email" => $email,
+            "is_first_analysis_complete" => false // Default for new verification
         ]);
         exit;
     }
@@ -274,16 +307,22 @@ if (isset($pathParams[1]) && $pathParams[1] === 'auth') {
             $findings = $job['is_encrypted'] ? SecurityUtils::decrypt($job['findings']) : $job['findings'];
             $logs = $job['is_encrypted'] ? SecurityUtils::decrypt($job['logs']) : $job['logs'];
 
+            // Phase 28: Get Security Config
+            $stmt = $pdo->prepare("SELECT is_first_analysis_complete FROM user_security_config WHERE user_id = (SELECT id FROM users WHERE email_target = ?)");
+            $stmt->execute([$email]);
+            $config = $stmt->fetch(PDO::FETCH_ASSOC);
+
             echo json_encode([
                 "has_scans" => true,
                 "job_id" => $job['job_id'],
                 "status" => $job['status'],
+                "is_first_analysis_complete" => (bool) ($config['is_first_analysis_complete'] ?? false),
                 "logs" => json_decode($logs),
                 "findings" => json_decode($findings),
                 "result_url" => $job['result_path']
             ]);
         } else {
-            echo json_encode(["has_scans" => false]);
+            echo json_encode(["has_scans" => false, "is_first_analysis_complete" => false]);
         }
         exit;
     }
