@@ -54,7 +54,14 @@ const Dashboard: React.FC = () => {
                         setLogs(statusData.logs || []);
                         setResultUrl(statusData.result_url || null);
                         setDeltaNew(statusData.delta_new || 0);
-                        setViewMode('terminal');
+
+                        // Phase 24 Strict: Jump directly to neutralization if findings exist
+                        if (statusData.findings && statusData.findings.length > 0) {
+                            setShowNeutralization(true);
+                            setViewMode('terminal');
+                        } else {
+                            setViewMode('terminal');
+                        }
                     }
                 } catch (e) {
                     console.error("Error fetching initial status", e);
@@ -102,6 +109,23 @@ const Dashboard: React.FC = () => {
             if (res.ok) {
                 await secureStorage.set('auth_token', data.token);
                 await secureStorage.set('target_email', userEmail!);
+
+                // Phase 24 Strict: Refresh status immediately after verification
+                try {
+                    const statusRes = await fetch(`${API_BASE}/api/user/status?email=${userEmail}`);
+                    const statusData = await statusRes.json();
+                    if (statusData.has_scans) {
+                        setFindings(statusData.findings || []);
+                        setLogs(statusData.logs || []);
+                        setResultUrl(statusData.result_url || null);
+                        if (statusData.findings && statusData.findings.length > 0) {
+                            setShowNeutralization(true);
+                        }
+                    }
+                } catch (e) {
+                    console.error("Error refreshing status", e);
+                }
+
                 setAuthStep('dashboard');
             } else {
                 setAuthError(data.error || 'Código inválido');
@@ -188,6 +212,10 @@ const Dashboard: React.FC = () => {
                                 // Sync "Neutralizar" button appearance with "Descargar Dossier"
                                 if (jobData.findings && Array.isArray(jobData.findings)) {
                                     setFindings(jobData.findings);
+                                    // Phase 24 Strict: Automatic jump to neutralization
+                                    if (jobData.findings.length > 0) {
+                                        setTimeout(() => setShowNeutralization(true), 2000);
+                                    }
                                 }
                                 addLog('Dossier de Inteligencia Listo.', 'success');
                             }, 1500); // 1.5s delay for smooth transition
@@ -226,11 +254,13 @@ const Dashboard: React.FC = () => {
     };
 
     const handleReset = () => {
+        // Phase 24 Strict: We never clear findings or email to change the target
+        // We only allow returning to the 'terminal' to see logs, 
+        // or the 'form' (where email is hidden) to re-execute a scan for the SAME target.
         setViewMode('form');
-        setLogs([]);
-        setResultUrl(null);
-        setFindings([]);
         setShowNeutralization(false);
+        // We do NOT clear setLogs, setResultUrl, or setFindings here 
+        // to maintain the "Persistent Dossier" feeling.
     };
 
     return (
