@@ -41,6 +41,7 @@ const Dashboard: React.FC = () => {
     const [deltaNew, setDeltaNew] = useState<number>(0);
     const [isBiometricLocked, setIsBiometricLocked] = useState(false);
     const [deviceId, setDeviceId] = useState<string>('');
+    const [isFirstAnalysisComplete, setIsFirstAnalysisComplete] = useState<boolean>(false);
 
     // Phase 26: Hardware Guard & Navigation Policy
     const isAuthenticating = useRef(false);
@@ -79,23 +80,29 @@ const Dashboard: React.FC = () => {
                 setUserEmail(storedEmail);
                 setAuthStep('dashboard');
 
-                // Phase 23: Automatic Status Retrieval
+                // Phase 23/28: Automatic Status Retrieval with FSM
                 try {
                     const statusRes = await fetch(`${API_BASE}/api/user/status?email=${storedEmail}`);
                     const statusData = await statusRes.json();
+
+                    setIsFirstAnalysisComplete(!!statusData.is_first_analysis_complete);
+
                     if (statusData.has_scans) {
                         setFindings(statusData.findings || []);
                         setLogs(statusData.logs || []);
                         setResultUrl(statusData.result_url || null);
                         setDeltaNew(statusData.delta_new || 0);
 
-                        // Phase 24 Strict: Jump directly to neutralization if findings exist
+                        // Phase 24 Strict/29 FSM: Jump directly to neutralization if findings exist
                         if (statusData.findings && statusData.findings.length > 0) {
                             setShowNeutralization(true);
                             setViewMode('terminal');
                         } else {
                             setViewMode('terminal');
                         }
+                    } else {
+                        // Phase 29: If no scans and not complete, we are in INITIAL_SETUP
+                        setViewMode('form');
                     }
                 } catch (e) {
                     console.error("Error fetching initial status", e);
@@ -170,13 +177,19 @@ const Dashboard: React.FC = () => {
                 try {
                     const statusRes = await fetch(`${API_BASE}/api/user/status?email=${userEmail}`);
                     const statusData = await statusRes.json();
+
+                    setIsFirstAnalysisComplete(!!statusData.is_first_analysis_complete);
+
                     if (statusData.has_scans) {
                         setFindings(statusData.findings || []);
                         setLogs(statusData.logs || []);
                         setResultUrl(statusData.result_url || null);
                         if (statusData.findings && statusData.findings.length > 0) {
                             setShowNeutralization(true);
+                            setViewMode('terminal');
                         }
+                    } else {
+                        setViewMode('form');
                     }
                 } catch (e) {
                     console.error("Error refreshing status", e);
@@ -258,6 +271,7 @@ const Dashboard: React.FC = () => {
                         completionHandled = true; // LOCK
                         clearInterval(pollInterval);
                         setIsScanning(false);
+                        setIsFirstAnalysisComplete(true); // Phase 28/29 FSM Update
 
                         // Force Completion Message 
                         addLog('Análisis Completado. Generando reporte...', 'success');
@@ -467,7 +481,7 @@ const Dashboard: React.FC = () => {
                                     />
                                 )}
                             </div>
-                        ) : viewMode === 'form' ? (
+                        ) : (viewMode === 'form' && !isFirstAnalysisComplete) ? (
                             <div className="animate-[fadeIn_0.5s_ease-out] w-full px-4 flex flex-col">
                                 <ScanForm
                                     onScan={(data) => handleStartScan({ ...data, email: userEmail! })}
@@ -480,7 +494,8 @@ const Dashboard: React.FC = () => {
                                 <StatusTerminal
                                     logs={logs}
                                     isVisible={true}
-                                    onReset={!isScanning ? handleReset : undefined}
+                                    onReset={!isScanning ? (isFirstAnalysisComplete ? refreshStatus : handleReset) : undefined}
+                                    resetLabel={isFirstAnalysisComplete ? "SINCRONIZAR DOSSIER" : undefined}
                                     resultUrl={resultUrl}
                                     onNeutralize={undefined}
                                 />
