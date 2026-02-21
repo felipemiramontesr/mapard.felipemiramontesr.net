@@ -10,13 +10,35 @@ header('Content-Type: application/json');
 set_exception_handler(function ($e) {
     http_response_code(500);
     echo json_encode([
-        "error" => "CRITICAL_INTERNAL_ERROR",
+        "error" => "PHP_EXCEPTION",
         "message" => $e->getMessage(),
         "file" => basename($e->getFile()),
         "line" => $e->getLine()
     ]);
     exit;
 });
+
+// Catch Fatal Errors (like missing classes or syntax errors in config)
+register_shutdown_function(function () {
+    $error = error_get_last();
+    if (
+        $error !== null &&
+        ($error['type'] === E_ERROR || $error['type'] === E_PARSE || $error['type'] === E_COMPILE_ERROR)
+    ) {
+        http_response_code(500);
+        if (ob_get_length()) {
+            ob_clean();
+        }
+        echo json_encode([
+            "error" => "FATAL_PHP_ERROR",
+            "message" => $error['message'],
+            "file" => basename($error['file']),
+            "line" => $error['line']
+        ]);
+    }
+});
+
+ob_start();
 
 // Load Composer Autoloader
 require_once __DIR__ . '/vendor/autoload.php';
