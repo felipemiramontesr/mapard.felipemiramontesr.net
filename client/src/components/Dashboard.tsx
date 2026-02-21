@@ -12,6 +12,8 @@ import { Capacitor } from '@capacitor/core';
 import { App, type AppState } from '@capacitor/app';
 import { Device } from '@capacitor/device';
 import { biometricService } from '../utils/biometricService';
+import { BackgroundRunner } from '@capacitor/background-runner';
+import { LocalNotifications } from '@capacitor/local-notifications';
 
 // Native App needs absolute URL. Web uses relative (proxy).
 const API_BASE = Capacitor.isNativePlatform()
@@ -60,6 +62,20 @@ const Dashboard: React.FC = () => {
         }
     }, []);
 
+    const syncBackgroundContext = useCallback(async (email: string, checksum: string | null) => {
+        if (!Capacitor.isNativePlatform()) return;
+        try {
+            await BackgroundRunner.dispatchEvent({
+                label: 'com.mapard.app.check',
+                event: 'setContext',
+                details: { email, checksum }
+            });
+            console.log('Background Context Synced');
+        } catch (e) {
+            console.error("Error syncing background context", e);
+        }
+    }, []);
+
     useEffect(() => {
         const initHardwareGate = async () => {
             // 1. Get Device ID
@@ -86,6 +102,9 @@ const Dashboard: React.FC = () => {
                     const statusData = await statusRes.json();
 
                     setIsFirstAnalysisComplete(!!statusData.is_first_analysis_complete);
+
+                    // Phase 30: Sync state for background monitoring
+                    syncBackgroundContext(storedEmail, statusData.checksum || null);
 
                     if (statusData.has_scans) {
                         setFindings(statusData.findings || []);
@@ -114,6 +133,16 @@ const Dashboard: React.FC = () => {
 
         initHardwareGate();
     }, [performHardwareChallenge]);
+
+    useEffect(() => {
+        const prepareBackground = async () => {
+            if (Capacitor.isNativePlatform()) {
+                const perm = await LocalNotifications.requestPermissions();
+                console.log('Notification Permission:', perm.display);
+            }
+        };
+        prepareBackground();
+    }, []);
 
     useEffect(() => {
         // 4. App Resume Listener (Re-lock on background)
@@ -179,6 +208,7 @@ const Dashboard: React.FC = () => {
                     const statusData = await statusRes.json();
 
                     setIsFirstAnalysisComplete(!!statusData.is_first_analysis_complete);
+                    syncBackgroundContext(userEmail!, statusData.checksum || null);
 
                     if (statusData.has_scans) {
                         setFindings(statusData.findings || []);
@@ -273,6 +303,10 @@ const Dashboard: React.FC = () => {
                         setIsScanning(false);
                         setIsFirstAnalysisComplete(true); // Phase 28/29 FSM Update
 
+                        if (jobData.checksum) {
+                            syncBackgroundContext(userEmail!, jobData.checksum);
+                        }
+
                         // Force Completion Message 
                         addLog('Análisis Completado. Generando reporte...', 'success');
 
@@ -353,6 +387,9 @@ const Dashboard: React.FC = () => {
                 setLogs(statusData.logs || []);
                 setResultUrl(statusData.result_url || null);
                 setDeltaNew(statusData.delta_new || 0);
+
+                syncBackgroundContext(userEmail!, statusData.checksum || null);
+
                 addLog('Dossier Actualizado.', 'success');
             } else {
                 addLog('No se encontraron registros activos.', 'warning');

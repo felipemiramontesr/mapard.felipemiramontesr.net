@@ -28,6 +28,14 @@ const config: CapacitorConfig = {
             resize: "native",
             style: "DARK",
             resizeOnFullScreen: true
+        },
+        BackgroundRunner: {
+            label: 'com.mapard.app.check',
+            src: 'runner.js',
+            event: 'checkSecurity',
+            repeat: true,
+            interval: 1440,
+            autoStart: true
         }
     }
 };
