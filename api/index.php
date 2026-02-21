@@ -19,19 +19,36 @@ use function MapaRD\Services\text_sanitize;
 use function MapaRD\Services\translate_data_class;
 // api/index.php - Real OSINT Engine
 // --------------------------------------------------------------------------
-// 1. SECURITY HEADERS (MILD - RESTORED)
+// 1. SECURITY HEADERS (NSA-LEVEL) & PAYLOAD LIMITS
 // --------------------------------------------------------------------------
-// HSTS: Neutral (Commented out to avoid cache issues for now)
-// header("Strict-Transport-Security: max-age=31536000; includeSubDomains; preload");
 
-// CSP: Mild (Allow connections, block objects/base)
-$csp = "default-src 'self'; connect-src *; img-src * data:; style-src 'self' 'unsafe-inline'; ";
-$csp .= "script-src 'self' 'unsafe-inline'; object-src 'none'; base-uri 'self';";
+// 1.A Payload Size Limit (Mitigate buffer overflow & basic DDoS)
+$maxPayloadSize = 4096; // 4 KB Max
+if (isset($_SERVER['CONTENT_LENGTH']) && (int) $_SERVER['CONTENT_LENGTH'] > $maxPayloadSize) {
+    http_response_code(413); // Payload Too Large
+    echo json_encode(['error' => 'Payload exceeds maximum allowed size (4KB). Request rejected.']);
+    exit;
+}
+
+// 1.B Server Footprint Obfuscation
+if (function_exists('header_remove')) {
+    header_remove('X-Powered-By'); // Hide PHP version
+}
+
+// 1.C Anti-Indexing & Framing (Ghost Mode)
+header("X-Robots-Tag: noindex, nofollow, nosnippet, noarchive");
+header("X-Frame-Options: DENY"); // Strict Anti-Clickjacking
+
+// 1.D Strict Content Security Policy (CSP)
+$csp = "default-src 'none'; connect-src 'self' https://mapard.felipemiramontesr.net; ";
+$csp .= "img-src 'self' data:; style-src 'self' 'unsafe-inline'; ";
+$csp .= "script-src 'self' 'unsafe-inline'; object-src 'none'; frame-ancestors 'none'; base-uri 'self';";
 header("Content-Security-Policy: $csp");
 
+// 1.E Additional Shields
 header("X-Content-Type-Options: nosniff");
-header("X-Frame-Options: DENY");
 header("X-XSS-Protection: 1; mode=block"); // Legacy but good depth defense
+header("Strict-Transport-Security: max-age=31536000; includeSubDomains");
 
 // --------------------------------------------------------------------------
 // 2. STRICT CORS (No Wildcards)
@@ -195,6 +212,13 @@ created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         $pdo->exec("ALTER TABLE scans ADD COLUMN is_encrypted INTEGER DEFAULT 0");
     }
 
+    // [NEW] RATE_LIMITS Table (Phase 18)
+    $pdo->exec("CREATE TABLE IF NOT EXISTS rate_limits (
+        ip_address TEXT PRIMARY KEY,
+        attempts INTEGER DEFAULT 0,
+        locked_until DATETIME DEFAULT NULL
+    )");
+
 } catch (Exception $e) {
     http_response_code(500);
     echo json_encode(["error" => "Database Init Failed: " . $e->getMessage()]);
@@ -206,10 +230,52 @@ $requestUri = $_SERVER['REQUEST_URI'];
 $pathParams = explode('/', trim($requestUri, '/'));
 // OPTIONS handler moved to top
 
+// --- NSA Rate Limiting (Phase 18) ---
+function enforceRateLimit($pdo, $ip)
+{
+    if (!$ip)
+        return;
+    $stmt = $pdo->prepare("SELECT attempts, locked_until FROM rate_limits WHERE ip_address = ?");
+    $stmt->execute([$ip]);
+    $record = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if ($record && $record['locked_until'] && strtotime($record['locked_until']) > time()) {
+        http_response_code(429); // Too Many Requests
+        echo json_encode(['error' => 'IP bloqueada temporalmente por seguridad. Intente más tarde.']);
+        exit;
+    }
+}
+
+function recordFailedAttempt($pdo, $ip)
+{
+    if (!$ip)
+        return;
+    $pdo->exec("INSERT INTO rate_limits (ip_address, attempts) VALUES ('$ip', 1) 
+                ON CONFLICT(ip_address) DO UPDATE SET attempts = attempts + 1");
+
+    // Check if limits exceeded
+    $stmt = $pdo->prepare("SELECT attempts FROM rate_limits WHERE ip_address = ?");
+    $stmt->execute([$ip]);
+    if ($stmt->fetchColumn() >= 5) {
+        $lockTime = date('Y-m-d H:i:s', time() + (15 * 60)); // Lock 15 mins
+        $pdo->prepare("UPDATE rate_limits SET locked_until = ? WHERE ip_address = ?")->execute([$lockTime, $ip]);
+    }
+}
+
+function resetRateLimit($pdo, $ip)
+{
+    if (!$ip)
+        return;
+    $pdo->prepare("DELETE FROM rate_limits WHERE ip_address = ?")->execute([$ip]);
+}
+
+$clientIp = $_SERVER['REMOTE_ADDR'] ?? null;
+
 // ROUTER
 if (isset($pathParams[1]) && $pathParams[1] === 'auth') {
     // AUTH SETUP (Register/Initial Login)
     if ($pathParams[2] === 'setup' && $method === 'POST') {
+        enforceRateLimit($pdo, $clientIp);
         $input = json_decode(file_get_contents('php://input'), true);
         $email = $input['email'] ?? '';
         $password = $input['password'] ?? '';
@@ -263,6 +329,7 @@ if (isset($pathParams[1]) && $pathParams[1] === 'auth') {
 
     // AUTH VERIFY (2FA)
     if ($pathParams[2] === 'verify' && $method === 'POST') {
+        enforceRateLimit($pdo, $clientIp);
         $input = json_decode(file_get_contents('php://input'), true);
         $email = $input['email'] ?? '';
         $code = $input['code'] ?? '';
@@ -273,6 +340,7 @@ if (isset($pathParams[1]) && $pathParams[1] === 'auth') {
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if (!$user) {
+            recordFailedAttempt($pdo, $clientIp);
             http_response_code(401);
             echo json_encode(["error" => "Invalid verification code"]);
             exit;
@@ -283,6 +351,8 @@ if (isset($pathParams[1]) && $pathParams[1] === 'auth') {
         // This allows seamless migration/re-installation.
         $pdo->prepare("UPDATE users SET is_verified = 1, fa_code = NULL, device_id = ? WHERE id = ?")
             ->execute([$deviceId ?: $user['device_id'], $user['id']]);
+
+        resetRateLimit($pdo, $clientIp);
 
         echo json_encode([
             "status" => "VERIFIED",
