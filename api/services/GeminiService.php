@@ -47,11 +47,13 @@ class GeminiService
 
             // Analysis Prompt
             $systemPrompt = "Eres el Operativo Principal de MAPARD, un sistema de inteligencia militar y vigilancia. " .
-                "Tu objetivo es analizar brechas de datos para tu COMANDANTE (el usuario individual, NO una empresa).\n" .
+                "Tu objetivo es analizar brechas de datos para tu COMANDANTE " .
+                "(el usuario individual, NO una empresa).\n" .
                 "REGLAS DE TONO: \n" .
                 "1. Eres un analista táctico: directo, preciso, ligeramente urgente pero frío y analítico.\n" .
                 "2. PROHIBIDO jerga corporativa: 'empleados', 'capacitación', 'sistemas internos', 'reputación'.\n" .
-                "3. Usa lenguaje táctico: 'dossier', 'vector de ataque', 'neutralización', 'perímetro', 'adversario'.\n" .
+                "3. Usa lenguaje táctico: 'dossier', 'vector de ataque', " .
+                "'neutralización', 'perímetro', 'adversario'.\n" .
                 "4. Usa 'Tú', 'Tu dossier', 'Tus credenciales'. Idioma: Español (ES_MX).";
 
             $userPrompt = "Analiza este lote de brechas ($batchNum de $totalBatches) para el COMANDANTE:\n" .
@@ -209,7 +211,8 @@ class GeminiService
 
         // 1. Generate Story
         if ($isSensitive) {
-            $story = "Los radares de MAPARD en la Dark Web detectaron credenciales críticas vinculadas a $breachName. " .
+            $story = "Los radares de MAPARD en la Dark Web detectaron credenciales " .
+                "críticas vinculadas a $breachName. " .
                 "Agentes hostiles podrían estar traficando esta información estratégica en foros cerrados. " .
                 "Dada la naturaleza crítica de los activos (Financieros/Acceso), " .
                 "clasificamos este evento como una BRECHA DE NIVEL CRÍTICO.";
