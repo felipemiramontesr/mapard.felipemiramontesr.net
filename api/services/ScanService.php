@@ -141,7 +141,11 @@ class ScanService
                 // Try to migrate state from baseline
                 if (!empty($baselineFindings)) {
                     foreach ($baselineFindings as $bf) {
-                        if (is_array($bf) && isset($bf['source_name']) && $bf['source_name'] === $finding['source_name']) {
+                        if (
+                            is_array($bf)
+                            && isset($bf['source_name'])
+                            && $bf['source_name'] === $finding['source_name']
+                        ) {
                             $finding['isNeutralized'] = $bf['isNeutralized'] ?? false;
 
                             // Map steps completion
