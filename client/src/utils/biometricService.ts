@@ -34,12 +34,12 @@ export const biometricService = {
                 reason,
                 title: 'MAPARD SECURITY',
                 subtitle: 'Confirme su identidad por hardware',
-                description: 'Terminal Bloqueada: Se requiere biometría nativa.',
+                description: 'Terminal Bloqueada: Se requiere biometría o PIN.',
+                useFallback: true // Enable PIN/Pattern fallback on Android/iOS
             });
             return true;
         } catch (e: unknown) {
-            console.error('Biometric auth failed', e);
-            // Error codes like -8 (too many attempts) or -108 (user cancel)
+            console.error('Biometric auth failed or cancelled', e);
             return false;
         }
     }

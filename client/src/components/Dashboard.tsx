@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import ScanForm from './ScanForm';
 import StatusTerminal from './StatusTerminal';
 import RiskNeutralization, { type Vector } from './RiskNeutralization';
@@ -42,6 +42,23 @@ const Dashboard: React.FC = () => {
     const [isBiometricLocked, setIsBiometricLocked] = useState(false);
     const [deviceId, setDeviceId] = useState<string>('');
 
+    // Phase 26: Hardware Guard & Navigation Policy
+    const isAuthenticating = useRef(false);
+
+    const performHardwareChallenge = useCallback(async () => {
+        if (isAuthenticating.current) return true;
+        isAuthenticating.current = true;
+        try {
+            const success = await biometricService.authenticate();
+            return success;
+        } finally {
+            // Delay to allow Android OS to settle before allowing another prompt
+            setTimeout(() => {
+                isAuthenticating.current = false;
+            }, 1000);
+        }
+    }, []);
+
     useEffect(() => {
         const initHardwareGate = async () => {
             // 1. Get Device ID
@@ -54,7 +71,7 @@ const Dashboard: React.FC = () => {
 
             if (token && storedEmail) {
                 // 3. Hardware Challenge (Biometrics)
-                const success = await biometricService.authenticate();
+                const success = await performHardwareChallenge();
                 if (!success) {
                     setIsBiometricLocked(true);
                 }
@@ -94,10 +111,13 @@ const Dashboard: React.FC = () => {
         const resumeListener = App.addListener('appStateChange', async (state: AppState) => {
             if (state.isActive) {
                 const token = await secureStorage.get('auth_token');
-                if (token) {
-                    const success = await biometricService.authenticate();
-                    if (!success) setIsBiometricLocked(true);
-                    else setIsBiometricLocked(false);
+                if (token && !isBiometricLocked) {
+                    // Small delay to prevent race conditions with window focus on Android
+                    setTimeout(async () => {
+                        const success = await performHardwareChallenge();
+                        if (!success) setIsBiometricLocked(true);
+                        else setIsBiometricLocked(false);
+                    }, 500);
                 }
             }
         });
@@ -287,14 +307,38 @@ const Dashboard: React.FC = () => {
         }
     };
 
+    const refreshStatus = async () => {
+        setIsScanning(true);
+        addLog(`Sincronizando Dossier con el Servidor...`, 'info');
+        try {
+            const statusRes = await fetch(`${API_BASE}/api/user/status?email=${userEmail}`);
+            const statusData = await statusRes.json();
+            if (statusData.has_scans) {
+                setFindings(statusData.findings || []);
+                setLogs(statusData.logs || []);
+                setResultUrl(statusData.result_url || null);
+                setDeltaNew(statusData.delta_new || 0);
+                addLog('Dossier Actualizado.', 'success');
+            } else {
+                addLog('No se encontraron registros activos.', 'warning');
+            }
+        } catch (e) {
+            console.error("Error refreshing status", e);
+            addLog('Error de conexión al sincronizar.', 'error');
+        } finally {
+            setIsScanning(false);
+        }
+    };
+
     const handleReset = () => {
-        // Phase 24 Strict: We never clear findings or email to change the target
-        // We only allow returning to the 'terminal' to see logs, 
-        // or the 'form' (where email is hidden) to re-execute a scan for the SAME target.
-        setViewMode('form');
-        setShowNeutralization(false);
-        // We do NOT clear setLogs, setResultUrl, or setFindings here 
-        // to maintain the "Persistent Dossier" feeling.
+        // Phase 26 Strict: For recurrent users, toggle views instead of going to form
+        if (findings.length > 0) {
+            // If we are in neutralization, go to logs terminal. If in logs, go to neutralization.
+            setShowNeutralization(!showNeutralization);
+            setViewMode('terminal');
+        } else {
+            setViewMode('form');
+        }
     };
 
     return (
@@ -397,14 +441,15 @@ const Dashboard: React.FC = () => {
                                     <StatusTerminal
                                         logs={logs}
                                         isVisible={true}
-                                        onReset={!isScanning ? handleReset : undefined}
+                                        onReset={!isScanning ? (findings.length > 0 ? refreshStatus : handleReset) : undefined}
+                                        resetLabel={findings.length > 0 ? 'SINCRONIZAR DOSSIER' : 'EJECUTAR ANÁLISIS'}
                                         resultUrl={resultUrl}
                                         onNeutralize={findings.length > 0 ? () => setShowNeutralization(true) : undefined}
                                     />
                                 ) : (
                                     <RiskNeutralization
                                         findings={findings}
-                                        onClose={() => setShowNeutralization(false)}
+                                        onClose={handleReset} // Use handleReset as toggle back to terminal logs
                                     />
                                 )}
                             </div>

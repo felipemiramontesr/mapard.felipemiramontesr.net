@@ -15,11 +15,12 @@ interface StatusTerminalProps {
     logs: Log[];
     isVisible: boolean;
     onReset?: () => void;
+    resetLabel?: string;
     resultUrl?: string | null;
     onNeutralize?: () => void;
 }
 
-const StatusTerminal: React.FC<StatusTerminalProps> = ({ logs, isVisible, onReset, resultUrl, onNeutralize }) => {
+const StatusTerminal: React.FC<StatusTerminalProps> = ({ logs, isVisible, onReset, resetLabel, resultUrl, onNeutralize }) => {
     // ... (existing code logs setup) ...
     const endRef = useRef<HTMLDivElement>(null);
     const isCompleted = logs.some(l =>
@@ -92,7 +93,7 @@ const StatusTerminal: React.FC<StatusTerminalProps> = ({ logs, isVisible, onRese
                         className="w-full py-3 bg-ops-cyan text-black font-bold tracking-[0.15em] hover:bg-ops-cyan/80 transition-all uppercase text-xs sm:text-sm flex items-center justify-center gap-3 shadow-[0_0_15px_rgba(0,243,255,0.3)] active:scale-[0.98]"
                     >
                         <Zap className="w-4 h-4" />
-                        EJECUTAR ANÁLISIS
+                        {resetLabel || 'EJECUTAR ANÁLISIS'}
                     </button>
 
                     <div className="flex flex-col sm:flex-row gap-3">
