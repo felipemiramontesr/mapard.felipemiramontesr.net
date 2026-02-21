@@ -206,20 +206,13 @@ if (isset($pathParams[1]) && $pathParams[1] === 'auth') {
             $stmt = $pdo->prepare("INSERT INTO users (email_target, password_hash, fa_code, device_id) VALUES (?, ?, ?, ?)");
             $stmt->execute([$email, $hashedPassword, $faCode, $deviceId]);
         } else {
-            // Phase 25 Strict: Enforce Hardware Binding
-            if (!empty($user['device_id']) && !empty($deviceId) && $user['device_id'] !== $deviceId) {
-                http_response_code(403);
-                echo json_encode([
-                    "error" => "HARDWARE_MISMATCH",
-                    "message" => "Terminal locked to different hardware. Access Denied."
-                ]);
-                exit;
-            }
+            // Phase 25/27: Floating Hardware Binding
+            // We no longer block with 403 in setup. 
+            // The re-binding will happen automatically during verify (Phase 27).
 
             // Update Existing User (Reset Password/2FA if re-setting up)
-            // Ensure device_id is set if it was NULL (Legacy users)
-            $stmt = $pdo->prepare("UPDATE users SET password_hash = ?, fa_code = ?, is_verified = 0, device_id = ? WHERE email_target = ?");
-            $stmt->execute([$hashedPassword, $faCode, $deviceId ?: $user['device_id'], $email]);
+            $stmt = $pdo->prepare("UPDATE users SET password_hash = ?, fa_code = ?, is_verified = 0 WHERE email_target = ?");
+            $stmt->execute([$hashedPassword, $faCode, $email]);
         }
 
         // TACTICAL: Send real 2FA email
@@ -253,18 +246,11 @@ if (isset($pathParams[1]) && $pathParams[1] === 'auth') {
             exit;
         }
 
-        // Phase 25 Strict: Enforce Hardware Binding
-        if (!empty($user['device_id']) && !empty($deviceId) && $user['device_id'] !== $deviceId) {
-            http_response_code(403);
-            echo json_encode([
-                "error" => "HARDWARE_MISMATCH",
-                "message" => "Terminal locked to different hardware. Access Denied."
-            ]);
-            exit;
-        }
-
-        // Mark as verified
-        $pdo->prepare("UPDATE users SET is_verified = 1, fa_code = NULL WHERE id = ?")->execute([$user['id']]);
+        // Phase 25/27: Floating Hardware Binding
+        // Upon successful 2FA, we unify the hardware ID to the current one.
+        // This allows seamless migration/re-installation.
+        $pdo->prepare("UPDATE users SET is_verified = 1, fa_code = NULL, device_id = ? WHERE id = ?")
+            ->execute([$deviceId ?: $user['device_id'], $user['id']]);
 
         echo json_encode([
             "status" => "VERIFIED",
