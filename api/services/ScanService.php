@@ -87,6 +87,8 @@ class ScanService
             $hibpUrl = "https://haveibeenpwned.com/api/v3/breachedaccount/" . urlencode($email);
             $ch = curl_init($hibpUrl . "?truncateResponse=false");
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
             curl_setopt($ch, CURLOPT_HTTPHEADER, [
                 "hibp-api-key: " . (defined('HIBP_API_KEY') ? HIBP_API_KEY : ''),
                 "user-agent: MAPARD-OSINT-AGENT"

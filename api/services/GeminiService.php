@@ -151,6 +151,10 @@ class GeminiService
                 'content' => json_encode($payload),
                 'timeout' => 60,
                 'ignore_errors' => true
+            ],
+            'ssl' => [
+                'verify_peer' => false,
+                'verify_peer_name' => false
             ]
         ];
 
