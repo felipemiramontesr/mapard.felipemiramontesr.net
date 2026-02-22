@@ -112,15 +112,14 @@ const Dashboard: React.FC = () => {
                         setResultUrl(statusData.result_url || null);
                         setDeltaNew(statusData.delta_new || 0);
 
-                        // Phase 24 Strict/29 FSM: Jump directly to neutralization if findings exist AND analysis is complete
-                        if (statusData.findings && statusData.findings.length > 0 && statusData.is_first_analysis_complete) {
+                        // User Sequence: Jump directly to neutralization panel on subsequent entries
+                        if (statusData.is_first_analysis_complete) {
                             setShowNeutralization(true);
-                            setViewMode('terminal');
-                        } else {
-                            setViewMode('terminal');
                         }
+                        setViewMode('terminal');
                     } else if (statusData.is_first_analysis_complete) {
-                        // Edge case: Analysis complete but scans array is empty somehow. Force terminal.
+                        // Edge case: Analysis complete but scans array is empty somehow.
+                        setShowNeutralization(true);
                         setViewMode('terminal');
                     } else {
                         // Phase 29: If no scans and not complete, we are in INITIAL_SETUP
@@ -319,10 +318,7 @@ const Dashboard: React.FC = () => {
                                 // Sync "Neutralizar" button appearance with "Descargar Dossier"
                                 if (jobData.findings && Array.isArray(jobData.findings)) {
                                     setFindings(jobData.findings);
-                                    // Phase 24 Strict: Automatic jump to neutralization
-                                    if (jobData.findings.length > 0) {
-                                        setTimeout(() => setShowNeutralization(true), 2000);
-                                    }
+                                    // User Sequence: DO NOT auto-jump. Wait for user to click "Neutralizar Riesgos"
                                 }
                                 addLog('Dossier de Inteligencia Listo.', 'success');
                             }, 1500); // 1.5s delay for smooth transition
