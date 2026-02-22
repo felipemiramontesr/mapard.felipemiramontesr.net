@@ -81,19 +81,21 @@ const StatusTerminal: React.FC<StatusTerminalProps> = ({ logs, isVisible, onRese
             </div>
 
             {/* Footer de Acciones (Fijo al fondo) */}
-            {(isCompleted && onReset && (hasError || resultUrl)) && (
+            {isCompleted && (onReset || resultUrl || onNeutralize) && (
                 <div className="p-4 border-t border-white/10 bg-ops-bg_alt flex-none z-20 space-y-3">
-                    <button
-                        onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            onReset();
-                        }}
-                        className="w-full py-3 bg-ops-cyan text-black font-bold tracking-[0.15em] hover:bg-ops-cyan/80 transition-all uppercase text-xs sm:text-sm flex items-center justify-center gap-3 shadow-[0_0_15px_rgba(0,243,255,0.3)] active:scale-[0.98]"
-                    >
-                        <Zap className="w-4 h-4" />
-                        {resetLabel || 'EJECUTAR ANÁLISIS'}
-                    </button>
+                    {(onReset && (hasError || resultUrl)) && (
+                        <button
+                            onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                onReset();
+                            }}
+                            className="w-full py-3 bg-ops-cyan text-black font-bold tracking-[0.15em] hover:bg-ops-cyan/80 transition-all uppercase text-xs sm:text-sm flex items-center justify-center gap-3 shadow-[0_0_15px_rgba(0,243,255,0.3)] active:scale-[0.98]"
+                        >
+                            <Zap className="w-4 h-4" />
+                            {resetLabel || 'EJECUTAR ANÁLISIS'}
+                        </button>
+                    )}
 
                     <div className="flex flex-col sm:flex-row gap-3">
                         {resultUrl && (
