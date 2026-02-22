@@ -154,7 +154,10 @@ class ScanService
                             foreach ($finding['steps'] as &$step) {
                                 $stepIsDone = false;
                                 foreach ($bf['steps'] ?? [] as $bStep) {
-                                    if (isset($bStep['text'], $bStep['completed']) && $bStep['text'] === $step['text']) {
+                                    if (
+                                        isset($bStep['text'], $bStep['completed'])
+                                        && $bStep['text'] === $step['text']
+                                    ) {
                                         $stepIsDone = $bStep['completed'];
                                         $matchedCount++;
                                     }
