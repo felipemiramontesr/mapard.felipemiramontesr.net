@@ -146,15 +146,31 @@ class ScanService
                             && isset($bf['source_name'])
                             && $bf['source_name'] === $finding['source_name']
                         ) {
-                            $finding['isNeutralized'] = $bf['isNeutralized'] ?? false;
+                            // Defensive State Inheritance (Anti Ghost-Data)
+                            $allStepsComplete = true;
+                            $matchedCount = 0;
+                            $totalSteps = count($finding['steps']);
 
-                            // Map steps completion
                             foreach ($finding['steps'] as &$step) {
+                                $stepIsDone = false;
                                 foreach ($bf['steps'] ?? [] as $bStep) {
-                                    if ($bStep['text'] === $step['text']) {
-                                        $step['completed'] = $bStep['completed'];
+                                    if (isset($bStep['text'], $bStep['completed']) && $bStep['text'] === $step['text']) {
+                                        $stepIsDone = $bStep['completed'];
+                                        $matchedCount++;
                                     }
                                 }
+                                $step['completed'] = $stepIsDone;
+                                if (!$stepIsDone) {
+                                    $allStepsComplete = false;
+                                }
+                            }
+
+                            // Strictly recalculate Neutralized state based on the current steps,
+                            // ignoring the old bf['isNeutralized'] blind flag which might be corrupted.
+                            if ($totalSteps > 0 && $matchedCount === $totalSteps && $allStepsComplete) {
+                                $finding['isNeutralized'] = true;
+                            } else {
+                                $finding['isNeutralized'] = false;
                             }
                         }
                     }
@@ -219,8 +235,11 @@ class ScanService
             ]);
 
             // [NEW] Update FSM State: First analysis complete
-            $configSql = "UPDATE user_security_config SET is_first_analysis_complete = 1, ";
-            $configSql .= "updated_at = CURRENT_TIMESTAMP WHERE user_id = ?";
+            // Run UPSERT logic logic (SQLite) to handle missing config rows for old target profiles.
+            $configSql = "INSERT INTO user_security_config (user_id, is_first_analysis_complete, updated_at) 
+                          VALUES (?, 1, CURRENT_TIMESTAMP) 
+                          ON CONFLICT(user_id) DO UPDATE SET 
+                          is_first_analysis_complete=1, updated_at=CURRENT_TIMESTAMP";
             $this->pdo->prepare($configSql)->execute([$userId]);
 
             return [
