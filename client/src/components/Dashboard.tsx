@@ -112,13 +112,16 @@ const Dashboard: React.FC = () => {
                         setResultUrl(statusData.result_url || null);
                         setDeltaNew(statusData.delta_new || 0);
 
-                        // Phase 24 Strict/29 FSM: Jump directly to neutralization if findings exist
-                        if (statusData.findings && statusData.findings.length > 0) {
+                        // Phase 24 Strict/29 FSM: Jump directly to neutralization if findings exist AND analysis is complete
+                        if (statusData.findings && statusData.findings.length > 0 && !!statusData.is_first_analysis_complete) {
                             setShowNeutralization(true);
                             setViewMode('terminal');
                         } else {
                             setViewMode('terminal');
                         }
+                    } else if (!!statusData.is_first_analysis_complete) {
+                        // Edge case: Analysis complete but scans array is empty somehow. Force terminal.
+                        setViewMode('terminal');
                     } else {
                         // Phase 29: If no scans and not complete, we are in INITIAL_SETUP
                         setViewMode('form');
@@ -531,8 +534,9 @@ const Dashboard: React.FC = () => {
                                 <StatusTerminal
                                     logs={logs}
                                     isVisible={true}
-                                    onReset={!isScanning ? (isFirstAnalysisComplete ? refreshStatus : handleReset) : undefined}
-                                    resetLabel={isFirstAnalysisComplete ? "SINCRONIZAR DOSSIER" : undefined}
+                                    // If analysis is complete, NEVER show the manual sync button because BackgroundRunner handles it.
+                                    onReset={!isScanning && !isFirstAnalysisComplete ? handleReset : undefined}
+                                    resetLabel={!isFirstAnalysisComplete ? "EJECUTAR ANÁLISIS" : undefined}
                                     resultUrl={resultUrl}
                                     onNeutralize={undefined}
                                 />

@@ -2,7 +2,6 @@ import React, { useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Zap, Activity, FileCheck, ShieldAlert } from 'lucide-react';
 import { Capacitor } from '@capacitor/core';
-import { Browser } from '@capacitor/browser';
 
 interface Log {
     id: number;
@@ -110,7 +109,8 @@ const StatusTerminal: React.FC<StatusTerminalProps> = ({ logs, isVisible, onRese
                                             if (fullUrl && !fullUrl.startsWith('http')) {
                                                 fullUrl = `${API_BASE}${fullUrl.startsWith('/') ? '' : '/'}${fullUrl}`;
                                             }
-                                            await Browser.open({ url: fullUrl });
+                                            // Force Android OS to handle the PDF download natively
+                                            window.open(fullUrl, '_system');
                                         } else {
                                             const link = document.createElement('a');
                                             link.href = resultUrl;
