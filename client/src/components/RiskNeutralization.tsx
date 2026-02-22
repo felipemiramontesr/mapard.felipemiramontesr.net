@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ShieldAlert, ShieldCheck, ChevronDown, CheckSquare, Square } from 'lucide-react';
+import { ShieldAlert, ShieldCheck, ChevronDown, CheckSquare, Square, Shield } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface RemediationStep {
@@ -129,7 +129,17 @@ const RiskNeutralization: React.FC<RiskNeutralizationProps> = ({ findings, onClo
                 </button>
             </div>
 
-            <div className="space-y-4">
+            {/* Vector List */}
+            <div className="flex-grow overflow-y-auto p-4 md:p-8 space-y-6">
+                {vectors.length === 0 && (
+                    <div className="flex flex-col items-center justify-center p-12 text-ops-cyan/50 font-mono text-center border border-ops-cyan/20 bg-ops-cyan/5 shadow-[0_0_20px_rgba(0,243,255,0.1)]">
+                        <Shield className="w-16 h-16 mb-4 drop-shadow-[0_0_10px_rgba(0,243,255,0.4)]" />
+                        <h3 className="text-xl font-bold tracking-[0.2em] text-ops-cyan uppercase">0 Vectores de Riesgo</h3>
+                        <p className="mt-2 text-sm max-w-sm font-medium tracking-wide">
+                            ANÁLISIS DE BRECHAS LIMPIO. SISTEMA PERIMETRAL ASEGURADO.
+                        </p>
+                    </div>
+                )}
                 {vectors.map((vector) => (
                     <div
                         key={vector.id}

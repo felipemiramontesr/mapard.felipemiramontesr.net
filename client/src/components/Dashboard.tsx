@@ -378,33 +378,6 @@ const Dashboard: React.FC = () => {
             console.error("Error persisting tactical state", e);
         }
     };
-
-    const refreshStatus = async () => {
-        setIsScanning(true);
-        addLog(`Sincronizando Dossier con el Servidor...`, 'info');
-        try {
-            const statusRes = await fetch(`${API_BASE}/api/user/status?email=${userEmail}`);
-            const statusData = await statusRes.json();
-            if (statusData.has_scans) {
-                setFindings(statusData.findings || []);
-                setLogs(statusData.logs || []);
-                setResultUrl(statusData.result_url || null);
-                setDeltaNew(statusData.delta_new || 0);
-
-                syncBackgroundContext(userEmail!, statusData.checksum || null);
-
-                addLog('Dossier Actualizado.', 'success');
-            } else {
-                addLog('No se encontraron registros activos.', 'warning');
-            }
-        } catch (e) {
-            console.error("Error refreshing status", e);
-            addLog('Error de conexión al sincronizar.', 'error');
-        } finally {
-            setIsScanning(false);
-        }
-    };
-
     const handleReset = () => {
         // Phase 26 Strict: For recurrent users, toggle views instead of going to form
         if (findings.length > 0) {
@@ -502,26 +475,7 @@ const Dashboard: React.FC = () => {
                             </div>
                         )}
 
-                        {findings.length > 0 ? (
-                            <div className="animate-[slideUp_0.5s_ease-out] w-full px-4 flex flex-col">
-                                {!showNeutralization ? (
-                                    <StatusTerminal
-                                        logs={logs}
-                                        isVisible={true}
-                                        onReset={!isScanning ? refreshStatus : undefined}
-                                        resetLabel="SINCRONIZAR DOSSIER"
-                                        resultUrl={resultUrl}
-                                        onNeutralize={() => setShowNeutralization(true)}
-                                    />
-                                ) : (
-                                    <RiskNeutralization
-                                        findings={findings}
-                                        onUpdate={handleNeutralizeUpdate}
-                                        onClose={handleReset}
-                                    />
-                                )}
-                            </div>
-                        ) : (viewMode === 'form' && !isFirstAnalysisComplete) ? (
+                        {viewMode === 'form' && !isFirstAnalysisComplete ? (
                             <div className="animate-[fadeIn_0.5s_ease-out] w-full px-4 flex flex-col">
                                 <ScanForm
                                     onScan={(data) => handleStartScan({ ...data, email: userEmail! })}
@@ -531,15 +485,22 @@ const Dashboard: React.FC = () => {
                             </div>
                         ) : (
                             <div className="animate-[slideUp_0.5s_ease-out] w-full px-4 flex flex-col">
-                                <StatusTerminal
-                                    logs={logs}
-                                    isVisible={true}
-                                    // If analysis is complete, NEVER show the manual sync button because BackgroundRunner handles it.
-                                    onReset={!isScanning && !isFirstAnalysisComplete ? handleReset : undefined}
-                                    resetLabel={!isFirstAnalysisComplete ? "EJECUTAR ANÁLISIS" : undefined}
-                                    resultUrl={resultUrl}
-                                    onNeutralize={undefined}
-                                />
+                                {!showNeutralization ? (
+                                    <StatusTerminal
+                                        logs={logs}
+                                        isVisible={true}
+                                        onReset={!isScanning && !isFirstAnalysisComplete ? handleReset : undefined}
+                                        resetLabel={!isFirstAnalysisComplete ? "EJECUTAR ANÁLISIS" : undefined}
+                                        resultUrl={resultUrl}
+                                        onNeutralize={resultUrl || findings.length > 0 ? () => setShowNeutralization(true) : undefined}
+                                    />
+                                ) : (
+                                    <RiskNeutralization
+                                        findings={findings}
+                                        onUpdate={handleNeutralizeUpdate}
+                                        onClose={handleReset}
+                                    />
+                                )}
                             </div>
                         )}
                     </>
