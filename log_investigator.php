@@ -21,7 +21,7 @@ try {
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
     echo "--- ÚLTIMOS 5 ESCANEOS ---\n\n";
-    $stmt = $pdo->query("SELECT job_id, email, status, logs, findings FROM scans ORDER BY id DESC LIMIT 5");
+    $stmt = $pdo->query("SELECT job_id, email, status, logs, findings FROM scans ORDER BY created_at DESC LIMIT 5");
 
     while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
         echo "JOB: " . $row['job_id'] . "\n";
