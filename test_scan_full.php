@@ -22,6 +22,44 @@ echo "================================================================\n\n";
 
 $dbPath = __DIR__ . '/api/mapard_v2.sqlite';
 try {
+    // -------------------------------------------------------------
+    // GEMINI AVAILABLE MODELS QUERY
+    // -------------------------------------------------------------
+    echo "🤖 CONSULTANDO MODELOS DISPONIBLES EN TU LLAVE GEMINI...\n";
+    if (defined('GEMINI_API_KEY') && !empty(GEMINI_API_KEY)) {
+        $modelsUrl = "https://generativelanguage.googleapis.com/v1beta/models?key=" . GEMINI_API_KEY;
+        $ch = curl_init($modelsUrl);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 15);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+        $modelsResult = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($modelsResult && $httpCode === 200) {
+            $jsonModels = json_decode($modelsResult, true);
+            if (isset($jsonModels['models']) && is_array($jsonModels['models'])) {
+                echo "✅ Modelos listados correctamente:\n";
+                foreach ($jsonModels['models'] as $m) {
+                    // Solo mostramos los modelos principales de texto/generación para no saturar
+                    if (strpos($m['name'], 'gemini') !== false) {
+                        echo "   - " . str_replace('models/', '', $m['name']) . "\n";
+                    }
+                }
+            } else {
+                echo "⚠️ No se pudo parsear la lista de modelos.\n";
+            }
+        } else {
+            echo "❌ Error consultando modelos (HTTP $httpCode). La llave podría ser inválida o la red falló.\n";
+            if ($modelsResult)
+                echo "Detalle: $modelsResult\n";
+        }
+    } else {
+        echo "❌ GEMINI_API_KEY no está definida en config.php\n";
+    }
+    echo "----------------------------------------------------------------\n\n";
+
     $pdo = new PDO("sqlite:$dbPath");
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     echo "✅ DB Connected.\n";
