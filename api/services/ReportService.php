@@ -39,6 +39,8 @@ function translate_data_class($class)
     return $map[$class] ?? $class;
 }
 
+require_once __DIR__ . '/../fpdf.php';
+
 class ReportService extends FPDF
 {
     public function __construct($orientation = 'P', $unit = 'mm', $size = 'A4')
