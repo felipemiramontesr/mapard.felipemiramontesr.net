@@ -5,6 +5,8 @@ $email = isset($_GET['email']) ? $_GET['email'] : 'test@example.com';
 $url = "https://haveibeenpwned.com/api/v3/breachedaccount/" . urlencode($email) . "?truncateResponse=false";
 $key = defined('HIBP_API_KEY') ? HIBP_API_KEY : '';
 
+ob_start();
+
 echo "<pre>";
 echo "<h2>🎯 PRUEBA DE PENETRACIÓN (BYPASS CLOUDFLARE)</h2>";
 echo "TARGET URL: " . htmlspecialchars($url) . "\n\n";
@@ -16,6 +18,7 @@ $ch1 = curl_init($url);
 curl_setopt($ch1, CURLOPT_RETURNTRANSFER, true);
 curl_setopt($ch1, CURLOPT_SSL_VERIFYPEER, false);
 curl_setopt($ch1, CURLOPT_SSL_VERIFYHOST, false);
+curl_setopt($ch1, CURLOPT_TIMEOUT, 8);
 curl_setopt($ch1, CURLOPT_HTTPHEADER, ["hibp-api-key: $key", "user-agent: MAPARD-OSINT-AGENT"]);
 $res1 = curl_exec($ch1);
 $code1 = curl_getinfo($ch1, CURLINFO_HTTP_CODE);
@@ -33,6 +36,7 @@ curl_setopt($ch2, CURLOPT_RETURNTRANSFER, true);
 curl_setopt($ch2, CURLOPT_SSL_VERIFYPEER, false);
 curl_setopt($ch2, CURLOPT_SSL_VERIFYHOST, false);
 curl_setopt($ch2, CURLOPT_ENCODING, ''); // Auto-handle gzip/deflate
+curl_setopt($ch2, CURLOPT_TIMEOUT, 8);
 curl_setopt($ch2, CURLOPT_HTTPHEADER, [
     "hibp-api-key: $key",
     "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36",
@@ -58,6 +62,7 @@ curl_setopt($ch3, CURLOPT_SSL_VERIFYPEER, false);
 curl_setopt($ch3, CURLOPT_SSL_VERIFYHOST, false);
 curl_setopt($ch3, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
 curl_setopt($ch3, CURLOPT_SSL_CIPHER_LIST, 'DEFAULT@SECLEVEL=1');
+curl_setopt($ch3, CURLOPT_TIMEOUT, 8);
 curl_setopt($ch3, CURLOPT_HTTPHEADER, [
     "hibp-api-key: $key",
     "user-agent: MAPARD-OSINT-AGENT"
@@ -72,3 +77,7 @@ echo "RESPUESTA: " . substr($res3, 0, 150) . "...\n\n";
 
 echo "========================================================\n";
 echo "</pre>";
+
+$output = ob_get_clean();
+file_put_contents(__DIR__ . '/diagnostic_result.txt', $output);
+echo $output;
