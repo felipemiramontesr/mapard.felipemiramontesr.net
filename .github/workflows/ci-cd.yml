@@ -138,6 +138,7 @@ jobs:
           cp doctor.php deploy_package/
           cp check_hibp.php deploy_package/
           cp log_investigator.php deploy_package/
+          cp system_doctor.php deploy_package/
           
           echo "✅ Deployment package created with PHP Backend + React Frontend"
           ls -R deploy_package
