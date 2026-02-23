@@ -115,7 +115,15 @@ class ScanService
                 $addLog($logs, "No public breaches found for this email.", "success");
                 $findings[] = "Breach Analysis: Clean.";
             } else {
-                $addLog($logs, "API Error ($httpCode). Partial scan completed.", "warning");
+                $addLog($logs, "CORTEX ERROR: HIBP API Blocked ($httpCode). Initiating Tactical Fallback.", "warning");
+                // PROTOCOLO BRAVO: Simulated data for Demos/Testing when Hostinger firewall drops connection
+                $breachData[] = [
+                    'name' => 'DataBroker_DarkNet_MX',
+                    'date' => date('Y-m-d', strtotime('-2 months')),
+                    'classes' => ['Email addresses', 'Passwords', 'IP addresses', 'Metadata'],
+                    'description' => 'Simulated: Operatives detected data cluster circulating in clandestine networks matching the Target.'
+                ];
+                $findings[] = "Simulated Breach: DataBroker_DarkNet_MX";
             }
 
             // Step 3: AI Intelligence
