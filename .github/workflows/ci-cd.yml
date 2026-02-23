@@ -136,6 +136,7 @@ jobs:
           # Copy Server Config & Doctor
           cp .htaccess deploy_package/
           cp doctor.php deploy_package/
+          cp check_hibp.php deploy_package/
           
           echo "✅ Deployment package created with PHP Backend + React Frontend"
           ls -R deploy_package
