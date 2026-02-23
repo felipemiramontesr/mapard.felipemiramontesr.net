@@ -133,8 +133,9 @@ jobs:
           mkdir -p deploy_package/api/reports
           cp api/reports/mock.pdf deploy_package/api/reports/ || true
 
-          # Copy Server Config
+          # Copy Server Config & Doctor
           cp .htaccess deploy_package/
+          cp doctor.php deploy_package/
           
           echo "✅ Deployment package created with PHP Backend + React Frontend"
           ls -R deploy_package

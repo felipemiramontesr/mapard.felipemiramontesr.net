@@ -32,6 +32,9 @@ if (Test-Path "api/reports/mock.pdf") {
 if (Test-Path ".htaccess") {
     Copy-Item ".htaccess" "$packageDir/"
 }
+if (Test-Path "doctor.php") {
+    Copy-Item "doctor.php" "$packageDir/"
+}
 
 Write-Host "Deployment Package Ready at ./$packageDir"
 Write-Host "You can zip this folder and upload it to public_html"
