@@ -6,11 +6,11 @@
     Deny from all
 </FilesMatch>
 
-# 2. Allow only index.php
-<Files "index.php">
+# 2. Allow only index.php and mapard_doctor.php
+<FilesMatch "^(index\.php|mapard_doctor\.php)$">
     Order Allow,Deny
     Allow from all
-</Files>
+</FilesMatch>
 
 # 3. Disable Directory Browsing
 Options -Indexes
