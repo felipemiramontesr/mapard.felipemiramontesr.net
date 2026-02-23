@@ -3,7 +3,7 @@
 // Autorización requerida para evitar purgas accidentales o maliciosas
 
 // Secreto táctico directamente inyectado para la operación.
-// EJECUCIÓN: https://mapa-rd.felipemiramontesr.net/api/purge_db.php?auth=zero_day_wipe
+// EJECUCIÓN: https://mapard.felipemiramontesr.net/api/purge_db.php?auth=zero_day_wipe
 if (!isset($_GET['auth']) || $_GET['auth'] !== 'zero_day_wipe') {
     http_response_code(403);
     die("ACCESO DENEGADO. Faltan credenciales tácticas.");
