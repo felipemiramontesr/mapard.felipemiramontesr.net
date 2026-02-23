@@ -387,8 +387,8 @@ if (isset($pathParams[1]) && $pathParams[1] === 'auth') {
                 "job_id" => $job['job_id'],
                 "status" => $job['status'],
                 "is_first_analysis_complete" => (bool) ($config['is_first_analysis_complete'] ?? false),
-                "logs" => json_decode($logs),
-                "findings" => json_decode($findings),
+                "logs" => json_decode($logs ?: '[]'),
+                "findings" => json_decode($findings ?: '[]'),
                 "result_url" => $job['result_path']
             ]);
         } else {
@@ -439,8 +439,8 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
             echo json_encode([
                 "job_id" => $jobId,
                 "status" => "COMPLETED",
-                "logs" => json_decode($logs),
-                "findings" => json_decode($findings),
+                "logs" => json_decode($logs ?: '[]'),
+                "findings" => json_decode($findings ?: '[]'),
                 "result_url" => $job['result_path']
             ]);
             exit;
