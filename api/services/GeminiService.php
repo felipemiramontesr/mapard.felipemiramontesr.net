@@ -22,7 +22,7 @@ class GeminiService
     public function analyzeBreach($data)
     {
         // Enforce the configured model to prevent 404s
-        // $this->model = 'gemini-2.0-flash'; 
+        // $this->model = 'gemini-2.0-flash';
 
         if (empty($data)) {
             return [
