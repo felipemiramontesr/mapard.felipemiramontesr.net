@@ -16,6 +16,7 @@ class ComposerStaticInit11fcc0da02f6fb90baecd2421df75ff4
         'P' =>
         array (
             'PhpParser\\' => 10,
+            'PHPMailer\\PHPMailer\\' => 20,
         ),
         'M' =>
         array (
@@ -32,6 +33,10 @@ class ComposerStaticInit11fcc0da02f6fb90baecd2421df75ff4
         'PhpParser\\' =>
         array (
             0 => __DIR__ . '/..' . '/nikic/php-parser/lib/PhpParser',
+        ),
+        'PHPMailer\\PHPMailer\\' =>
+        array (
+            0 => __DIR__ . '/..' . '/phpmailer/phpmailer/src',
         ),
         'MapaRD\\Services\\' =>
         array (
@@ -51,7 +56,10 @@ class ComposerStaticInit11fcc0da02f6fb90baecd2421df75ff4
         'Composer\\InstalledVersions' => __DIR__ . '/..' . '/composer/InstalledVersions.php',
         'FPDF' => __DIR__ . '/..' . '/setasign/fpdf/fpdf.php',
         'MapaRD\\Services\\GeminiService' => __DIR__ . '/../..' . '/services/GeminiService.php',
+        'MapaRD\\Services\\MailService' => __DIR__ . '/../..' . '/services/MailService.php',
         'MapaRD\\Services\\ReportService' => __DIR__ . '/../..' . '/services/ReportService.php',
+        'MapaRD\\Services\\ScanService' => __DIR__ . '/../..' . '/services/ScanService.php',
+        'MapaRD\\Services\\SecurityUtils' => __DIR__ . '/../..' . '/services/SecurityUtils.php',
         'PHPUnit\\Exception' => __DIR__ . '/..' . '/phpunit/phpunit/src/Exception.php',
         'PHPUnit\\Framework\\ActualValueIsNotAnObjectException' => __DIR__ . '/..' . '/phpunit/phpunit/src/Framework/Exception/ActualValueIsNotAnObjectException.php',
         'PHPUnit\\Framework\\Assert' => __DIR__ . '/..' . '/phpunit/phpunit/src/Framework/Assert.php',

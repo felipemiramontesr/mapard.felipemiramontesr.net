@@ -366,34 +366,44 @@ if (isset($pathParams[1]) && $pathParams[1] === 'auth') {
 
     // USER STATUS (Phase 23)
     if (isset($pathParams[1]) && $pathParams[1] === 'user' && $pathParams[2] === 'status') {
-        $email = $_GET['email'] ?? '';
-        // In production, we would use the JWT token to identify the user.
-// For now, we use the email as an identifier since it's already "locked" in the frontend.
+        try {
+            $email = $_GET['email'] ?? '';
 
-        $stmt = $pdo->prepare("SELECT * FROM scans WHERE email = ? ORDER BY created_at DESC LIMIT 1");
-        $stmt->execute([$email]);
-        $job = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        if ($job) {
-            $findings = $job['is_encrypted'] ? SecurityUtils::decrypt($job['findings']) : $job['findings'];
-            $logs = $job['is_encrypted'] ? SecurityUtils::decrypt($job['logs']) : $job['logs'];
-
-            // Phase 28: Get Security Config
-            $stmt = $pdo->prepare("SELECT is_first_analysis_complete FROM user_security_config WHERE user_id = (SELECT id FROM users WHERE email_target = ?)");
+            $stmt = $pdo->prepare("SELECT * FROM scans WHERE email = ? ORDER BY created_at DESC LIMIT 1");
             $stmt->execute([$email]);
-            $config = $stmt->fetch(PDO::FETCH_ASSOC);
+            $job = $stmt->fetch(PDO::FETCH_ASSOC);
 
-            echo json_encode([
-                "has_scans" => true,
-                "job_id" => $job['job_id'],
-                "status" => $job['status'],
-                "is_first_analysis_complete" => (bool) ($config['is_first_analysis_complete'] ?? false),
-                "logs" => is_string($logs) ? json_decode($logs) : [],
-                "findings" => is_string($findings) ? json_decode($findings) : [],
-                "result_url" => $job['result_path']
-            ]);
-        } else {
-            echo json_encode(["has_scans" => false, "is_first_analysis_complete" => false]);
+            if ($job) {
+                $findings = $job['is_encrypted'] ? SecurityUtils::decrypt($job['findings']) : $job['findings'];
+                $logs = $job['is_encrypted'] ? SecurityUtils::decrypt($job['logs']) : $job['logs'];
+
+                // Phase 28: Get Security Config
+                $stmt = $pdo->prepare("SELECT is_first_analysis_complete FROM user_security_config WHERE user_id = (SELECT id FROM users WHERE email_target = ?)");
+                $stmt->execute([$email]);
+                $config = $stmt->fetch(PDO::FETCH_ASSOC);
+
+                $responseBody = [
+                    "has_scans" => true,
+                    "job_id" => $job['job_id'],
+                    "status" => $job['status'],
+                    "is_first_analysis_complete" => (bool) (($config && isset($config['is_first_analysis_complete'])) ? $config['is_first_analysis_complete'] : false),
+                    "logs" => is_string($logs) ? (json_decode($logs) ?: []) : [],
+                    "findings" => is_string($findings) ? (json_decode($findings) ?: []) : [],
+                    "result_url" => $job['result_path']
+                ];
+
+                $jsonOutput = json_encode($responseBody);
+                if ($jsonOutput === false) {
+                    throw new \Exception("JSON encode error in status: " . json_last_error_msg());
+                }
+                echo $jsonOutput;
+            } else {
+                echo json_encode(["has_scans" => false, "is_first_analysis_complete" => false]);
+            }
+        } catch (\Throwable $e) {
+            http_response_code(500);
+            $errJson = json_encode(["error" => "Status error: " . $e->getMessage()]);
+            echo $errJson ?: '{"error": "Status error and JSON encode failed"}';
         }
         exit;
     }
@@ -411,12 +421,23 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
             $domain = array_pop($parts);
         }
 
+        // Fetch user_id matching this email
+        $stmt = $pdo->prepare("SELECT id FROM users WHERE email_target = ?");
+        $stmt->execute([$email]);
+        $userId = $stmt->fetchColumn() ?: null;
+
         $jobId = uniqid('job_', true);
         $initialLogs = json_encode([
             ["message" => "Iniciando Protocolo MAPARD...", "type" => "info", "timestamp" => date('c')]
         ]);
-        $stmt = $pdo->prepare("INSERT INTO scans (job_id, email, domain, status, logs) VALUES (?, ?, ?, 'PENDING', ?)");
-        $stmt->execute([$jobId, $email, $domain, $initialLogs]);
+
+        if ($userId) {
+            $stmt = $pdo->prepare("INSERT INTO scans (job_id, user_id, email, domain, status, logs) VALUES (?, ?, ?, ?, 'PENDING', ?)");
+            $stmt->execute([$jobId, $userId, $email, $domain, $initialLogs]);
+        } else {
+            $stmt = $pdo->prepare("INSERT INTO scans (job_id, email, domain, status, logs) VALUES (?, ?, ?, 'PENDING', ?)");
+            $stmt->execute([$jobId, $email, $domain, $initialLogs]);
+        }
         echo json_encode(["job_id" => $jobId, "status" => "ACCEPTED"]);
         exit;
     }
@@ -474,9 +495,10 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
             $scanService = new ScanService($pdo);
             $result = $scanService->runScan($jobId);
             echo json_encode($result);
-        } catch (Exception $e) {
+        } catch (\Throwable $e) {
             http_response_code(500);
-            echo json_encode(["error" => $e->getMessage()]);
+            $errJson = json_encode(["error" => $e->getMessage()]);
+            echo $errJson ?: '{"error": "Unknown fatal error or JSON encode failure"}';
         }
         exit;
     }

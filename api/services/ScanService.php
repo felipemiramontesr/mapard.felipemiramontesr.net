@@ -236,23 +236,25 @@ class ScanService
             $findingsJson = json_encode($richFindings);
             $checksum = hash('sha256', $findingsJson);
 
-            // Store Snapshot
-            $snapshotSql = "INSERT INTO analysis_snapshots ";
-            $snapshotSql .= "(user_id, job_id, checksum, raw_data_json) VALUES (?, ?, ?, ?)";
-            $this->pdo->prepare($snapshotSql)->execute([
-                $userId,
-                $jobId,
-                $checksum,
-                $encryptedFindings // Use the same encrypted findings for consistency
-            ]);
+            // Store Snapshot ONLY if userId is valid (it should be, but just in case)
+            if ($userId) {
+                $snapshotSql = "INSERT INTO analysis_snapshots ";
+                $snapshotSql .= "(user_id, job_id, checksum, raw_data_json) VALUES (?, ?, ?, ?)";
+                $this->pdo->prepare($snapshotSql)->execute([
+                    $userId,
+                    $jobId,
+                    $checksum,
+                    $encryptedFindings // Use the same encrypted findings for consistency
+                ]);
 
-            // [NEW] Update FSM State: First analysis complete
-            // Run UPSERT logic logic (SQLite) to handle missing config rows for old target profiles.
-            $configSql = "INSERT INTO user_security_config (user_id, is_first_analysis_complete, updated_at) 
-                          VALUES (?, 1, CURRENT_TIMESTAMP) 
-                          ON CONFLICT(user_id) DO UPDATE SET 
-                          is_first_analysis_complete=1, updated_at=CURRENT_TIMESTAMP";
-            $this->pdo->prepare($configSql)->execute([$userId]);
+                // [NEW] Update FSM State: First analysis complete
+                // Run UPSERT logic logic (SQLite) to handle missing config rows for old target profiles.
+                $configSql = "INSERT INTO user_security_config (user_id, is_first_analysis_complete, updated_at) 
+                              VALUES (?, 1, CURRENT_TIMESTAMP) 
+                              ON CONFLICT(user_id) DO UPDATE SET 
+                              is_first_analysis_complete=1, updated_at=CURRENT_TIMESTAMP";
+                $this->pdo->prepare($configSql)->execute([$userId]);
+            }
 
             return [
                 "status" => "COMPLETED",
@@ -262,7 +264,7 @@ class ScanService
                 "is_baseline" => $isFirstScan,
                 "checksum" => $checksum
             ];
-        } catch (Exception $e) {
+        } catch (\Throwable $e) {
             $addLog($logs, "CRITICAL FAILURE: " . $e->getMessage(), "error");
             $encryptedLogs = SecurityUtils::encrypt(json_encode($logs));
             $this->pdo->prepare("UPDATE scans SET status='FAILED', logs=?, is_encrypted=1 WHERE job_id=?")

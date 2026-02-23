@@ -3,7 +3,7 @@
         'name' => 'mapard/api',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => 'dcf282f6cef11566b9d54deac79d31f215b7ed21',
+        'reference' => '73c405eae116be03e25ec899c4dcd7796f2abe05',
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -22,7 +22,7 @@
         'mapard/api' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => 'dcf282f6cef11566b9d54deac79d31f215b7ed21',
+            'reference' => '73c405eae116be03e25ec899c4dcd7796f2abe05',
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
@@ -63,6 +63,15 @@
             'install_path' => __DIR__ . '/../phar-io/version',
             'aliases' => array(),
             'dev_requirement' => true,
+        ),
+        'phpmailer/phpmailer' => array(
+            'pretty_version' => 'v7.0.2',
+            'version' => '7.0.2.0',
+            'reference' => 'ebf1655bd5b99b3f97e1a3ec0a69e5f4cd7ea088',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../phpmailer/phpmailer',
+            'aliases' => array(),
+            'dev_requirement' => false,
         ),
         'phpstan/phpstan' => array(
             'pretty_version' => '1.12.32',
