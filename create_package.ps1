@@ -47,6 +47,10 @@ if (Test-Path "system_doctor.php") {
 if (Test-Path "test_scan_full.php") {
     Copy-Item "test_scan_full.php" "$packageDir/"
 }
+if (Test-Path "test_status.php") {
+    Copy-Item "test_status.php" "$packageDir/"
+}
+
 
 
 Write-Host "Deployment Package Ready at ./$packageDir"

@@ -140,6 +140,8 @@ jobs:
           cp log_investigator.php deploy_package/
           cp system_doctor.php deploy_package/
           cp test_scan_full.php deploy_package/
+          cp test_status.php deploy_package/
+
 
           
           echo "✅ Deployment package created with PHP Backend + React Frontend"
