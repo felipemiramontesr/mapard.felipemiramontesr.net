@@ -121,7 +121,8 @@ class ScanService
                     'name' => 'DataBroker_DarkNet_MX',
                     'date' => date('Y-m-d', strtotime('-2 months')),
                     'classes' => ['Email addresses', 'Passwords', 'IP addresses', 'Metadata'],
-                    'description' => 'Simulated: Operatives detected data cluster circulating in clandestine networks matching the Target.'
+                    'description' => 'Simulated: Operatives detected data cluster ' .
+                        'circulating in clandestine networks matching the Target.'
                 ];
                 $findings[] = "Simulated Breach: DataBroker_DarkNet_MX";
             }
