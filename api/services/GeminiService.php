@@ -35,8 +35,8 @@ class GeminiService
 
         $url = $this->baseUrl . $this->model . ':generateContent?key=' . $this->apiKey;
 
-        // 1. SPLIT INTO BATCHES (Chunk size 5)
-        $batches = array_chunk($data, 5);
+        // 1. SPLIT INTO BATCHES (Chunk size 20 to optimize for Hostinger Timeouts)
+        $batches = array_chunk($data, 20);
         $finalAnalysis = [];
 
         // 2. PROCESS BACHTCHES
