@@ -65,7 +65,7 @@ class ReportService extends FPDF
         $this->SetFont('Helvetica', '', 8);
         $this->SetXY(12, 18);
         $this->SetTextColor(138, 159, 202);
-        $this->Cell(0, 5, utf8_decode('CIBERINTELIGENCIA & ANÁLISIS FORENSE'), 0, 1, 'L');
+        $this->Cell(0, 5, mb_convert_encoding('CIBERINTELIGENCIA & ANÁLISIS FORENSE', 'ISO-8859-1', 'UTF-8'), 0, 1, 'L');
     }
 
     public function footer()
@@ -247,7 +247,7 @@ class ReportService extends FPDF
         $this->SetX(16);
         $this->SetFont('Helvetica', 'B', 9);
         $this->SetTextColor(26, 31, 58);
-        $this->Cell(0, 5, utf8_decode("CONTEXTO:"), 0, 1);
+        $this->Cell(0, 5, mb_convert_encoding("CONTEXTO:", 'ISO-8859-1', 'UTF-8'), 0, 1);
 
         $this->SetX(16);
         $this->SetFont('Helvetica', '', 9);
@@ -259,7 +259,7 @@ class ReportService extends FPDF
         $this->SetX(16);
         $this->SetFont('Helvetica', 'B', 9);
         $this->SetTextColor(26, 31, 58);
-        $this->Cell(0, 5, utf8_decode("IMPACTO:"), 0, 1);
+        $this->Cell(0, 5, mb_convert_encoding("IMPACTO:", 'ISO-8859-1', 'UTF-8'), 0, 1);
 
         $this->SetX(16);
         $this->SetFont('Helvetica', '', 9);
@@ -287,7 +287,7 @@ class ReportService extends FPDF
         $this->SetFont('Helvetica', 'B', 9);
         $this->SetTextColor(40, 120, 80);
         $title = $isNeutralized ? "ACCIONES COMPLETADAS:" : "PLAN DE ACCIÓN:";
-        $this->Cell(0, 5, utf8_decode($title), 0, 1);
+        $this->Cell(0, 5, mb_convert_encoding($title, 'ISO-8859-1', 'UTF-8'), 0, 1);
 
         $this->SetFont('Helvetica', '', 9);
         $this->SetTextColor(50, 60, 70);
@@ -329,7 +329,7 @@ class ReportService extends FPDF
         $this->SetXY(15, $this->GetY() + 4); // Top padding 4mm
         $this->SetFont('Helvetica', 'B', 10);
         $this->SetTextColor(26, 31, 58);
-        $this->Cell(0, 6, utf8_decode("RESUMEN DE SEGURIDAD"), 0, 1);
+        $this->Cell(0, 6, mb_convert_encoding("RESUMEN DE SEGURIDAD", 'ISO-8859-1', 'UTF-8'), 0, 1);
 
         // Body
         $this->SetX(15);
@@ -364,7 +364,7 @@ class ReportService extends FPDF
         $this->SetXY(15, $this->GetY() + 4);
         $this->SetFont('Helvetica', 'B', 11);
         $this->SetTextColor(200, 0, 0);
-        $this->Cell(0, 6, utf8_decode("CONCLUSIÓN ESTRATÉGICA"), 0, 1);
+        $this->Cell(0, 6, mb_convert_encoding("CONCLUSIÓN ESTRATÉGICA", 'ISO-8859-1', 'UTF-8'), 0, 1);
 
         // Body
         $this->SetX(15);
@@ -389,7 +389,7 @@ class ReportService extends FPDF
         $this->SetXY(15, $baseY + 5);
         $this->SetFont('Helvetica', 'B', 10);
         $this->SetTextColor(26, 31, 58);
-        $this->Cell(0, 5, utf8_decode("ANÁLISIS DE TENDENCIA"), 0, 1);
+        $this->Cell(0, 5, mb_convert_encoding("ANÁLISIS DE TENDENCIA", 'ISO-8859-1', 'UTF-8'), 0, 1);
 
         $this->SetX(15);
         $this->SetFont('Helvetica', '', 9);

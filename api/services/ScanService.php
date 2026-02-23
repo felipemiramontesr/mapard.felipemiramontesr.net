@@ -346,7 +346,7 @@ class ScanService
                         }
                         $isNew = !$matchFound;
                         if ($isNew) {
-                            $newFindingsCount++;
+                            $deltaNew++;
                         }
                     }
 
