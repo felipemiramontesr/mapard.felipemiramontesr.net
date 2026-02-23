@@ -43,14 +43,19 @@ class ScanService
 
         try {
             // Helper to add log
-            $addLog = function (&$logs, $msg, $type = 'info') {
+            $addLog = function (&$logs, $msg, $type = 'info') use ($jobId) {
                 foreach ($logs as $l) {
                     if ($l['message'] === $msg) {
                         return;
                     }
                 }
                 $logs[] = ["message" => $msg, "type" => $type, "timestamp" => date('c')];
+
+                // Real-time persistence for polling endpoint
+                $stmt = $this->pdo->prepare("UPDATE scans SET logs = ? WHERE job_id = ?");
+                $stmt->execute([json_encode($logs), $jobId]);
             };
+
 
             // Step 1: DNS Recon
             $publicProviders = [

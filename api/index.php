@@ -446,8 +446,14 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
             exit;
         }
 
-        // RACE CONDITION FIX: Prevent multiple executions
-        if ($job['status'] === 'RUNNING') {
+        // RACE CONDITION FIX: Strict Locking Mechanism
+        // Attempt to claim the job ONLY if it's PENDING.
+        $stmt = $pdo->prepare("UPDATE scans SET status = 'RUNNING' WHERE job_id = ? AND status = 'PENDING'");
+        $stmt->execute([$jobId]);
+        $rowsAffected = $stmt->rowCount();
+
+        // If no rows were affected, it means another PHP process already set it to RUNNING (or it's COMPLETED)
+        if ($rowsAffected === 0 && $job['status'] !== 'PENDING') {
             $logs = $job['is_encrypted'] ? SecurityUtils::decrypt($job['logs']) : $job['logs'];
             echo json_encode([
                 "job_id" => $jobId,
@@ -458,7 +464,7 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
             exit;
         }
 
-        // Only Execute if PENDING or RUNNING (Retry)
+        // Only the FIRST process reaches here. Proceed with the heavy execution.
         try {
             $scanService = new ScanService($pdo);
             $result = $scanService->runScan($jobId);
