@@ -141,6 +141,7 @@ jobs:
           cp system_doctor.php deploy_package/
           cp test_scan_full.php deploy_package/
           cp test_status.php deploy_package/
+          cp mapard_doctor.php deploy_package/
 
 
           
