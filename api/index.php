@@ -465,6 +465,10 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
         }
 
         // Only the FIRST process reaches here. Proceed with the heavy execution.
+        // CRITICAL HOSTINGER FIX: Do not kill script if browser disconnects during the heavy AI process.
+        ignore_user_abort(true);
+        set_time_limit(300);
+
         try {
             $scanService = new ScanService($pdo);
             $result = $scanService->runScan($jobId);

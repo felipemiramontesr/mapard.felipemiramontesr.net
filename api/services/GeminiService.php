@@ -144,44 +144,45 @@ class GeminiService
             ]
         ];
 
-        $opts = [
-            'http' => [
-                'method' => 'POST',
-                'header' => "Content-Type: application/json\r\n",
-                'content' => json_encode($payload),
-                'timeout' => 60,
-                'ignore_errors' => true
-            ],
-            'ssl' => [
-                'verify_peer' => false,
-                'verify_peer_name' => false
-            ]
-        ];
-
-        $context = stream_context_create($opts);
-
-        // RETRY LOGIC (3 Attempts)
+        // ----------------------------------------------------------------------
+        // CRITICAL HOSTINGER FIX: Replaced file_get_contents with robust cURL
+        // ----------------------------------------------------------------------
         $maxRetries = 3;
         $attempt = 0;
         $result = false;
 
         while ($attempt < $maxRetries) {
             $attempt++;
-            $result = @file_get_contents($url, false, $context);
 
-            if ($result !== false) {
-                break; // Success
+            $ch = curl_init($url);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_POST, true);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
+            curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                'Content-Type: application/json'
+            ]);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 60); // 60 seconds per batch max
+            // Bypass SSL for local development or strict server firewalls
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+
+            $result = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $curlError = curl_error($ch);
+            curl_close($ch);
+
+            // If we got a valid response (Code 200), break the retry loop
+            if ($result !== false && $httpCode === 200) {
+                break;
             }
 
-            // Optional: Log failure here if logger was available
-            // error_log("Gemini Attempt $attempt failed.");
-
+            // Sleep before retry if it failed
             if ($attempt < $maxRetries) {
-                sleep(1); // Wait 1s before retry
+                sleep(2);
             }
         }
 
-        if ($result) {
+        if ($result && $httpCode === 200) {
             $json = json_decode($result, true);
             if (isset($json['candidates'][0]['content']['parts'][0]['text'])) {
                 $txt = $json['candidates'][0]['content']['parts'][0]['text'];
@@ -189,6 +190,7 @@ class GeminiService
                 return json_decode($clean, true);
             }
         }
+
         return null;
     }
 
