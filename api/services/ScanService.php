@@ -8,10 +8,6 @@ use MapaRD\Services\GeminiService;
 use MapaRD\Services\ReportService;
 use MapaRD\Services\SecurityUtils;
 
-require_once __DIR__ . '/GeminiService.php';
-require_once __DIR__ . '/ReportService.php';
-require_once __DIR__ . '/SecurityUtils.php';
-
 class ScanService
 {
     private $pdo;

@@ -33,13 +33,10 @@ function translate_data_class($class)
         'Spoken languages' => 'Idiomas',
         'Time zones' => 'Zona horaria',
         'Device information' => 'Información de dispositivo',
-        'Browser user agent details' => 'Detalles de navegador',
         'Employers' => 'Empleadores'
     ];
     return $map[$class] ?? $class;
 }
-
-require_once __DIR__ . '/../fpdf.php';
 
 class ReportService extends FPDF
 {

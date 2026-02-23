@@ -11,6 +11,7 @@ header('Content-Type: text/plain; charset=utf-8');
 
 // Authentication check removed for local CLI testing
 
+require_once __DIR__ . '/api/vendor/autoload.php';
 require_once __DIR__ . '/api/config.php';
 require_once __DIR__ . '/api/services/ScanService.php';
 
