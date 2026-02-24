@@ -491,14 +491,34 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
         ignore_user_abort(true);
         set_time_limit(300);
 
+        // DECOUPLE EXECUTION: Close connection and respond to client immediately
+        header("Connection: close");
+        header("Content-Encoding: none");
+        ob_start();
+        $logs = $job['is_encrypted'] ? SecurityUtils::decrypt($job['logs']) : $job['logs'];
+        echo json_encode([
+            "job_id" => $jobId,
+            "status" => "RUNNING",
+            "logs" => is_string($logs) ? json_decode($logs) : [],
+            "message" => "Scan started in background..."
+        ]);
+        $size = ob_get_length();
+        header("Content-Length: $size");
+        ob_end_flush();
+        @ob_flush();
+        @flush();
+
+        if (function_exists('fastcgi_finish_request')) {
+            fastcgi_finish_request();
+        } elseif (function_exists('litespeed_finish_request')) {
+            litespeed_finish_request();
+        }
+
         try {
             $scanService = new ScanService($pdo);
-            $result = $scanService->runScan($jobId);
-            echo json_encode($result);
+            $scanService->runScan($jobId);
         } catch (\Throwable $e) {
-            http_response_code(500);
-            $errJson = json_encode(["error" => $e->getMessage()]);
-            echo $errJson ?: '{"error": "Unknown fatal error or JSON encode failure"}';
+            error_log("Background Scan Fatal Error: " . $e->getMessage());
         }
         exit;
     }
