@@ -143,7 +143,7 @@ try {
     $encryptedFindings = $securityUtilsClass::encrypt($mockFindings);
 
     echo "  -> Injecting mock scan status...\n";
-    $stmtScan = $pdo->prepare("INSERT INTO scans (job_id, user_id, email, status, logs, findings, result_path, is_encrypted, created_at, updated_at) VALUES (?, ?, ?, 'COMPLETED', ?, ?, '/mock/path.pdf', 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)");
+    $stmtScan = $pdo->prepare("INSERT INTO scans (job_id, user_id, email, status, logs, findings, result_path, is_encrypted, created_at) VALUES (?, ?, ?, 'COMPLETED', ?, ?, '/mock/path.pdf', 1, CURRENT_TIMESTAMP)");
     $stmtScan->execute([$jobId, $userId, $targetEmail, $encryptedLogs, $encryptedFindings]);
     echo "  [OK] Mock scan injected. Job ID: $jobId\n";
 
