@@ -265,7 +265,8 @@ class ScanService
                 "checksum" => $checksum
             ];
         } catch (\Throwable $e) {
-            $logMsg = date('c') . " - [SCAN SERVICE FATAL ERROR] " . $e->getMessage() . " in " . $e->getFile() . ":" . $e->getLine() . "\n";
+            $logMsg = date('c') . " - [SCAN SERVICE FATAL ERROR] "
+                . $e->getMessage() . " in " . $e->getFile() . ":" . $e->getLine() . "\n";
             @file_put_contents(__DIR__ . '/../temp/background_crash.log', $logMsg, FILE_APPEND);
 
             $addLog($logs, "CRITICAL FAILURE: " . $e->getMessage(), "error");

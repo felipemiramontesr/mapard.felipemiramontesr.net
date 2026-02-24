@@ -176,7 +176,11 @@ class GeminiService
             $curlError = curl_error($ch);
             curl_close($ch);
 
-            @file_put_contents($debugLog, date('c') . " - [GEMINI] cURL returned HTTP $httpCode. Error: " . ($curlError ?: 'None') . "\n", FILE_APPEND);
+            @file_put_contents(
+                $debugLog,
+                date('c') . " - [GEMINI] cURL returned HTTP $httpCode. Error: " . ($curlError ?: 'None') . "\n",
+                FILE_APPEND
+            );
 
             // If we got a valid response (Code 200), break the retry loop
             if ($result !== false && $httpCode === 200) {
@@ -200,7 +204,11 @@ class GeminiService
             }
         }
 
-        @file_put_contents($debugLog, date('c') . " - [GEMINI] Failed to extract JSON. Raw result: " . substr((string) $result, 0, 500) . "\n", FILE_APPEND);
+        @file_put_contents(
+            $debugLog,
+            date('c') . " - [GEMINI] Failed to extract JSON. Raw result: " . substr((string) $result, 0, 500) . "\n",
+            FILE_APPEND
+        );
         return null;
     }
 
