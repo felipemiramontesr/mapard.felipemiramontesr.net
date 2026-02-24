@@ -36,4 +36,15 @@ if (file_exists($logPath)) {
     echo "   [-] LOG FILE NOT FOUND.\n";
     echo "       This means api/index.php hasn't been able to write the log.\n";
 }
+
+echo "\n3. Checking CRASH log file: $tempDir/background_crash.log\n";
+$crashLog = $tempDir . '/background_crash.log';
+if (file_exists($crashLog)) {
+    echo "   [+] Crash log exists. Size: " . filesize($crashLog) . " bytes\n";
+    echo "\n--- CRASH LOG CONTENT START ---\n\n";
+    echo file_get_contents($crashLog);
+    echo "\n\n--- CRASH LOG CONTENT END ---\n";
+} else {
+    echo "   [-] CRASH LOG NOT FOUND. No fatal errors caught yet.\n";
+}
 ?>
