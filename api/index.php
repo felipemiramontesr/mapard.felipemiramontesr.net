@@ -366,6 +366,8 @@ if (isset($pathParams[1]) && $pathParams[1] === 'auth') {
 
     // USER STATUS (Phase 23)
     if (isset($pathParams[1]) && $pathParams[1] === 'user' && $pathParams[2] === 'status') {
+        $debugLog = __DIR__ . '/temp/status_debug.log';
+        @file_put_contents($debugLog, date('c') . " - [TRACE] Status requested: " . ($_GET['email'] ?? 'none') . "\n", FILE_APPEND);
         try {
             $email = $_GET['email'] ?? '';
 
@@ -374,6 +376,7 @@ if (isset($pathParams[1]) && $pathParams[1] === 'auth') {
             $job = $stmt->fetch(PDO::FETCH_ASSOC);
 
             if ($job) {
+                @file_put_contents($debugLog, date('c') . " - [TRACE] Job found. ID: " . $job['job_id'] . "\n", FILE_APPEND);
                 $findings = $job['is_encrypted'] ? SecurityUtils::decrypt($job['findings']) : $job['findings'];
                 $logs = $job['is_encrypted'] ? SecurityUtils::decrypt($job['logs']) : $job['logs'];
 
@@ -382,6 +385,7 @@ if (isset($pathParams[1]) && $pathParams[1] === 'auth') {
                 $stmt->execute([$email]);
                 $config = $stmt->fetch(PDO::FETCH_ASSOC);
 
+                @file_put_contents($debugLog, date('c') . " - [TRACE] Assembly response...\n", FILE_APPEND);
                 $responseBody = [
                     "has_scans" => true,
                     "job_id" => $job['job_id'],
@@ -398,13 +402,15 @@ if (isset($pathParams[1]) && $pathParams[1] === 'auth') {
                 }
 
                 // [TEMPORARY DEBUG HOOK] Capture the exact output going to the frontend
-                @file_put_contents(__DIR__ . '/temp/status_debug.log', date('c') . " - Output:\n" . $jsonOutput . "\n\n", FILE_APPEND);
+                @file_put_contents($debugLog, date('c') . " - [TRACE] Output:\n" . $jsonOutput . "\n\n", FILE_APPEND);
 
                 echo $jsonOutput;
             } else {
+                @file_put_contents($debugLog, date('c') . " - [TRACE] No job found.\n", FILE_APPEND);
                 echo json_encode(["has_scans" => false, "is_first_analysis_complete" => false]);
             }
         } catch (\Throwable $e) {
+            @file_put_contents($debugLog, date('c') . " - [FATAL ERROR] " . $e->getMessage() . " in " . $e->getFile() . ":" . $e->getLine() . "\n", FILE_APPEND);
             http_response_code(500);
             $errJson = json_encode(["error" => "Status error: " . $e->getMessage()]);
             echo $errJson ?: '{"error": "Status error and JSON encode failed"}';
