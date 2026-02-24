@@ -415,11 +415,17 @@ if (isset($pathParams[1]) && $pathParams[1] === 'auth') {
     // DEBUG ENDPOINT TO READ RAW TXT
     if (isset($pathParams[1]) && $pathParams[1] === 'read_debug') {
         header('Content-Type: text/plain; charset=utf-8');
-        $logPath = __DIR__ . '/temp/status_debug.log';
+        $tempDir = __DIR__ . '/temp';
+        $logPath = $tempDir . '/status_debug.log';
+        if (!is_dir($tempDir)) {
+            echo "Directory $tempDir does not exist. Creating it now...\n";
+            @mkdir($tempDir, 0755, true);
+        }
         if (file_exists($logPath)) {
             echo file_get_contents($logPath);
         } else {
-            echo "No log found.";
+            echo "No log found at $logPath\n";
+            echo "Directory writable? " . (is_writable($tempDir) ? 'YES' : 'NO') . "\n";
         }
         exit;
     }
