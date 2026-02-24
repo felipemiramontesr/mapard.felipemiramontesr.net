@@ -435,6 +435,17 @@ if (isset($pathParams[1]) && $pathParams[1] === 'read_debug') {
     exit;
 }
 
+if (isset($pathParams[1]) && $pathParams[1] === 'read_crash') {
+    header('Content-Type: text/plain; charset=utf-8');
+    $logPath = __DIR__ . '/temp/background_crash.log';
+    if (file_exists($logPath)) {
+        echo file_get_contents($logPath);
+    } else {
+        echo "No crash log found at $logPath. The process hasn't crashed yet or log couldn't be written.\n";
+    }
+    exit;
+}
+
 // ROUTER - SCAN
 if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
     // START SCAN
@@ -544,7 +555,9 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
             $scanService = new ScanService($pdo);
             $scanService->runScan($jobId);
         } catch (\Throwable $e) {
-            error_log("Background Scan Fatal Error: " . $e->getMessage());
+            $logMsg = date('c') . " - [BACKGROUND FATAL ERROR] " . $e->getMessage() . " in " . $e->getFile() . ":" . $e->getLine() . "\n";
+            @file_put_contents(__DIR__ . '/temp/background_crash.log', $logMsg, FILE_APPEND);
+            error_log($logMsg);
         }
         exit;
     }
