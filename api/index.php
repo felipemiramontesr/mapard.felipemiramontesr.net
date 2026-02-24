@@ -273,168 +273,166 @@ function resetRateLimit($pdo, $ip)
 $clientIp = $_SERVER['REMOTE_ADDR'] ?? null;
 
 // ROUTER
-if (isset($pathParams[1]) && $pathParams[1] === 'auth') {
-    // AUTH SETUP (Register/Initial Login)
-    if ($pathParams[2] === 'setup' && $method === 'POST') {
-        enforceRateLimit($pdo, $clientIp);
-        $input = json_decode(file_get_contents('php://input'), true);
-        $email = $input['email'] ?? '';
-        $password = $input['password'] ?? '';
-        $deviceId = $input['device_id'] ?? '';
+// AUTH SETUP (Register/Initial Login)
+if (isset($pathParams[1], $pathParams[2]) && $pathParams[1] === 'auth' && $pathParams[2] === 'setup' && $method === 'POST') {
+    enforceRateLimit($pdo, $clientIp);
+    $input = json_decode(file_get_contents('php://input'), true);
+    $email = $input['email'] ?? '';
+    $password = $input['password'] ?? '';
+    $deviceId = $input['device_id'] ?? '';
 
-        if (empty($email) || empty($password)) {
-            http_response_code(400);
-            echo json_encode(["error" => "Email and password required"]);
-            exit;
-        }
-
-        // Check if user exists
-        $stmt = $pdo->prepare("SELECT * FROM users WHERE email_target = ?");
-        $stmt->execute([$email]);
-        $user = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        $faCode = SecurityUtils::generate2FA();
-        $hashedPassword = SecurityUtils::hashPassword($password);
-
-        if (!$user) {
-            // Create New User & Bind Device
-            $stmt = $pdo->prepare("INSERT INTO users (email_target, password_hash, fa_code, device_id) VALUES (?, ?, ?, ?)");
-            $stmt->execute([$email, $hashedPassword, $faCode, $deviceId]);
-            $newUserId = $pdo->lastInsertId();
-
-            // Phase 28: Initialize Security Config
-            $pdo->prepare("INSERT INTO user_security_config (user_id) VALUES (?)")->execute([$newUserId]);
-        } else {
-            // Phase 25/27: Floating Hardware Binding
-            // We no longer block with 403 in setup. 
-            // The re-binding will happen automatically during verify (Phase 27).
-
-            // Update Existing User (Reset Password/2FA if re-setting up)
-            $stmt = $pdo->prepare("UPDATE users SET password_hash = ?, fa_code = ?, is_verified = 0 WHERE email_target = ?");
-            $stmt->execute([$hashedPassword, $faCode, $email]);
-        }
-
-        // TACTICAL: Send real 2FA email
-        try {
-            MailService::send2FA($email, $faCode);
-            $logMsg = "[2FA] CODE FOR $email: $faCode - SENT VIA SMTP\n";
-            file_put_contents(__DIR__ . '/temp/2fa_tactical.log', $logMsg, FILE_APPEND);
-        } catch (Exception $e) {
-            $logError = "[2FA ERROR] For $email: " . $e->getMessage() . "\n";
-            file_put_contents(__DIR__ . '/temp/2fa_tactical.log', $logError, FILE_APPEND);
-        }
-
-        echo json_encode(["status" => "2FA_SENT", "message" => "Tactical code sent to target email."]);
+    if (empty($email) || empty($password)) {
+        http_response_code(400);
+        echo json_encode(["error" => "Email and password required"]);
         exit;
     }
 
-    // AUTH VERIFY (2FA)
-    if ($pathParams[2] === 'verify' && $method === 'POST') {
-        enforceRateLimit($pdo, $clientIp);
-        $input = json_decode(file_get_contents('php://input'), true);
-        $email = $input['email'] ?? '';
-        $code = $input['code'] ?? '';
-        $deviceId = $input['device_id'] ?? '';
+    // Check if user exists
+    $stmt = $pdo->prepare("SELECT * FROM users WHERE email_target = ?");
+    $stmt->execute([$email]);
+    $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        $stmt = $pdo->prepare("SELECT * FROM users WHERE email_target = ? AND fa_code = ?");
-        $stmt->execute([$email, $code]);
-        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+    $faCode = SecurityUtils::generate2FA();
+    $hashedPassword = SecurityUtils::hashPassword($password);
 
-        if (!$user) {
-            recordFailedAttempt($pdo, $clientIp);
-            http_response_code(401);
-            echo json_encode(["error" => "Invalid verification code"]);
-            exit;
-        }
+    if (!$user) {
+        // Create New User & Bind Device
+        $stmt = $pdo->prepare("INSERT INTO users (email_target, password_hash, fa_code, device_id) VALUES (?, ?, ?, ?)");
+        $stmt->execute([$email, $hashedPassword, $faCode, $deviceId]);
+        $newUserId = $pdo->lastInsertId();
 
+        // Phase 28: Initialize Security Config
+        $pdo->prepare("INSERT INTO user_security_config (user_id) VALUES (?)")->execute([$newUserId]);
+    } else {
         // Phase 25/27: Floating Hardware Binding
-        // Upon successful 2FA, we unify the hardware ID to the current one.
-        // This allows seamless migration/re-installation.
-        $pdo->prepare("UPDATE users SET is_verified = 1, fa_code = NULL, device_id = ? WHERE id = ?")
-            ->execute([$deviceId ?: $user['device_id'], $user['id']]);
+        // We no longer block with 403 in setup. 
+        // The re-binding will happen automatically during verify (Phase 27).
 
-        resetRateLimit($pdo, $clientIp);
+        // Update Existing User (Reset Password/2FA if re-setting up)
+        $stmt = $pdo->prepare("UPDATE users SET password_hash = ?, fa_code = ?, is_verified = 0 WHERE email_target = ?");
+        $stmt->execute([$hashedPassword, $faCode, $email]);
+    }
 
-        echo json_encode([
-            "status" => "VERIFIED",
-            "token" => "blind_ops_" . bin2hex(random_bytes(16)),
-            "email" => $email,
-            "is_first_analysis_complete" => false // Default for new verification
-        ]);
+    // TACTICAL: Send real 2FA email
+    try {
+        MailService::send2FA($email, $faCode);
+        $logMsg = "[2FA] CODE FOR $email: $faCode - SENT VIA SMTP\n";
+        file_put_contents(__DIR__ . '/temp/2fa_tactical.log', $logMsg, FILE_APPEND);
+    } catch (Exception $e) {
+        $logError = "[2FA ERROR] For $email: " . $e->getMessage() . "\n";
+        file_put_contents(__DIR__ . '/temp/2fa_tactical.log', $logError, FILE_APPEND);
+    }
+
+    echo json_encode(["status" => "2FA_SENT", "message" => "Tactical code sent to target email."]);
+    exit;
+}
+
+// AUTH VERIFY (2FA)
+if (isset($pathParams[1], $pathParams[2]) && $pathParams[1] === 'auth' && $pathParams[2] === 'verify' && $method === 'POST') {
+    enforceRateLimit($pdo, $clientIp);
+    $input = json_decode(file_get_contents('php://input'), true);
+    $email = $input['email'] ?? '';
+    $code = $input['code'] ?? '';
+    $deviceId = $input['device_id'] ?? '';
+
+    $stmt = $pdo->prepare("SELECT * FROM users WHERE email_target = ? AND fa_code = ?");
+    $stmt->execute([$email, $code]);
+    $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$user) {
+        recordFailedAttempt($pdo, $clientIp);
+        http_response_code(401);
+        echo json_encode(["error" => "Invalid verification code"]);
         exit;
     }
 
-    // USER STATUS (Phase 23)
-    if (isset($pathParams[1]) && $pathParams[1] === 'user' && $pathParams[2] === 'status') {
-        $debugLog = __DIR__ . '/temp/status_debug.log';
-        @file_put_contents($debugLog, date('c') . " - [TRACE] Status requested: " . ($_GET['email'] ?? 'none') . "\n", FILE_APPEND);
-        try {
-            $email = $_GET['email'] ?? '';
+    // Phase 25/27: Floating Hardware Binding
+    // Upon successful 2FA, we unify the hardware ID to the current one.
+    // This allows seamless migration/re-installation.
+    $pdo->prepare("UPDATE users SET is_verified = 1, fa_code = NULL, device_id = ? WHERE id = ?")
+        ->execute([$deviceId ?: $user['device_id'], $user['id']]);
 
-            $stmt = $pdo->prepare("SELECT * FROM scans WHERE email = ? ORDER BY created_at DESC LIMIT 1");
+    resetRateLimit($pdo, $clientIp);
+
+    echo json_encode([
+        "status" => "VERIFIED",
+        "token" => "blind_ops_" . bin2hex(random_bytes(16)),
+        "email" => $email,
+        "is_first_analysis_complete" => false // Default for new verification
+    ]);
+    exit;
+}
+
+// USER STATUS (Phase 23)
+if (isset($pathParams[1]) && $pathParams[1] === 'user' && $pathParams[2] === 'status') {
+    $debugLog = __DIR__ . '/temp/status_debug.log';
+    @file_put_contents($debugLog, date('c') . " - [TRACE] Status requested: " . ($_GET['email'] ?? 'none') . "\n", FILE_APPEND);
+    try {
+        $email = $_GET['email'] ?? '';
+
+        $stmt = $pdo->prepare("SELECT * FROM scans WHERE email = ? ORDER BY created_at DESC LIMIT 1");
+        $stmt->execute([$email]);
+        $job = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($job) {
+            @file_put_contents($debugLog, date('c') . " - [TRACE] Job found. ID: " . $job['job_id'] . "\n", FILE_APPEND);
+            $findings = $job['is_encrypted'] ? SecurityUtils::decrypt($job['findings']) : $job['findings'];
+            $logs = $job['is_encrypted'] ? SecurityUtils::decrypt($job['logs']) : $job['logs'];
+
+            // Phase 28: Get Security Config
+            $stmt = $pdo->prepare("SELECT is_first_analysis_complete FROM user_security_config WHERE user_id = (SELECT id FROM users WHERE email_target = ?)");
             $stmt->execute([$email]);
-            $job = $stmt->fetch(PDO::FETCH_ASSOC);
+            $config = $stmt->fetch(PDO::FETCH_ASSOC);
 
-            if ($job) {
-                @file_put_contents($debugLog, date('c') . " - [TRACE] Job found. ID: " . $job['job_id'] . "\n", FILE_APPEND);
-                $findings = $job['is_encrypted'] ? SecurityUtils::decrypt($job['findings']) : $job['findings'];
-                $logs = $job['is_encrypted'] ? SecurityUtils::decrypt($job['logs']) : $job['logs'];
+            @file_put_contents($debugLog, date('c') . " - [TRACE] Assembly response...\n", FILE_APPEND);
+            $responseBody = [
+                "has_scans" => true,
+                "job_id" => $job['job_id'],
+                "status" => $job['status'],
+                "is_first_analysis_complete" => (bool) (($config && isset($config['is_first_analysis_complete'])) ? $config['is_first_analysis_complete'] : false),
+                "logs" => is_string($logs) ? (json_decode($logs) ?: []) : [],
+                "findings" => is_string($findings) ? (json_decode($findings) ?: []) : [],
+                "result_url" => $job['result_path']
+            ];
 
-                // Phase 28: Get Security Config
-                $stmt = $pdo->prepare("SELECT is_first_analysis_complete FROM user_security_config WHERE user_id = (SELECT id FROM users WHERE email_target = ?)");
-                $stmt->execute([$email]);
-                $config = $stmt->fetch(PDO::FETCH_ASSOC);
-
-                @file_put_contents($debugLog, date('c') . " - [TRACE] Assembly response...\n", FILE_APPEND);
-                $responseBody = [
-                    "has_scans" => true,
-                    "job_id" => $job['job_id'],
-                    "status" => $job['status'],
-                    "is_first_analysis_complete" => (bool) (($config && isset($config['is_first_analysis_complete'])) ? $config['is_first_analysis_complete'] : false),
-                    "logs" => is_string($logs) ? (json_decode($logs) ?: []) : [],
-                    "findings" => is_string($findings) ? (json_decode($findings) ?: []) : [],
-                    "result_url" => $job['result_path']
-                ];
-
-                $jsonOutput = json_encode($responseBody);
-                if ($jsonOutput === false) {
-                    throw new \Exception("JSON encode error in status: " . json_last_error_msg());
-                }
-
-                // [TEMPORARY DEBUG HOOK] Capture the exact output going to the frontend
-                @file_put_contents($debugLog, date('c') . " - [TRACE] Output:\n" . $jsonOutput . "\n\n", FILE_APPEND);
-
-                echo $jsonOutput;
-            } else {
-                @file_put_contents($debugLog, date('c') . " - [TRACE] No job found.\n", FILE_APPEND);
-                echo json_encode(["has_scans" => false, "is_first_analysis_complete" => false]);
+            $jsonOutput = json_encode($responseBody);
+            if ($jsonOutput === false) {
+                throw new \Exception("JSON encode error in status: " . json_last_error_msg());
             }
-        } catch (\Throwable $e) {
-            @file_put_contents($debugLog, date('c') . " - [FATAL ERROR] " . $e->getMessage() . " in " . $e->getFile() . ":" . $e->getLine() . "\n", FILE_APPEND);
-            http_response_code(500);
-            $errJson = json_encode(["error" => "Status error: " . $e->getMessage()]);
-            echo $errJson ?: '{"error": "Status error and JSON encode failed"}';
-        }
-        exit;
-    }
 
-    // DEBUG ENDPOINT TO READ RAW TXT
-    if (isset($pathParams[1]) && $pathParams[1] === 'read_debug') {
-        header('Content-Type: text/plain; charset=utf-8');
-        $tempDir = __DIR__ . '/temp';
-        $logPath = $tempDir . '/status_debug.log';
-        if (!is_dir($tempDir)) {
-            echo "Directory $tempDir does not exist. Creating it now...\n";
-            @mkdir($tempDir, 0755, true);
-        }
-        if (file_exists($logPath)) {
-            echo file_get_contents($logPath);
+            // [TEMPORARY DEBUG HOOK] Capture the exact output going to the frontend
+            @file_put_contents($debugLog, date('c') . " - [TRACE] Output:\n" . $jsonOutput . "\n\n", FILE_APPEND);
+
+            echo $jsonOutput;
         } else {
-            echo "No log found at $logPath\n";
-            echo "Directory writable? " . (is_writable($tempDir) ? 'YES' : 'NO') . "\n";
+            @file_put_contents($debugLog, date('c') . " - [TRACE] No job found.\n", FILE_APPEND);
+            echo json_encode(["has_scans" => false, "is_first_analysis_complete" => false]);
         }
-        exit;
+    } catch (\Throwable $e) {
+        @file_put_contents($debugLog, date('c') . " - [FATAL ERROR] " . $e->getMessage() . " in " . $e->getFile() . ":" . $e->getLine() . "\n", FILE_APPEND);
+        http_response_code(500);
+        $errJson = json_encode(["error" => "Status error: " . $e->getMessage()]);
+        echo $errJson ?: '{"error": "Status error and JSON encode failed"}';
     }
+    exit;
+}
+
+// DEBUG ENDPOINT TO READ RAW TXT
+if (isset($pathParams[1]) && $pathParams[1] === 'read_debug') {
+    header('Content-Type: text/plain; charset=utf-8');
+    $tempDir = __DIR__ . '/temp';
+    $logPath = $tempDir . '/status_debug.log';
+    if (!is_dir($tempDir)) {
+        echo "Directory $tempDir does not exist. Creating it now...\n";
+        @mkdir($tempDir, 0755, true);
+    }
+    if (file_exists($logPath)) {
+        echo file_get_contents($logPath);
+    } else {
+        echo "No log found at $logPath\n";
+        echo "Directory writable? " . (is_writable($tempDir) ? 'YES' : 'NO') . "\n";
+    }
+    exit;
 }
 
 // ROUTER - SCAN
@@ -582,15 +580,15 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
         }
         exit;
     }
-
-    // [DEBUG FALLBACK] Catch all unhandled routes to see why it skips
-    http_response_code(404);
-    echo json_encode([
-        "error" => "API Route Not Found or Unhandled",
-        "debug_method" => $method,
-        "debug_raw_uri" => $_SERVER['REQUEST_URI'] ?? 'UNKNOWN',
-        "debug_parsed_uri" => $requestUri,
-        "debug_params" => $pathParams
-    ]);
-    exit;
 }
+
+// [DEBUG FALLBACK] Catch all unhandled routes to see why it skips
+http_response_code(404);
+echo json_encode([
+    "error" => "API Route Not Found or Unhandled",
+    "debug_method" => $method,
+    "debug_raw_uri" => $_SERVER['REQUEST_URI'] ?? 'UNKNOWN',
+    "debug_parsed_uri" => $requestUri,
+    "debug_params" => $pathParams
+]);
+exit;
