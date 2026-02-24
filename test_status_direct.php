@@ -1,12 +1,12 @@
 <?php
+use MapaRD\Services\SecurityUtils;
+
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
 header('Content-Type: text/plain; charset=utf-8');
 echo "--- DIRECT STATUS TEST ---\n\n";
-
-use MapaRD\Services\SecurityUtils;
 
 try {
     echo "1. Loading dependencies...\n";
