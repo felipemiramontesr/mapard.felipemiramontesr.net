@@ -396,6 +396,10 @@ if (isset($pathParams[1]) && $pathParams[1] === 'auth') {
                 if ($jsonOutput === false) {
                     throw new \Exception("JSON encode error in status: " . json_last_error_msg());
                 }
+
+                // [TEMPORARY DEBUG HOOK] Capture the exact output going to the frontend
+                @file_put_contents(__DIR__ . '/temp/status_debug.log', date('c') . " - Output:\n" . $jsonOutput . "\n\n", FILE_APPEND);
+
                 echo $jsonOutput;
             } else {
                 echo json_encode(["has_scans" => false, "is_first_analysis_complete" => false]);
