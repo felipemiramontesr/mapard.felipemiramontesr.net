@@ -14,7 +14,7 @@ try {
         'memory_limit' => ini_get('memory_limit')
     ];
 
-    $dbPath = __DIR__ . '/mapard_v2.sqlite';
+    $dbPath = __DIR__ . '/api/mapard_v2.sqlite';
     if (!file_exists($dbPath)) {
         throw new \Exception("DB file not found at $dbPath");
     }
@@ -36,7 +36,8 @@ try {
         if ($diagnostics['tables'][$t] === 'Exists') {
             $cols = $pdo->query("PRAGMA table_info($t)")->fetchAll(PDO::FETCH_ASSOC);
             $diagnostics['schemas'][$t] = array_map(function ($c) {
-                return $c['name'] . ' (' . $c['type'] . ')'; }, $cols);
+                return $c['name'] . ' (' . $c['type'] . ')';
+            }, $cols);
         }
     }
 
