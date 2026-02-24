@@ -227,7 +227,7 @@ created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 }
 
 $method = $_SERVER['REQUEST_METHOD'];
-$requestUri = $_SERVER['REQUEST_URI'];
+$requestUri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 $pathParams = explode('/', trim($requestUri, '/'));
 // OPTIONS handler moved to top
 
