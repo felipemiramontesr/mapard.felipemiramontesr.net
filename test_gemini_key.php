@@ -1,6 +1,6 @@
 <?php
-require_once __DIR__ . '/config.php';
-require_once __DIR__ . '/services/GeminiService.php';
+require_once __DIR__ . '/api/config.php';
+require_once __DIR__ . '/api/services/GeminiService.php';
 
 header('Content-Type: text/plain');
 echo "Testing Gemini API Key...\n";
@@ -23,7 +23,7 @@ if ($result && isset($result['threat_level'])) {
     echo "Summary: " . $result['executive_summary'] . "\n";
 } else {
     echo "FAILED. No valid Intel returned.\n";
-    $crashLog = __DIR__ . '/temp/gemini_debug.log';
+    $crashLog = __DIR__ . '/api/temp/gemini_debug.log';
     if (file_exists($crashLog)) {
         echo "Check gemini_debug.log for details.\n";
         echo file_get_contents($crashLog);

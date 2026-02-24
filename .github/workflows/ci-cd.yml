@@ -147,6 +147,7 @@ jobs:
           cp test_status_direct.php deploy_package/
           cp mapard_deep_doctor.php deploy_package/
           cp mapard_wipe.php deploy_package/
+          cp test_gemini_key.php deploy_package/
 
           
           echo "✅ Deployment package created with PHP Backend + React Frontend"
