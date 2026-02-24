@@ -582,4 +582,15 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
         }
         exit;
     }
+
+    // [DEBUG FALLBACK] Catch all unhandled routes to see why it skips
+    http_response_code(404);
+    echo json_encode([
+        "error" => "API Route Not Found or Unhandled",
+        "debug_method" => $method,
+        "debug_raw_uri" => $_SERVER['REQUEST_URI'] ?? 'UNKNOWN',
+        "debug_parsed_uri" => $requestUri,
+        "debug_params" => $pathParams
+    ]);
+    exit;
 }
