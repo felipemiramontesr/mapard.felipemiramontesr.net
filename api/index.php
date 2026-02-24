@@ -411,6 +411,18 @@ if (isset($pathParams[1]) && $pathParams[1] === 'auth') {
         }
         exit;
     }
+
+    // DEBUG ENDPOINT TO READ RAW TXT
+    if (isset($pathParams[1]) && $pathParams[1] === 'read_debug') {
+        header('Content-Type: text/plain; charset=utf-8');
+        $logPath = __DIR__ . '/temp/status_debug.log';
+        if (file_exists($logPath)) {
+            echo file_get_contents($logPath);
+        } else {
+            echo "No log found.";
+        }
+        exit;
+    }
 }
 
 // ROUTER - SCAN
