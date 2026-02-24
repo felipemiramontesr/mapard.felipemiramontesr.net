@@ -47,4 +47,15 @@ if (file_exists($crashLog)) {
 } else {
     echo "   [-] CRASH LOG NOT FOUND. No fatal errors caught yet.\n";
 }
+
+echo "\n4. Checking GEMINI log file: $tempDir/gemini_debug.log\n";
+$geminiLog = $tempDir . '/gemini_debug.log';
+if (file_exists($geminiLog)) {
+    echo "   [+] Gemini log exists. Size: " . filesize($geminiLog) . " bytes\n";
+    echo "\n--- GEMINI LOG CONTENT START ---\n\n";
+    echo file_get_contents($geminiLog);
+    echo "\n\n--- GEMINI LOG CONTENT END ---\n";
+} else {
+    echo "   [-] GEMINI LOG NOT FOUND. The AI process likely hasn't started or crashed before writing.\n";
+}
 ?>

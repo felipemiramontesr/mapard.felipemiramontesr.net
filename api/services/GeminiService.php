@@ -145,6 +145,9 @@ class GeminiService
             ]
         ];
 
+        $debugLog = __DIR__ . '/../temp/gemini_debug.log';
+        @file_put_contents($debugLog, date('c') . " - [GEMINI] Starting request to Google GenAI API...\n", FILE_APPEND);
+
         // ----------------------------------------------------------------------
         // CRITICAL HOSTINGER FIX: Replaced file_get_contents with robust cURL
         // ----------------------------------------------------------------------
@@ -167,10 +170,13 @@ class GeminiService
             curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
             curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
 
+            @file_put_contents($debugLog, date('c') . " - [GEMINI] Executing cURL attempt $attempt...\n", FILE_APPEND);
             $result = curl_exec($ch);
             $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
             $curlError = curl_error($ch);
             curl_close($ch);
+
+            @file_put_contents($debugLog, date('c') . " - [GEMINI] cURL returned HTTP $httpCode. Error: " . ($curlError ?: 'None') . "\n", FILE_APPEND);
 
             // If we got a valid response (Code 200), break the retry loop
             if ($result !== false && $httpCode === 200) {
@@ -183,15 +189,18 @@ class GeminiService
             }
         }
 
+        @file_put_contents($debugLog, date('c') . " - [GEMINI] Loop finished. Decoding JSON...\n", FILE_APPEND);
         if ($result && $httpCode === 200) {
             $json = json_decode($result, true);
             if (isset($json['candidates'][0]['content']['parts'][0]['text'])) {
                 $txt = $json['candidates'][0]['content']['parts'][0]['text'];
                 $clean = str_replace(['```json', '```'], '', $txt);
+                @file_put_contents($debugLog, date('c') . " - [GEMINI] Successfully extracted content.\n", FILE_APPEND);
                 return json_decode($clean, true);
             }
         }
 
+        @file_put_contents($debugLog, date('c') . " - [GEMINI] Failed to extract JSON. Raw result: " . substr((string) $result, 0, 500) . "\n", FILE_APPEND);
         return null;
     }
 
