@@ -15,8 +15,7 @@
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_URI} !^/api
-    RewriteCond %{REQUEST_URI} !^/debug\.php
-    RewriteCond %{REQUEST_URI} !^/mapard_read_log\.php
+    RewriteCond %{REQUEST_URI} !\.php$
     RewriteRule . /index.html [L]
 </IfModule>
 
