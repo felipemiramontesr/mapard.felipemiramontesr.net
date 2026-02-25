@@ -316,20 +316,10 @@ const Dashboard: React.FC = () => {
                             setTimeout(() => {
                                 setResultUrl(jobData.result_url);
 
-                                // --- SECURE AUTO-DOWNLOAD PROCEDURE ---
-                                const downloadLink = document.createElement('a');
-                                downloadLink.href = `/${jobData.result_url}`;
-                                downloadLink.download = `MAPARD_Dossier_Tactico.pdf`;
-                                downloadLink.target = '_blank';
-                                document.body.appendChild(downloadLink);
-                                downloadLink.click();
-                                document.body.removeChild(downloadLink);
-                                // --------------------------------------
-
                                 if (jobData.findings && Array.isArray(jobData.findings)) {
                                     setFindings(jobData.findings);
                                 }
-                                addLog('Dossier de Inteligencia Listo y Descargado.', 'success');
+                                addLog('Dossier de Inteligencia Listo.', 'success');
                             }, 1500); // 1.5s delay for smooth transition
                         } else {
                             // Fallback if no result URL

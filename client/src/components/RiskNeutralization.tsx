@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { ShieldAlert, ShieldCheck, ChevronDown, CheckSquare, Square, Shield } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -52,24 +52,12 @@ const RiskNeutralization: React.FC<RiskNeutralizationProps> = ({ findings, onClo
 
     const [expandedId, setExpandedId] = useState<string | null>(vectors[0]?.id || null);
 
-    // Phase 26: Notify parent of state changes for persistence
-    useEffect(() => {
-        if (onUpdate) {
-            const updatedFindings: Vector[] = vectors.map(v => ({
-                ...v.data,
-                isNeutralized: v.isNeutralized,
-                steps: v.steps
-            }));
-            onUpdate(updatedFindings);
-        }
-    }, [vectors, onUpdate]);
-
-    const toggleStep = (vectorId: string, stepId: string) => {
+    const toggleStep = (vectorId: string, stepIndex: number) => {
         setVectors(prev => prev.map(v => {
             if (v.id !== vectorId) return v;
 
-            const newSteps = v.steps.map(s =>
-                s.id === stepId ? { ...s, completed: !s.completed } : s
+            const newSteps = v.steps.map((s, idx) =>
+                idx === stepIndex ? { ...s, completed: !s.completed } : s
             );
 
             // Logic: If user unchecks a box, we must revoke "Neutralized" status immediately
@@ -96,16 +84,30 @@ const RiskNeutralization: React.FC<RiskNeutralizationProps> = ({ findings, onClo
     };
 
     const toggleNeutralization = (vectorId: string, newState: boolean) => {
-        setVectors(prev => prev.map(v => {
-            if (v.id !== vectorId) return v;
+        setVectors(prev => {
+            const nextState = prev.map(v => {
+                if (v.id !== vectorId) return v;
 
-            // If manually reverting to Risk (false), reset all steps to unchecked
-            const newSteps = newState === false
-                ? v.steps.map(s => ({ ...s, completed: false }))
-                : v.steps;
+                // If manually reverting to Risk (false), reset all steps to unchecked
+                const newSteps = newState === false
+                    ? v.steps.map(s => ({ ...s, completed: false }))
+                    : v.steps;
 
-            return { ...v, isNeutralized: newState, steps: newSteps };
-        }));
+                return { ...v, isNeutralized: newState, steps: newSteps };
+            });
+
+            // Persist ONLY when Neutralizar or En Riesgo button is clicked
+            if (onUpdate) {
+                const updatedFindings: Vector[] = nextState.map(v => ({
+                    ...v.data,
+                    isNeutralized: v.isNeutralized,
+                    steps: v.steps
+                }));
+                onUpdate(updatedFindings);
+            }
+
+            return nextState;
+        });
     };
 
 
@@ -250,10 +252,10 @@ const RiskNeutralization: React.FC<RiskNeutralizationProps> = ({ findings, onClo
                                                 Acciones de Neutralización Requeridas
                                             </h5>
                                             <div className="space-y-3">
-                                                {vector.steps.map(step => (
+                                                {vector.steps.map((step, sIdx) => (
                                                     <div
-                                                        key={step.id}
-                                                        onClick={() => toggleStep(vector.id, step.id)}
+                                                        key={step.id || sIdx}
+                                                        onClick={() => toggleStep(vector.id, sIdx)}
                                                         className={`flex items-start gap-3 p-3 rounded cursor-pointer transition-all ${step.completed
                                                             ? 'bg-ops-radioactive/5 border border-ops-radioactive/20'
                                                             : 'hover:bg-white/5 border border-transparent'
