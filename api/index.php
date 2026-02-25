@@ -144,7 +144,9 @@ try {
 
     $pdo = new PDO("sqlite:$dbPath");
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
+    $pdo->setAttribute(PDO::ATTR_TIMEOUT, 5);
+    $pdo->exec('PRAGMA journal_mode = wal;');
+    $pdo->exec('PRAGMA busy_timeout = 5000;');
     // USERS Table (Phase 21 + Phase 25)
     $pdo->exec("CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
