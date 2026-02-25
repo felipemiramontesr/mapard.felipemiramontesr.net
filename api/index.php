@@ -565,7 +565,7 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
     }
 
     // UPDATE FINDINGS (Phase 26: Persistence)
-    if ($pathParams[2] === 'update-findings' && $method === 'POST') {
+    if (isset($pathParams[1]) && $pathParams[1] === 'update-findings' && $method === 'POST') {
         $input = json_decode(file_get_contents('php://input'), true);
         $email = $input['email'] ?? '';
         $findings = $input['findings'] ?? [];
@@ -580,6 +580,8 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
         $stmt = $pdo->prepare("SELECT job_id, findings, is_encrypted FROM scans WHERE email = ? AND status = 'COMPLETED' ORDER BY created_at DESC LIMIT 1");
         $stmt->execute([$email]);
         $lastScan = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        error_log("UPDATE FINDINGS ATTEMPT FOR: $email. Found LastScan: " . ($lastScan ? 'YES' : 'NO'));
 
         if ($lastScan) {
             // Decrypt and decode existing heavy findings
@@ -602,7 +604,9 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
             $finalData = $lastScan['is_encrypted'] ? SecurityUtils::encrypt($jsonData) : $jsonData;
 
             $update = $pdo->prepare("UPDATE scans SET findings = ? WHERE job_id = ?");
-            $update->execute([$finalData, $lastScan['job_id']]);
+            $res = $update->execute([$finalData, $lastScan['job_id']]);
+
+            error_log("UPDATE FINDINGS SUCCESS? " . ($res ? 'YES' : 'NO') . " / " . print_r($findings, true));
 
             echo json_encode(["status" => "UPDATED", "job_id" => $lastScan['job_id']]);
         } else {
