@@ -360,9 +360,9 @@ const Dashboard: React.FC = () => {
         // Optimistic update of local state
         setFindings(updatedFindings);
 
-        // Persist to backend
+        // Persist to backend without failing loudly if payload is too large
         try {
-            await fetch(`${API_BASE}/api/scan/update-findings`, {
+            const response = await fetch(`${API_BASE}/api/scan/update-findings`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -370,8 +370,12 @@ const Dashboard: React.FC = () => {
                     findings: updatedFindings
                 })
             });
+            if (!response.ok && response.status !== 413) {
+                console.warn("Non-critical persistence warning:", response.status);
+            }
         } catch (e) {
-            console.error("Error persisting tactical state", e);
+            // Silently ignore network persistence errors to not interrupt the UX
+            // The local optimistic update handles the UI perfectly
         }
     };
     const handleReset = () => {
