@@ -94,7 +94,6 @@ const Dashboard: React.FC = () => {
                 }
 
                 setUserEmail(storedEmail);
-                setAuthStep('dashboard');
 
                 // Phase 23/28: Automatic Status Retrieval with FSM
                 try {
@@ -127,6 +126,8 @@ const Dashboard: React.FC = () => {
                     }
                 } catch (e) {
                     console.error("Error fetching initial status", e);
+                } finally {
+                    setAuthStep('dashboard');
                 }
             } else {
                 setAuthStep('login');
