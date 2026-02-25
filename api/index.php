@@ -450,8 +450,56 @@ if (isset($pathParams[1]) && $pathParams[1] === 'read_crash') {
 
 // ROUTER - SCAN
 if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
+    // UPDATE FINDINGS (Phase 26: Persistence)
+    if (isset($pathParams[2]) && $pathParams[2] === 'update-findings' && $method === 'POST') {
+        $input = json_decode(file_get_contents('php://input'), true);
+        $email = $input['email'] ?? '';
+        $findings = $input['findings'] ?? [];
+
+        if (empty($email)) {
+            http_response_code(400);
+            echo json_encode(["error" => "Email required"]);
+            exit;
+        }
+
+        // We update findings in the LATEST completed scan for this user
+        $stmt = $pdo->prepare("SELECT job_id, findings, is_encrypted FROM scans WHERE email = ? AND status = 'COMPLETED' ORDER BY created_at DESC LIMIT 1");
+        $stmt->execute([$email]);
+        $lastScan = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($lastScan) {
+            // Decrypt and decode existing heavy findings
+            $rawFindings = $lastScan['is_encrypted'] ? SecurityUtils::decrypt($lastScan['findings']) : $lastScan['findings'];
+            $currentFindings = json_decode($rawFindings, true) ?: [];
+
+            // Merge lightweight updates from frontend
+            foreach ($findings as $index => $updateObj) {
+                if (isset($currentFindings[$index])) {
+                    if (isset($updateObj['isNeutralized'])) {
+                        $currentFindings[$index]['isNeutralized'] = $updateObj['isNeutralized'];
+                    }
+                    if (isset($updateObj['steps'])) {
+                        $currentFindings[$index]['steps'] = $updateObj['steps'];
+                    }
+                }
+            }
+
+            $jsonData = json_encode($currentFindings);
+            $finalData = $lastScan['is_encrypted'] ? SecurityUtils::encrypt($jsonData) : $jsonData;
+
+            $update = $pdo->prepare("UPDATE scans SET findings = ? WHERE job_id = ?");
+            $update->execute([$finalData, $lastScan['job_id']]);
+
+            echo json_encode(["status" => "UPDATED", "job_id" => $lastScan['job_id']]);
+        } else {
+            http_response_code(404);
+            echo json_encode(["error" => "No completed scans found to update."]);
+        }
+        exit;
+    }
+
     // START SCAN
-    if ($method === 'POST') {
+    if ($method === 'POST' && !isset($pathParams[2])) {
         $input = json_decode(file_get_contents('php://input'), true);
         $email = $input['email'] ?? 'unknown';
         $domain = $input['domain'] ?? '';
@@ -564,57 +612,7 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
         exit;
     }
 
-    // UPDATE FINDINGS (Phase 26: Persistence)
-    if (isset($pathParams[1]) && $pathParams[1] === 'update-findings' && $method === 'POST') {
-        $input = json_decode(file_get_contents('php://input'), true);
-        $email = $input['email'] ?? '';
-        $findings = $input['findings'] ?? [];
-
-        if (empty($email)) {
-            http_response_code(400);
-            echo json_encode(["error" => "Email required"]);
-            exit;
-        }
-
-        // We update findings in the LATEST completed scan for this user
-        $stmt = $pdo->prepare("SELECT job_id, findings, is_encrypted FROM scans WHERE email = ? AND status = 'COMPLETED' ORDER BY created_at DESC LIMIT 1");
-        $stmt->execute([$email]);
-        $lastScan = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        error_log("UPDATE FINDINGS ATTEMPT FOR: $email. Found LastScan: " . ($lastScan ? 'YES' : 'NO'));
-
-        if ($lastScan) {
-            // Decrypt and decode existing heavy findings
-            $rawFindings = $lastScan['is_encrypted'] ? SecurityUtils::decrypt($lastScan['findings']) : $lastScan['findings'];
-            $currentFindings = json_decode($rawFindings, true) ?: [];
-
-            // Merge lightweight updates from frontend
-            foreach ($findings as $index => $updateObj) {
-                if (isset($currentFindings[$index])) {
-                    if (isset($updateObj['isNeutralized'])) {
-                        $currentFindings[$index]['isNeutralized'] = $updateObj['isNeutralized'];
-                    }
-                    if (isset($updateObj['steps'])) {
-                        $currentFindings[$index]['steps'] = $updateObj['steps'];
-                    }
-                }
-            }
-
-            $jsonData = json_encode($currentFindings);
-            $finalData = $lastScan['is_encrypted'] ? SecurityUtils::encrypt($jsonData) : $jsonData;
-
-            $update = $pdo->prepare("UPDATE scans SET findings = ? WHERE job_id = ?");
-            $res = $update->execute([$finalData, $lastScan['job_id']]);
-
-            error_log("UPDATE FINDINGS SUCCESS? " . ($res ? 'YES' : 'NO') . " / " . print_r($findings, true));
-
-            echo json_encode(["status" => "UPDATED", "job_id" => $lastScan['job_id']]);
-        } else {
-            http_response_code(404);
-            echo json_encode(["error" => "No completed scans found to update."]);
-        }
-        exit;
-    }
+    // (Old update findings block removed)
 }
 
 // [DEBUG FALLBACK] Catch all unhandled routes to see why it skips
