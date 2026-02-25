@@ -10,6 +10,11 @@ error_reporting(E_ALL);
 
 echo "--- MAPARD DEBUGGER (V1) ---\n\n";
 
+echo "0. Server Configuration:\n";
+echo "   [i] post_max_size: " . ini_get('post_max_size') . "\n";
+echo "   [i] upload_max_filesize: " . ini_get('upload_max_filesize') . "\n";
+echo "   [i] memory_limit: " . ini_get('memory_limit') . "\n\n";
+
 $tempDir = __DIR__ . '/api/temp';
 $logPath = $tempDir . '/status_debug.log';
 
