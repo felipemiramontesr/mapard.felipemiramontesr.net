@@ -24,10 +24,10 @@ use function MapaRD\Services\translate_data_class;
 // --------------------------------------------------------------------------
 
 // 1.A Payload Size Limit (Mitigate buffer overflow & basic DDoS)
-$maxPayloadSize = 4096; // 4 KB Max
+$maxPayloadSize = 65536; // 64 KB Max (Large enough for frontend finding updates)
 if (isset($_SERVER['CONTENT_LENGTH']) && (int) $_SERVER['CONTENT_LENGTH'] > $maxPayloadSize) {
     http_response_code(413); // Payload Too Large
-    echo json_encode(['error' => 'Payload exceeds maximum allowed size (4KB). Request rejected.']);
+    echo json_encode(['error' => 'Payload exceeds maximum allowed size (64KB). Request rejected.']);
     exit;
 }
 
