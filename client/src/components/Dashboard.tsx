@@ -315,12 +315,21 @@ const Dashboard: React.FC = () => {
                         if (jobData.result_url) {
                             setTimeout(() => {
                                 setResultUrl(jobData.result_url);
-                                // Sync "Neutralizar" button appearance with "Descargar Dossier"
+
+                                // --- SECURE AUTO-DOWNLOAD PROCEDURE ---
+                                const downloadLink = document.createElement('a');
+                                downloadLink.href = `/${jobData.result_url}`;
+                                downloadLink.download = `MAPARD_Dossier_Tactico.pdf`;
+                                downloadLink.target = '_blank';
+                                document.body.appendChild(downloadLink);
+                                downloadLink.click();
+                                document.body.removeChild(downloadLink);
+                                // --------------------------------------
+
                                 if (jobData.findings && Array.isArray(jobData.findings)) {
                                     setFindings(jobData.findings);
-                                    // User Sequence: DO NOT auto-jump. Wait for user to click "Neutralizar Riesgos"
                                 }
-                                addLog('Dossier de Inteligencia Listo.', 'success');
+                                addLog('Dossier de Inteligencia Listo y Descargado.', 'success');
                             }, 1500); // 1.5s delay for smooth transition
                         } else {
                             // Fallback if no result URL
@@ -360,22 +369,27 @@ const Dashboard: React.FC = () => {
         // Optimistic update of local state
         setFindings(updatedFindings);
 
-        // Persist to backend without failing loudly if payload is too large
+        // Persist only the minimal differential state to avoid 413 Payload Too Large
+        const lightweightState = updatedFindings.map(v => ({
+            isNeutralized: v.isNeutralized ?? false,
+            steps: v.steps ?? []
+        }));
+
         try {
             const response = await fetch(`${API_BASE}/api/scan/update-findings`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     email: userEmail,
-                    findings: updatedFindings
+                    findings: lightweightState
                 })
             });
-            if (!response.ok && response.status !== 413) {
-                console.warn("Non-critical persistence warning:", response.status);
+            if (!response.ok) {
+                console.error("Persistence failed with status:", response.status);
+                addLog('Error de sincronización con el servidor táctico.', 'warning');
             }
         } catch (e) {
-            // Silently ignore network persistence errors to not interrupt the UX
-            // The local optimistic update handles the UI perfectly
+            console.error("Network error during tactical persistence", e);
         }
     };
     const handleReset = () => {

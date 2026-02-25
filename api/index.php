@@ -577,12 +577,28 @@ if (isset($pathParams[1]) && $pathParams[1] === 'scan') {
         }
 
         // We update findings in the LATEST completed scan for this user
-        $stmt = $pdo->prepare("SELECT job_id, is_encrypted FROM scans WHERE email = ? AND status = 'COMPLETED' ORDER BY created_at DESC LIMIT 1");
+        $stmt = $pdo->prepare("SELECT job_id, findings, is_encrypted FROM scans WHERE email = ? AND status = 'COMPLETED' ORDER BY created_at DESC LIMIT 1");
         $stmt->execute([$email]);
         $lastScan = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if ($lastScan) {
-            $jsonData = json_encode($findings);
+            // Decrypt and decode existing heavy findings
+            $rawFindings = $lastScan['is_encrypted'] ? SecurityUtils::decrypt($lastScan['findings']) : $lastScan['findings'];
+            $currentFindings = json_decode($rawFindings, true) ?: [];
+
+            // Merge lightweight updates from frontend
+            foreach ($findings as $index => $updateObj) {
+                if (isset($currentFindings[$index])) {
+                    if (isset($updateObj['isNeutralized'])) {
+                        $currentFindings[$index]['isNeutralized'] = $updateObj['isNeutralized'];
+                    }
+                    if (isset($updateObj['steps'])) {
+                        $currentFindings[$index]['steps'] = $updateObj['steps'];
+                    }
+                }
+            }
+
+            $jsonData = json_encode($currentFindings);
             $finalData = $lastScan['is_encrypted'] ? SecurityUtils::encrypt($jsonData) : $jsonData;
 
             $update = $pdo->prepare("UPDATE scans SET findings = ? WHERE job_id = ?");
