@@ -403,7 +403,7 @@ const Dashboard: React.FC = () => {
     };
 
     return (
-        <div className="w-full h-full flex-grow text-white selection:bg-ops-accent/30 selection:text-white flex flex-col justify-center py-4 md:py-8">
+        <div className="w-full my-auto text-white selection:bg-ops-accent/30 selection:text-white flex flex-col py-4 md:py-8">
             <AnimatePresence>
                 {isBiometricLocked && (
                     <motion.div

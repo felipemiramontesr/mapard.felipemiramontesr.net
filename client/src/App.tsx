@@ -48,7 +48,7 @@ function App() {
       </header>
 
       {/* Main Content (Centered, Allow Scroll) */}
-      <main className="flex-grow flex items-center justify-center p-4 pb-16 overflow-y-auto w-full z-10 relative">
+      <main className="flex-grow flex flex-col px-4 pt-[40px] pb-16 overflow-y-auto w-full z-10 relative">
         <Dashboard />
       </main>
 
