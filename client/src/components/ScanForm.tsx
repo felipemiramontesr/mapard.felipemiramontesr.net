@@ -20,7 +20,7 @@ const ScanForm: React.FC<ScanFormProps> = ({ onScan, isLoading, lockedEmail }) =
     };
 
     return (
-        <div className="ops-card max-w-4xl mx-auto w-full flex flex-col justify-center">
+        <div className="ops-card max-w-2xl mx-auto w-full flex flex-col justify-center">
             <h2 className="text-xs tall:text-sm md:text-xl font-bold mb-3 tall:mb-6 md:mb-8 text-center text-white tracking-[0.2em] border-b border-white/10 pb-2 tall:pb-4 md:pb-4 transition-all duration-300">
                 INICIAR SECUENCIA DE VIGILANCIA
             </h2>
