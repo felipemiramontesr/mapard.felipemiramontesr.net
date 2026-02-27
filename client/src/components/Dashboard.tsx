@@ -171,13 +171,20 @@ const Dashboard: React.FC = () => {
     const handleLoginSubmit = async (email: string, pass: string) => {
         setIsAuthLoading(true);
         setAuthError(null);
+
+        // Force minimum 2.4s delay for the tactical animation to finish
+        const animationPromise = new Promise(resolve => setTimeout(resolve, 2400));
+
         try {
-            const res = await fetch(`${API_BASE}/api/auth/setup`, {
+            const resPromise = fetch(`${API_BASE}/api/auth/setup`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, password: pass, device_id: deviceId })
             });
+
+            const [res] = await Promise.all([resPromise, animationPromise]);
             const data = await res.json();
+
             if (res.ok) {
                 setUserEmail(email);
                 setAuthStep('verify');
@@ -185,6 +192,7 @@ const Dashboard: React.FC = () => {
                 setAuthError(data.error || 'Fallo de autenticación');
             }
         } catch {
+            await animationPromise; // Ensure animation finishes even on network crash
             setAuthError('Error de red al conectar con el servidor táctico');
         } finally {
             setIsAuthLoading(false);
@@ -442,7 +450,7 @@ const Dashboard: React.FC = () => {
 
             <main className="flex-grow flex flex-col items-center w-full max-w-4xl mx-auto">
                 {authStep === 'login' && (
-                    <LoginView onLogin={handleLoginSubmit} isLoading={isAuthLoading} />
+                    <LoginView onLogin={handleLoginSubmit} isLoading={isAuthLoading} error={authError} />
                 )}
 
                 {authStep === 'verify' && (

@@ -4,6 +4,7 @@ import { Mail, Lock, ShieldCheck, Eye, EyeOff, CheckCircle2, Circle } from 'luci
 interface LoginViewProps {
     onLogin: (email: string, pass: string) => void;
     isLoading: boolean;
+    error?: string | null;
 }
 
 const LOADING_MESSAGES = [
@@ -13,7 +14,7 @@ const LOADING_MESSAGES = [
     "TRANSMITIENDO PAYLOAD"
 ];
 
-const LoginView: React.FC<LoginViewProps> = ({ onLogin, isLoading }) => {
+const LoginView: React.FC<LoginViewProps> = ({ onLogin, isLoading, error }) => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
@@ -115,6 +116,12 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin, isLoading }) => {
                         ))}
                     </div>
                 </div>
+
+                {error && (
+                    <div className="mt-4 p-3 border border-ops-danger/50 bg-ops-danger/10 rounded break-words text-center flex items-center justify-center animate-in fade-in">
+                        <span className="text-ops-danger font-mono text-[10px] md:text-sm uppercase tracking-wider">{error}</span>
+                    </div>
+                )}
 
                 <button
                     type="submit"
