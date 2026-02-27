@@ -6,18 +6,18 @@ interface LoginViewProps {
     isLoading: boolean;
 }
 
+const LOADING_MESSAGES = [
+    "INICIALIZANDO PROTOCOLO",
+    "VERIFICANDO HARDWARE_ID",
+    "ENCRIPTANDO CANAL SR-71",
+    "TRANSMITIENDO PAYLOAD"
+];
+
 const LoginView: React.FC<LoginViewProps> = ({ onLogin, isLoading }) => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [loadingMsgIdx, setLoadingMsgIdx] = useState(0);
-
-    const LOADING_MESSAGES = [
-        "INICIALIZANDO PROTOCOLO",
-        "VERIFICANDO HARDWARE_ID",
-        "ENCRIPTANDO CANAL SR-71",
-        "TRANSMITIENDO PAYLOAD"
-    ];
 
     useEffect(() => {
         let interval: ReturnType<typeof setInterval>;
@@ -25,8 +25,6 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin, isLoading }) => {
             interval = setInterval(() => {
                 setLoadingMsgIdx((prev) => (prev + 1) % LOADING_MESSAGES.length);
             }, 600);
-        } else {
-            setLoadingMsgIdx(0);
         }
         return () => {
             if (interval) clearInterval(interval);
