@@ -17,16 +17,19 @@ export default {
           bg_alt: "#1a1f3a", // Lighter Navy
           text: "#e8e8e8", // White Bone
           text_dim: "#c5cae0", // Blueish Gray
+          text_muted: "#6b7490", // Tertiary Text
 
-          // FORCED CYAN PROTOCOL
-          accent: "#00f3ff", // RADIOACTIVE CYAN (Overrides Lavender)
-          cyan: "#00f3ff",   // Explicit Cyan
-          radioactive: "#39ff14", // RADIOACTIVE GREEN (Neon)
+          accent: "#8a9fca", // Lavender Accent
+          cyan: "#8a9fca",   // Map cyan to accent for backward compatibility
+          radioactive: "#34c759", // Soft iOS Green (Replaces Neon)
           border: "#4a5578", // UI Border (Blueish)
 
-          success: "#00f3ff", // Success is now Cyan too for uniformity
-          warning: "#ff9f43",
-          danger: "#ff2a2a",
+          btn_primary: "#5a6fa0",
+          btn_hover: "#6b7fa8",
+
+          success: "#34c759", // Soft iOS Green
+          warning: "#ff9500", // iOS Orange
+          danger: "#ff3b30",  // Soft iOS Red
         }
       },
       fontFamily: {

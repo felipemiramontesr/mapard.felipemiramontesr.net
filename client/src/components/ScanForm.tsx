@@ -21,11 +21,7 @@ const ScanForm: React.FC<ScanFormProps> = ({ onScan, isLoading, lockedEmail }) =
 
     return (
         <div className="ops-card max-w-xl mx-auto transform transition-all hover:scale-[1.005] w-full flex flex-col justify-center">
-            <div className="absolute top-0 right-0 p-2 opacity-50">
-                <div className="w-16 h-16 border-t-2 border-r-2 border-ops-accent rounded-tr-xl"></div>
-            </div>
-
-            <h2 className="text-xs tall:text-sm md:text-xl font-bold mb-3 tall:mb-6 md:mb-8 text-center text-white tracking-[0.2em] uppercase border-b border-white/10 pb-2 tall:pb-4 md:pb-4 transition-all duration-300">
+            <h2 className="text-xs tall:text-sm md:text-xl font-bold mb-3 tall:mb-6 md:mb-8 text-center text-white tracking-[0.2em] border-b border-white/10 pb-2 tall:pb-4 md:pb-4 transition-all duration-300">
                 INICIAR SECUENCIA DE VIGILANCIA
             </h2>
 
@@ -46,7 +42,7 @@ const ScanForm: React.FC<ScanFormProps> = ({ onScan, isLoading, lockedEmail }) =
                             <input
                                 type="email"
                                 required
-                                className="input-field pl-10 bg-black/40 focus:bg-ops-bg_alt/80 text-sm py-3 w-full transition-all duration-300 border-ops-border/30 focus:border-ops-accent"
+                                className="input-field pl-10"
                                 placeholder="ejemplo@gmail.com"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
@@ -58,7 +54,7 @@ const ScanForm: React.FC<ScanFormProps> = ({ onScan, isLoading, lockedEmail }) =
                 <button
                     type="submit"
                     disabled={isLoading}
-                    className="btn-ops w-full flex items-center justify-center gap-2 group mt-4 h-12 text-xs sm:text-sm md:text-base font-bold tracking-widest hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 whitespace-nowrap overflow-hidden"
+                    className="btn-ops w-full mt-4 h-12"
                 >
                     {isLoading ? (
                         <span className="animate-pulse flex items-center gap-2">
@@ -73,7 +69,7 @@ const ScanForm: React.FC<ScanFormProps> = ({ onScan, isLoading, lockedEmail }) =
                     )}
                 </button>
             </form>
-        </div>
+        </div >
     );
 };
 

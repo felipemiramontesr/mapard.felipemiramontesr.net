@@ -18,11 +18,7 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin, isLoading }) => {
 
     return (
         <div className="ops-card max-w-sm mx-auto transform transition-all hover:scale-[1.005] w-full flex flex-col justify-center animate-in fade-in zoom-in duration-500">
-            <div className="absolute top-0 right-0 p-2 opacity-50">
-                <div className="w-16 h-16 border-t-2 border-r-2 border-ops-accent rounded-tr-xl"></div>
-            </div>
-
-            <h2 className="text-xs tall:text-sm md:text-xl font-bold mb-3 tall:mb-6 md:mb-8 text-center text-white tracking-[0.2em] uppercase border-b border-white/10 pb-2 tall:pb-4 md:pb-4 transition-all duration-300 flex items-center justify-center gap-3">
+            <h2 className="text-xs tall:text-sm md:text-xl font-bold mb-3 tall:mb-6 md:mb-8 text-center text-white tracking-[0.2em] border-b border-white/10 pb-2 tall:pb-4 md:pb-4 transition-all duration-300 flex items-center justify-center gap-3">
                 <ShieldCheck className="text-ops-accent w-5 h-5 md:w-6 md:h-6" />
                 VINCULACIÓN TÁCTICA
             </h2>
@@ -37,7 +33,7 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin, isLoading }) => {
                         <input
                             type="email"
                             required
-                            className="input-field pl-10 bg-black/40 focus:bg-ops-bg_alt/80 text-sm py-3 w-full transition-all duration-300 border-ops-border/30 focus:border-ops-accent"
+                            className="input-field pl-10"
                             placeholder="felipe@ejemplo.com"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
@@ -54,7 +50,7 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin, isLoading }) => {
                         <input
                             type="password"
                             required
-                            className="input-field pl-10 bg-black/40 focus:bg-ops-bg_alt/80 text-sm py-3 w-full transition-all duration-300 border-ops-border/30 focus:border-ops-accent"
+                            className="input-field pl-10"
                             placeholder="••••••••"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
@@ -65,7 +61,7 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin, isLoading }) => {
                 <button
                     type="submit"
                     disabled={isLoading}
-                    className="btn-ops w-full flex items-center justify-center gap-2 group mt-4 h-12 text-xs sm:text-sm md:text-base font-bold tracking-widest hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
+                    className="btn-ops w-full mt-4 h-12 text-xs sm:text-sm md:text-base gap-2"
                 >
                     {isLoading ? (
                         <span className="animate-pulse flex items-center gap-2">

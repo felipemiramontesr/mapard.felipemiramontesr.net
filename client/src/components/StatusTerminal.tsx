@@ -41,21 +41,21 @@ const StatusTerminal: React.FC<StatusTerminalProps> = ({ logs, isVisible, onRese
         <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="ops-card mt-4 font-mono text-xs border-ops-cyan shadow-none flex flex-col w-full max-w-2xl mx-auto overflow-hidden relative bg-black min-h-[160px]"
+            className="ops-card mt-4 font-mono text-xs flex flex-col w-full max-w-2xl mx-auto overflow-hidden relative min-h-[160px]"
         >
             {/* Minimal Header */}
-            <div className="bg-ops-bg_alt/50 px-4 py-1.5 flex items-center justify-between border-b border-white/5 flex-none z-10">
-                <div className="flex items-center gap-2 text-ops-cyan/70">
+            <div className="bg-white/5 px-4 py-1.5 flex items-center justify-between border-b border-white/5 flex-none z-10">
+                <div className="flex items-center gap-2 text-ops-accent">
                     <Activity className="w-3 h-3" />
                     <span className="tracking-widest font-bold text-[9px]">ESTADO DE OPERACIÓN</span>
                 </div>
                 <div className="flex gap-1">
-                    <div className="w-1.5 h-1.5 bg-ops-cyan/50 animate-pulse" />
+                    <div className="w-1.5 h-1.5 bg-ops-accent/50 animate-pulse" />
                 </div>
             </div>
 
             {/* Content Area - Single Line Centered */}
-            <div className="flex-grow flex flex-col items-center justify-center p-6 space-y-4 relative bg-black/50">
+            <div className="flex-grow flex flex-col items-center justify-center p-6 space-y-4 relative">
                 <AnimatePresence mode="wait">
                     {logs.map((log) => (
                         <motion.div
@@ -65,7 +65,7 @@ const StatusTerminal: React.FC<StatusTerminalProps> = ({ logs, isVisible, onRese
                             exit={{ opacity: 0, scale: 1.05 }}
                             transition={{ duration: 0.2 }}
                             className={`text-center space-y-2 max-w-lg ${log.type === 'error' ? 'text-ops-danger' :
-                                log.type === 'success' ? 'text-ops-cyan' :
+                                log.type === 'success' ? 'text-ops-success' :
                                     'text-white'
                                 }`}
                         >
@@ -82,7 +82,7 @@ const StatusTerminal: React.FC<StatusTerminalProps> = ({ logs, isVisible, onRese
 
             {/* Footer de Acciones (Fijo al fondo) */}
             {isCompleted && (onReset || resultUrl || onNeutralize) && (
-                <div className="p-4 border-t border-white/10 bg-ops-bg_alt flex-none z-20 space-y-3">
+                <div className="p-4 border-t border-white/10 bg-white/5 flex-none z-20 space-y-3">
                     {(onReset && (hasError || resultUrl)) && (
                         <button
                             onClick={(e) => {
@@ -90,7 +90,7 @@ const StatusTerminal: React.FC<StatusTerminalProps> = ({ logs, isVisible, onRese
                                 e.stopPropagation();
                                 onReset();
                             }}
-                            className="w-full py-3 bg-ops-cyan text-black font-bold tracking-[0.15em] hover:bg-ops-cyan/80 transition-all uppercase text-xs sm:text-sm flex items-center justify-center gap-3 shadow-[0_0_15px_rgba(0,243,255,0.3)] active:scale-[0.98]"
+                            className="btn-ops w-full text-xs sm:text-sm gap-3"
                         >
                             <Zap className="w-4 h-4" />
                             {resetLabel || 'EJECUTAR ANÁLISIS'}
@@ -126,7 +126,7 @@ const StatusTerminal: React.FC<StatusTerminalProps> = ({ logs, isVisible, onRese
                                         alert("Error al abrir documento: " + JSON.stringify(err));
                                     }
                                 }}
-                                className="flex-1 py-3 border border-ops-radioactive text-ops-radioactive font-bold tracking-[0.15em] hover:bg-ops-radioactive/10 transition-all uppercase text-[10px] sm:text-xs md:text-sm flex items-center justify-center gap-2 sm:gap-3 shadow-[0_0_10px_rgba(57,255,20,0.2)] active:scale-[0.98] whitespace-nowrap"
+                                className="btn-ops flex-1 bg-transparent border-ops-border text-ops-text hover:border-ops-accent hover:text-white text-[10px] sm:text-xs md:text-sm gap-2 sm:gap-3"
                             >
                                 <FileCheck className="w-4 h-4 hidden sm:block" />
                                 DESCARGAR DOSSIER
@@ -140,7 +140,7 @@ const StatusTerminal: React.FC<StatusTerminalProps> = ({ logs, isVisible, onRese
                                     e.stopPropagation();
                                     onNeutralize();
                                 }}
-                                className="flex-1 py-3 border border-ops-radioactive text-ops-radioactive font-bold tracking-[0.15em] hover:bg-ops-radioactive/10 transition-all uppercase text-[10px] sm:text-xs md:text-sm flex items-center justify-center gap-2 sm:gap-3 shadow-[0_0_10px_rgba(0,255,255,0.2)] active:scale-[0.98] whitespace-nowrap"
+                                className="btn-ops flex-1 text-[10px] sm:text-xs md:text-sm gap-2 sm:gap-3"
                             >
                                 <ShieldAlert className="w-4 h-4 hidden sm:block" />
                                 NEUTRALIZAR RIESGOS

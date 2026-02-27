@@ -395,7 +395,7 @@ const Dashboard: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen bg-black text-white selection:bg-ops-accent/30 selection:text-white flex flex-col p-4 md:p-8">
+        <div className="min-h-screen text-white selection:bg-ops-accent/30 selection:text-white flex flex-col p-4 md:p-8">
             <AnimatePresence>
                 {isBiometricLocked && (
                     <motion.div
@@ -429,8 +429,8 @@ const Dashboard: React.FC = () => {
             <header className="flex flex-col mb-4 md:mb-12 relative">
                 <div className="flex flex-col items-center justify-center relative z-10 w-full">
                     <div className="flex items-center justify-center gap-4 mb-2">
-                        <Shield className="w-10 h-10 md:w-16 md:h-16 text-ops-cyan drop-shadow-[0_0_15px_rgba(0,243,255,0.5)]" strokeWidth={2} />
-                        <h1 className="text-4xl md:text-7xl font-black text-white tracking-[0.2em] uppercase drop-shadow-[0_0_15px_rgba(255,255,255,0.15)]">
+                        <Shield className="w-10 h-10 md:w-16 md:h-16 text-ops-accent" strokeWidth={2} />
+                        <h1 className="text-4xl md:text-7xl font-light text-white tracking-widest uppercase">
                             MAPARD
                         </h1>
                     </div>
@@ -457,10 +457,10 @@ const Dashboard: React.FC = () => {
 
                 {authStep === 'dashboard' && (
                     <>
-                        <div className="flex items-center gap-2 border border-white/10 px-4 py-2 bg-black/40 backdrop-blur-md rounded-full mb-2 animate-in fade-in slide-in-from-top-4 duration-700">
-                            <Target className="w-4 h-4 text-ops-accent" />
-                            <span className="text-[10px] md:text-xs font-mono text-ops-text_dim uppercase tracking-widest">
-                                TARGET LOCKED: <span className="text-white font-bold">{userEmail}</span>
+                        <div className="flex items-center gap-3 border border-ops-border/50 px-5 py-2.5 bg-white/5 backdrop-blur-md rounded mb-4 animate-in fade-in slide-in-from-top-4 duration-700">
+                            <Target className="w-4 h-4 text-ops-text_dim" />
+                            <span className="text-xs font-medium text-ops-text_dim uppercase tracking-wider">
+                                TARGET LOCKED: <span className="text-white font-semibold">{userEmail}</span>
                             </span>
                         </div>
 

@@ -22,7 +22,7 @@ const VerificationView: React.FC<VerificationViewProps> = ({ email, onVerify, on
     return (
         <div className="ops-card max-w-sm mx-auto transform transition-all hover:scale-[1.005] w-full flex flex-col justify-center animate-in slide-in-from-right-10 duration-500">
             <h2 className="text-xs tall:text-sm md:text-xl font-bold mb-3 tall:mb-6 md:mb-8 text-center text-white tracking-[0.2em] uppercase border-b border-white/10 pb-2 tall:pb-4 md:pb-4 transition-all duration-300 flex items-center justify-center gap-3">
-                <Fingerprint className="text-ops-radioactive w-5 h-5 md:w-6 md:h-6" />
+                <Fingerprint className="text-ops-accent w-5 h-5 md:w-6 md:h-6" />
                 VALIDACIÓN DE IDENTIDAD
             </h2>
 
@@ -41,7 +41,7 @@ const VerificationView: React.FC<VerificationViewProps> = ({ email, onVerify, on
                             maxLength={6}
                             required
                             autoFocus
-                            className="input-field pl-12 bg-black/40 focus:bg-ops-bg_alt/80 text-2xl text-center font-mono py-4 w-full tracking-[0.5em] transition-all duration-300 border-ops-border/30 focus:border-ops-radioactive"
+                            className="input-field pl-12 text-2xl text-center font-mono py-4 tracking-[0.5em]"
                             placeholder="000000"
                             value={code}
                             onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
@@ -58,11 +58,11 @@ const VerificationView: React.FC<VerificationViewProps> = ({ email, onVerify, on
                     <button
                         type="submit"
                         disabled={isLoading || code.length !== 6}
-                        className="btn-ops w-full flex items-center justify-center gap-2 group h-12 text-xs sm:text-sm md:text-base font-bold tracking-widest hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 border-ops-radioactive/50 hover:bg-ops-radioactive/10"
+                        className="btn-ops w-full h-12 text-xs sm:text-sm md:text-base gap-2"
                     >
                         {isLoading ? (
                             <span className="animate-pulse flex items-center gap-2">
-                                <div className="w-2 h-2 bg-ops-radioactive animate-ping rounded-full" />
+                                <div className="w-2 h-2 bg-white animate-ping rounded-full" />
                                 VALIDANDO...
                             </span>
                         ) : (
@@ -74,7 +74,7 @@ const VerificationView: React.FC<VerificationViewProps> = ({ email, onVerify, on
                 <button
                     onClick={onResend}
                     disabled={isLoading}
-                    className="text-[9px] md:text-[10px] text-ops-text_dim hover:text-white uppercase tracking-widest underline decoration-ops-radioactive/30 underline-offset-4 transition-all"
+                    className="text-[9px] md:text-[10px] text-ops-text_dim hover:text-white uppercase tracking-widest underline decoration-ops-accent/30 underline-offset-4 transition-all"
                 >
                     Reenviar Código de Acceso
                 </button>

@@ -156,7 +156,7 @@ const RiskNeutralization: React.FC<RiskNeutralizationProps> = ({ findings, onClo
                             {/* Top Row: Icon/Name (Left) + Chevron (Right Absolute) */}
                             <div className="flex items-start justify-between w-full pr-8">
                                 <div className="flex items-center gap-3 w-full">
-                                    <span className={`p-2 rounded-full flex-shrink-0 ${vector.isNeutralized ? 'bg-ops-radioactive/10 text-ops-radioactive' : 'bg-ops-danger/10 text-ops-danger'}`}>
+                                    <span className={`p-2 rounded-sm flex-shrink-0 ${vector.isNeutralized ? 'bg-ops-radioactive/10 text-ops-radioactive' : 'bg-ops-danger/10 text-ops-danger'}`}>
                                         {vector.isNeutralized ? <ShieldCheck size={20} /> : <ShieldAlert size={20} />}
                                     </span>
                                     <div className="min-w-0 flex-1">
@@ -168,7 +168,7 @@ const RiskNeutralization: React.FC<RiskNeutralizationProps> = ({ findings, onClo
                                 </div>
 
                                 {/* Absolute positioned chevron */}
-                                <div className={`absolute top-4 right-4 p-1 rounded-full bg-ops-cyan/10 text-ops-cyan border border-ops-cyan/20 transition-transform duration-300 ${expandedId === vector.id ? 'rotate-180' : ''}`}>
+                                <div className={`absolute top-4 right-4 p-1 rounded-sm bg-ops-accent/10 text-ops-accent border border-ops-accent/20 transition-transform duration-300 ${expandedId === vector.id ? 'rotate-180' : ''}`}>
                                     <ChevronDown size={18} />
                                 </div>
                             </div>
@@ -185,8 +185,8 @@ const RiskNeutralization: React.FC<RiskNeutralizationProps> = ({ findings, onClo
                                         toggleNeutralization(vector.id, false);
                                         setExpandedId(vector.id); // Expand when marking as Risk
                                     }}
-                                    className={`flex-1 px-4 py-3 rounded text-xs font-bold uppercase tracking-wider transition-all duration-300 max-w-[140px] flex justify-center items-center ${!vector.isNeutralized
-                                        ? 'bg-ops-danger text-black shadow-[0_0_15px_rgba(255,0,80,0.6)] scale-105'
+                                    className={`flex-1 px-4 py-3 rounded-sm text-[10px] md:text-xs font-bold uppercase tracking-widest transition-all duration-300 max-w-[140px] flex justify-center items-center ${!vector.isNeutralized
+                                        ? 'bg-ops-danger text-white border border-ops-danger'
                                         : 'text-ops-danger border border-ops-danger/30 hover:bg-ops-danger/10'
                                         }`}
                                 >
@@ -202,8 +202,8 @@ const RiskNeutralization: React.FC<RiskNeutralizationProps> = ({ findings, onClo
                                             setExpandedId(null); // Collapse when Neutralized
                                         }
                                     }}
-                                    className={`flex-1 px-4 py-3 rounded text-xs font-bold uppercase tracking-wider transition-all duration-300 max-w-[140px] flex justify-center items-center ${vector.isNeutralized
-                                        ? 'bg-ops-radioactive text-black shadow-[0_0_15px_rgba(57,255,20,0.6)] scale-105'
+                                    className={`flex-1 px-4 py-3 rounded-sm text-[10px] md:text-xs font-bold uppercase tracking-widest transition-all duration-300 max-w-[140px] flex justify-center items-center ${vector.isNeutralized
+                                        ? 'bg-ops-radioactive text-white border border-ops-radioactive'
                                         : vector.steps.every(s => s.completed)
                                             ? 'text-ops-radioactive border border-ops-radioactive/50 hover:bg-ops-radioactive/10 animate-pulse'
                                             : 'bg-white/5 text-white/40 border border-white/10 cursor-not-allowed hover:bg-white/10 transition-colors'
