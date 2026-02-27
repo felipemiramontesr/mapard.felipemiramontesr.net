@@ -116,7 +116,7 @@ const RiskNeutralization: React.FC<RiskNeutralizationProps> = ({ findings, onClo
             initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 50 }}
-            className="w-full max-w-4xl mx-auto mt-8 relative z-20 pb-10"
+            className="w-full max-w-4xl mx-auto mt-[40px] relative z-20 pb-10"
         >
             <div className="flex items-center justify-between mb-6 border-b border-white/10 pb-4 gap-4">
                 <h3 className="text-sm md:text-xl font-bold text-white tracking-widest uppercase flex items-center gap-2 md:gap-3">
