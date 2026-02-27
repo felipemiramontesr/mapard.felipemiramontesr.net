@@ -395,7 +395,7 @@ const Dashboard: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen text-white selection:bg-ops-accent/30 selection:text-white flex flex-col p-4 md:p-8">
+        <div className="w-full h-full flex-grow text-white selection:bg-ops-accent/30 selection:text-white flex flex-col justify-center py-4 md:py-8">
             <AnimatePresence>
                 {isBiometricLocked && (
                     <motion.div
@@ -429,8 +429,8 @@ const Dashboard: React.FC = () => {
             <header className="flex flex-col mb-4 md:mb-12 relative">
                 <div className="flex flex-col items-center justify-center relative z-10 w-full">
                     <div className="flex items-center justify-center gap-4 mb-2">
-                        <Shield className="w-10 h-10 md:w-16 md:h-16 text-ops-accent" strokeWidth={2} />
-                        <h1 className="text-4xl md:text-7xl font-light text-white tracking-widest uppercase">
+                        <Shield className="w-10 h-10 md:w-16 md:h-16 text-[#00f3ff]" strokeWidth={2} />
+                        <h1 className="text-4xl md:text-7xl font-sans font-black tracking-widest uppercase mapard-logo pb-2">
                             MAPARD
                         </h1>
                     </div>

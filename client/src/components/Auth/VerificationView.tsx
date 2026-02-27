@@ -20,7 +20,7 @@ const VerificationView: React.FC<VerificationViewProps> = ({ email, onVerify, on
     };
 
     return (
-        <div className="ops-card max-w-sm mx-auto transform transition-all hover:scale-[1.005] w-full flex flex-col justify-center animate-in slide-in-from-right-10 duration-500">
+        <div className="ops-card max-w-2xl mx-auto w-full flex flex-col justify-center animate-in slide-in-from-right-10 duration-500">
             <h2 className="text-xs tall:text-sm md:text-xl font-bold mb-3 tall:mb-6 md:mb-8 text-center text-white tracking-[0.2em] uppercase border-b border-white/10 pb-2 tall:pb-4 md:pb-4 transition-all duration-300 flex items-center justify-center gap-3">
                 <Fingerprint className="text-ops-accent w-5 h-5 md:w-6 md:h-6" />
                 VALIDACIÓN DE IDENTIDAD

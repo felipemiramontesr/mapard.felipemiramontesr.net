@@ -28,6 +28,21 @@
     @apply antialiased overflow-x-hidden min-h-screen relative;
   }
 
+  /* Scanline Effect (CRT Texture) */
+  body::before {
+    content: " ";
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%);
+    z-index: 50;
+    background-size: 100% 4px;
+    pointer-events: none;
+  }
+
   h1 {
     font-weight: 300;
     letter-spacing: -0.02em;
@@ -57,14 +72,12 @@
   .btn-ops {
     @apply px-6 py-3 text-white font-semibold tracking-wider uppercase text-sm transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center;
     background-color: var(--btn-primary);
-    border: 1.5px solid var(--btn-primary);
+    border: 1px solid var(--btn-primary);
     border-radius: 3px;
   }
 
   .btn-ops:not(:disabled):hover {
-    background-color: var(--btn-hover);
-    box-shadow: 0 0 20px rgba(138, 159, 202, 0.18);
-    border-color: var(--accent);
+    border-color: #00f3ff;
   }
 
   /* GLASS PANELS */
@@ -88,6 +101,12 @@
     border-color: var(--border-ui);
     border-radius: 4px;
     font-weight: 300;
+  }
+
+  /* Ocultar el "Ojo" nativo de Edge/Chrome en inputs password */
+  input[type="password"]::-ms-reveal,
+  input[type="password"]::-ms-clear {
+    display: none;
   }
 
   .input-field:focus {

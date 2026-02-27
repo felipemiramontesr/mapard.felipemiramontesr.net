@@ -6,13 +6,9 @@ import { Capacitor } from '@capacitor/core';
 import { StatusBar } from '@capacitor/status-bar';
 
 function App() {
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading] = useState(false);
 
   useEffect(() => {
-    // Fake loading time for splash effect
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 8000); // 8 seconds loading
 
     const initStatusBar = async () => {
       if (Capacitor.isNativePlatform()) {
@@ -25,8 +21,6 @@ function App() {
       }
     };
     initStatusBar();
-
-    return () => clearTimeout(timer);
   }, []);
 
   if (isLoading) {
@@ -42,26 +36,26 @@ function App() {
       <header className="border-b border-white/10 bg-ops-bg/80 backdrop-blur-xl relative z-50 flex-none shadow-2xl pt-[env(safe-area-inset-top)] transition-all duration-300">
         <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2 sm:gap-3">
-            <Shield className="w-6 h-6 sm:w-8 sm:h-8 text-ops-cyan drop-shadow-[0_0_8px_rgba(0,243,255,0.5)]" />
-            <span className="text-xl sm:text-2xl font-black tracking-widest text-white drop-shadow-md">MAPARD</span>
+            <Shield className="w-6 h-6 sm:w-8 sm:h-8 text-[#00f3ff]" />
+            <span className="text-xl sm:text-2xl font-black tracking-widest text-white mapard-logo">MAPARD</span>
           </div>
 
-          <div className="flex items-center gap-2 border border-ops-radioactive/30 px-2 sm:px-3 py-1 rounded-sm bg-ops-radioactive/5 backdrop-blur-sm">
-            <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-ops-radioactive animate-[pulse_1.5s_ease-in-out_infinite] shadow-[0_0_10px_#39ff14]" />
-            <span className="text-[10px] sm:text-xs font-mono font-bold text-ops-radioactive tracking-widest drop-shadow-[0_0_5px_rgba(57,255,20,0.5)]">SYSTEM ONLINE</span>
+          <div className="flex items-center gap-2 border border-ops-radioactive/30 px-2 sm:px-3 py-1 bg-ops-radioactive/5 backdrop-blur-sm">
+            <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-sm bg-ops-radioactive animate-[pulse_1.5s_ease-in-out_infinite] shadow-[0_0_10px_rgba(57,255,20,0.4)]" />
+            <span className="text-[10px] sm:text-xs font-mono font-bold text-ops-radioactive tracking-widest">SYSTEM ONLINE</span>
           </div>
         </div>
       </header>
 
       {/* Main Content (Centered, Allow Scroll) */}
-      <main className="flex-grow relative z-10 flex flex-col p-4 pb-16 overflow-y-auto w-full">
+      <main className="flex-grow flex items-center justify-center p-4 pb-16 overflow-y-auto w-full z-10 relative">
         <Dashboard />
       </main>
 
       {/* Footer (Fixed Absolute Bottom) */}
       <footer className="absolute bottom-0 w-full border-t border-white/10 h-14 box-border flex items-center justify-center bg-black/80 backdrop-blur-md z-50">
-        <p className="text-white/40 text-[10px] sm:text-xs font-mono tracking-[0.2em] uppercase">
-          MAPARD &copy; {new Date().getFullYear()} • <span className="text-ops-cyan font-bold drop-shadow-[0_0_5px_rgba(0,243,255,0.3)]">BLACK-OPS-LEVEL</span> OSINT
+        <p className="text-white/40 text-[10px] sm:text-xs tracking-[0.2em] uppercase">
+          MAPARD &copy; {new Date().getFullYear()} • <span className="text-ops-accent font-bold">BLACK-OPS-LEVEL</span> OSINT
         </p>
       </footer>
     </div>

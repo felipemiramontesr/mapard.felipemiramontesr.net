@@ -298,7 +298,7 @@ if (isset($pathParams[1], $pathParams[2]) && $pathParams[1] === 'auth' && $pathP
     $hashedPassword = SecurityUtils::hashPassword($password);
 
     if (!$user) {
-        // Create New User & Bind Device
+        // Create New User & Bind Device (First Use)
         $stmt = $pdo->prepare("INSERT INTO users (email_target, password_hash, fa_code, device_id) VALUES (?, ?, ?, ?)");
         $stmt->execute([$email, $hashedPassword, $faCode, $deviceId]);
         $newUserId = $pdo->lastInsertId();
@@ -306,13 +306,28 @@ if (isset($pathParams[1], $pathParams[2]) && $pathParams[1] === 'auth' && $pathP
         // Phase 28: Initialize Security Config
         $pdo->prepare("INSERT INTO user_security_config (user_id) VALUES (?)")->execute([$newUserId]);
     } else {
-        // Phase 25/27: Floating Hardware Binding
-        // We no longer block with 403 in setup. 
-        // The re-binding will happen automatically during verify (Phase 27).
+        // Enforce Hardware Binding (TOFU)
+        $storedDeviceId = $user['device_id'];
 
-        // Update Existing User (Reset Password/2FA if re-setting up)
-        $stmt = $pdo->prepare("UPDATE users SET password_hash = ?, fa_code = ?, is_verified = 0 WHERE email_target = ?");
-        $stmt->execute([$hashedPassword, $faCode, $email]);
+        // If a device is bound, it MUST match the incoming device ID
+        if (!empty($storedDeviceId) && $storedDeviceId !== $deviceId) {
+            recordFailedAttempt($pdo, $clientIp);
+            http_response_code(403);
+            echo json_encode(["error" => "Dispositivo no autorizado. Credencial anclada a hardware distinto."]);
+            exit;
+        }
+
+        // Verify password before allowing new 2FA code
+        if (!password_verify($password, $user['password_hash'])) {
+            recordFailedAttempt($pdo, $clientIp);
+            http_response_code(401);
+            echo json_encode(["error" => "Credenciales inválidas."]);
+            exit;
+        }
+
+        // Update FA Code for new session
+        $stmt = $pdo->prepare("UPDATE users SET fa_code = ?, is_verified = 0 WHERE email_target = ?");
+        $stmt->execute([$faCode, $email]);
     }
 
     // TACTICAL: Send real 2FA email
