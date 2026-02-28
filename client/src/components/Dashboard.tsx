@@ -465,10 +465,15 @@ const Dashboard: React.FC = () => {
 
                 {authStep === 'dashboard' && (
                     <>
-                        <div className="flex items-center gap-3 border border-ops-border/50 px-5 py-2.5 bg-white/5 backdrop-blur-md rounded mb-4 animate-in fade-in slide-in-from-top-4 duration-700 w-full max-w-2xl mx-auto">
-                            <Target className="w-4 h-4 text-ops-text_dim flex-shrink-0" />
-                            <span className="text-xs font-medium text-ops-text_dim uppercase tracking-wider truncate">
-                                TARGET LOCKED: <span className="text-white font-semibold">{userEmail}</span>
+                        <div className="flex flex-col md:flex-row items-center justify-center text-center gap-1 md:gap-3 border border-ops-border/50 px-5 py-3 md:py-2.5 bg-white/5 backdrop-blur-md rounded mb-4 animate-in fade-in slide-in-from-top-4 duration-700 w-full max-w-2xl mx-auto">
+                            <div className="flex items-center gap-2">
+                                <Target className="w-4 h-4 text-ops-text_dim flex-shrink-0" />
+                                <span className="text-xs font-medium text-ops-text_dim uppercase tracking-wider">
+                                    TARGET LOCKED:
+                                </span>
+                            </div>
+                            <span className="text-white font-semibold text-[13px] md:text-sm truncate max-w-full tracking-wide">
+                                {userEmail?.toLowerCase()}
                             </span>
                         </div>
 
