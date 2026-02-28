@@ -465,9 +465,9 @@ const Dashboard: React.FC = () => {
 
                 {authStep === 'dashboard' && (
                     <>
-                        <div className="flex items-center gap-3 border border-ops-border/50 px-5 py-2.5 bg-white/5 backdrop-blur-md rounded mb-4 animate-in fade-in slide-in-from-top-4 duration-700">
-                            <Target className="w-4 h-4 text-ops-text_dim" />
-                            <span className="text-xs font-medium text-ops-text_dim uppercase tracking-wider">
+                        <div className="flex items-center gap-3 border border-ops-border/50 px-5 py-2.5 bg-white/5 backdrop-blur-md rounded mb-4 animate-in fade-in slide-in-from-top-4 duration-700 w-full max-w-2xl mx-auto">
+                            <Target className="w-4 h-4 text-ops-text_dim flex-shrink-0" />
+                            <span className="text-xs font-medium text-ops-text_dim uppercase tracking-wider truncate">
                                 TARGET LOCKED: <span className="text-white font-semibold">{userEmail}</span>
                             </span>
                         </div>

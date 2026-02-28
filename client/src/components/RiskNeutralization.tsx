@@ -228,37 +228,41 @@ const RiskNeutralization: React.FC<RiskNeutralizationProps> = ({ findings, onClo
                                     exit={{ height: 0, opacity: 0 }}
                                     className="border-t border-white/5 bg-black/20"
                                 >
-                                    <div className="p-6 space-y-6">
-                                        {/* Info Grid */}
-                                        <div className="grid md:grid-cols-2 gap-6">
+                                    <div className="p-4 md:p-6 space-y-6">
+                                        {/* Info Stack */}
+                                        <div className="flex flex-col gap-4">
                                             <div>
-                                                <h5 className="text-xs font-mono text-ops-accent mb-2 uppercase">Historia del Incidente</h5>
-                                                <p className="text-sm text-ops-text_dim leading-relaxed border-l-2 border-ops-accent/30 pl-3">
+                                                <h5 className="text-[10px] md:text-xs font-mono text-ops-accent flex items-center gap-2 mb-1.5 uppercase tracking-wider">
+                                                    Historia del Incidente
+                                                </h5>
+                                                <p className="text-xs md:text-sm text-ops-text_dim leading-relaxed border-l-2 border-ops-accent/30 pl-3">
                                                     {vector.data.incident_story}
                                                 </p>
                                             </div>
                                             <div>
-                                                <h5 className="text-xs font-mono text-ops-warning mb-2 uppercase">Datos Comprometidos</h5>
-                                                <p className="text-sm text-ops-text_dim leading-relaxed border-l-2 border-ops-warning/30 pl-3">
+                                                <h5 className="text-[10px] md:text-xs font-mono text-ops-warning flex items-center gap-2 mb-1.5 uppercase tracking-wider">
+                                                    Datos Comprometidos
+                                                </h5>
+                                                <p className="text-xs md:text-sm text-ops-text_dim leading-relaxed border-l-2 border-ops-warning/30 pl-3">
                                                     {vector.data.risk_explanation}
                                                 </p>
                                             </div>
                                         </div>
 
-                                        {/* Remediation Checklist */}
-                                        <div className="bg-ops-bg_alt/30 p-4 rounded border border-white/5">
-                                            <h5 className="text-xs font-mono text-white mb-4 uppercase tracking-widest flex items-center gap-2">
+                                        {/* Remediation Checklist - Flatter */}
+                                        <div className="pt-2">
+                                            <h5 className="text-[10px] md:text-xs font-mono text-white mb-3 uppercase tracking-widest flex items-center gap-2">
                                                 <CheckSquare size={14} className="text-ops-cyan" />
                                                 Acciones de Neutralización Requeridas
                                             </h5>
-                                            <div className="space-y-3">
+                                            <div className="space-y-2">
                                                 {vector.steps.map((step, sIdx) => (
                                                     <div
                                                         key={step.id || sIdx}
                                                         onClick={() => toggleStep(vector.id, sIdx)}
-                                                        className={`flex items-start gap-3 p-3 rounded cursor-pointer transition-all ${step.completed
+                                                        className={`flex items-start gap-3 p-2.5 rounded cursor-pointer transition-all ${step.completed
                                                             ? 'bg-ops-radioactive/5 border border-ops-radioactive/20'
-                                                            : 'hover:bg-white/5 border border-transparent'
+                                                            : 'bg-black/20 hover:bg-white/5 border border-white/5'
                                                             }`}
                                                     >
                                                         <div className={`mt-0.5 transition-colors ${step.completed ? 'text-ops-radioactive' : 'text-white/30'}`}>
