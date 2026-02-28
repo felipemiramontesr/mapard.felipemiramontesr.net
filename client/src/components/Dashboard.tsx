@@ -448,7 +448,7 @@ const Dashboard: React.FC = () => {
                 </div>
             </header>
 
-            <main className="flex-grow flex flex-col items-center w-full max-w-4xl mx-auto">
+            <main className="flex-grow flex flex-col items-center w-full max-w-4xl mx-auto px-4 md:px-8">
                 {authStep === 'login' && (
                     <LoginView onLogin={handleLoginSubmit} isLoading={isAuthLoading} error={authError} />
                 )}
@@ -465,7 +465,7 @@ const Dashboard: React.FC = () => {
 
                 {authStep === 'dashboard' && (
                     <>
-                        <div className="flex flex-col md:flex-row items-center justify-center text-center gap-1 md:gap-3 border border-ops-border/50 px-5 py-3 md:py-2.5 bg-white/5 backdrop-blur-md rounded mb-4 animate-in fade-in slide-in-from-top-4 duration-700 w-full max-w-2xl mx-auto">
+                        <div className="flex flex-col md:flex-row items-center justify-center text-center gap-1 md:gap-3 border border-ops-border/50 px-5 py-3 md:py-2.5 bg-white/5 backdrop-blur-md rounded mb-4 animate-in fade-in slide-in-from-top-4 duration-700 w-full">
                             <div className="flex items-center gap-2">
                                 <Target className="w-4 h-4 text-ops-text_dim flex-shrink-0" />
                                 <span className="text-xs font-medium text-ops-text_dim uppercase tracking-wider">
@@ -494,7 +494,7 @@ const Dashboard: React.FC = () => {
                         )}
 
                         {viewMode === 'form' && !isFirstAnalysisComplete ? (
-                            <div className="animate-[fadeIn_0.5s_ease-out] w-full px-4 flex flex-col">
+                            <div className="animate-[fadeIn_0.5s_ease-out] w-full flex flex-col">
                                 <ScanForm
                                     onScan={(data) => handleStartScan({ ...data, email: userEmail! })}
                                     isLoading={isScanning}
@@ -502,7 +502,7 @@ const Dashboard: React.FC = () => {
                                 />
                             </div>
                         ) : (
-                            <div className="animate-[slideUp_0.5s_ease-out] w-full px-4 flex flex-col">
+                            <div className="animate-[slideUp_0.5s_ease-out] w-full flex flex-col mt-2 md:mt-4">
                                 {!showNeutralization ? (
                                     <StatusTerminal
                                         logs={logs}

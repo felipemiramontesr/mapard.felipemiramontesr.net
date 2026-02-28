@@ -118,7 +118,7 @@ const RiskNeutralization: React.FC<RiskNeutralizationProps> = ({ findings, onClo
             exit={{ opacity: 0, y: 50 }}
             className="w-full max-w-4xl mx-auto mt-8 relative z-20 pb-10"
         >
-            <div className="flex items-center justify-between mb-6 border-b border-white/10 pb-4 gap-4 px-4 md:px-8">
+            <div className="flex items-center justify-between mb-6 border-b border-white/10 pb-4 gap-4">
                 <h3 className="text-sm md:text-xl font-bold text-white tracking-widest uppercase flex items-center gap-2 md:gap-3">
                     <ShieldAlert className="text-ops-radioactive w-5 h-5 md:w-6 md:h-6 flex-shrink-0" />
                     <span>Protocolo de Neutralización</span>
@@ -132,7 +132,7 @@ const RiskNeutralization: React.FC<RiskNeutralizationProps> = ({ findings, onClo
             </div>
 
             {/* Vector List */}
-            <div className="flex-grow overflow-y-auto p-4 md:p-8 space-y-6">
+            <div className="flex-grow overflow-y-auto space-y-4 md:space-y-6">
                 {vectors.length === 0 && (
                     <div className="flex flex-col items-center justify-center p-12 text-ops-cyan/50 font-mono text-center border border-ops-cyan/20 bg-ops-cyan/5 shadow-[0_0_20px_rgba(0,243,255,0.1)]">
                         <Shield className="w-16 h-16 mb-4 drop-shadow-[0_0_10px_rgba(0,243,255,0.4)]" />
