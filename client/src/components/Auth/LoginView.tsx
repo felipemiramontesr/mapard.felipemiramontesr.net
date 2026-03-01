@@ -35,7 +35,8 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin, isLoading, error }) => {
                         if (now < timeList) {
                             setIsHardLocked(true);
                             const minutes = Math.ceil((timeList - now) / 60000);
-                            setLockoutError(`SISTEMA BLOQUEADO: Exceso de fallos biométricos. Tiempo restante: ${minutes} min.`);
+                            const formattedMin = minutes < 10 ? `0${minutes}:00` : `${minutes}:00`;
+                            setLockoutError(`ACCESO RESTRINGIDO\nSe ha detectado un patrón de acceso inusual. Por seguridad, la terminal se ha bloqueado temporalmente.\nReintento disponible en: [${formattedMin}]`);
                         } else {
                             setIsHardLocked(false);
                             setLockoutError(null);
@@ -91,17 +92,17 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin, isLoading, error }) => {
             <div className="text-center mb-8">
                 <ShieldCheck className="w-12 h-12 md:w-16 md:h-16 text-[#00f3ff] mx-auto mb-4" />
                 <h2 className="text-lg md:text-2xl font-bold tracking-[0.2em] mb-2 uppercase text-white">
-                    {isReturningUser ? 'Recuperación de Dispositivo' : 'Vinculación Táctica'}
+                    {isReturningUser ? 'RECUPERACIÓN DE DISPOSITIVO DETECTADA' : 'Vinculación Táctica'}
                 </h2>
                 <p className="text-xs md:text-sm text-ops-text_dim uppercase tracking-widest leading-relaxed">
-                    {isReturningUser ? 'Re-sincronización de credenciales de operador.' : 'Sincronización segura de credenciales de operador.'}
+                    {isReturningUser ? 'Bienvenido de nuevo, Operador. Detectamos una instancia previa en este terminal. Ingrese sus credenciales para re-sincronizar su llave de acceso con el servidor central.' : 'Sincronización segura de credenciales de operador.'}
                 </p>
             </div>
 
             {lockoutError && (
                 <div className="mb-6 p-4 border border-ops-danger/50 bg-ops-danger/10 rounded break-words text-center flex flex-col items-center justify-center animate-[pulse_2s_ease-in-out_infinite]">
                     <ShieldCheck className="w-6 h-6 text-ops-danger mb-2" />
-                    <span className="text-ops-danger font-mono text-[9px] md:text-xs uppercase tracking-wider">{lockoutError}</span>
+                    <span className="text-ops-danger font-mono text-[9px] md:text-xs uppercase tracking-wider whitespace-pre-line leading-relaxed">{lockoutError}</span>
                 </div>
             )}
 

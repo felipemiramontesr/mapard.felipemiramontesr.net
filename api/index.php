@@ -382,7 +382,7 @@ if (isset($pathParams[1], $pathParams[2]) && $pathParams[1] === 'auth' && $pathP
             http_response_code(403);
             echo json_encode([
                 "error" => "MAX_ATTEMPTS_REACHED",
-                "message" => "Código invalidado. Sistema táctico bloqueado temporalmente por seguridad. Solicite un nuevo código."
+                "message" => "ALERTA TÁCTICA: ERROR DE SINCRONIZACIÓN\nCódigo de validación expirado por exceso de intentos. La sesión de vinculación ha sido destruida por seguridad. Por favor, reinicie el proceso de autenticación."
             ]);
             exit;
         } else {
