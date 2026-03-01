@@ -17,9 +17,10 @@ interface StatusTerminalProps {
     resetLabel?: string;
     resultUrl?: string | null;
     onNeutralize?: () => void;
+    findingsCount?: number;
 }
 
-const StatusTerminal: React.FC<StatusTerminalProps> = ({ logs, isVisible, onReset, resetLabel, resultUrl, onNeutralize }) => {
+const StatusTerminal: React.FC<StatusTerminalProps> = ({ logs, isVisible, onReset, resetLabel, resultUrl, onNeutralize, findingsCount = 0 }) => {
     // ... (existing code logs setup) ...
     const endRef = useRef<HTMLDivElement>(null);
     const isCompleted = logs.some(l =>
@@ -44,13 +45,23 @@ const StatusTerminal: React.FC<StatusTerminalProps> = ({ logs, isVisible, onRese
             className="ops-card mt-4 font-mono text-xs flex flex-col w-full max-w-2xl mx-auto overflow-hidden relative min-h-[160px]"
         >
             {/* Minimal Header */}
-            <div className="bg-white/5 px-4 py-1.5 flex items-center justify-between border-b border-white/5 flex-none z-10">
-                <div className="flex items-center gap-2 text-ops-accent">
+            <div className={`px-4 py-2 flex items-center justify-between border-b border-white/5 flex-none z-10 ${isCompleted && findingsCount > 0 ? 'bg-ops-radioactive/10' : 'bg-white/5'}`}>
+                <div className={`flex items-center gap-2 ${isCompleted && findingsCount > 0 ? 'text-ops-radioactive' : 'text-ops-accent'}`}>
                     <Activity className="w-3 h-3" />
-                    <span className="tracking-widest font-bold text-[9px]">ESTADO DE OPERACIÓN</span>
+                    <span className="tracking-widest font-bold text-[9px] md:text-xs uppercase">
+                        {isCompleted && findingsCount > 0 ? `${findingsCount} RIESGO${findingsCount !== 1 ? 'S' : ''} DETECTADOS` : 'ESTADO DE OPERACIÓN'}
+                    </span>
                 </div>
-                <div className="flex gap-1">
-                    <div className="w-1.5 h-1.5 bg-ops-accent/50 animate-pulse" />
+                <div className="flex gap-1 items-center">
+                    {!isCompleted ? (
+                        <div className="flex gap-0.5">
+                            <div className="w-1 h-3 bg-ops-accent/80 animate-[ping_1.5s_ease-in-out_infinite]" />
+                            <div className="w-1 h-3 bg-ops-accent/60 animate-[ping_1.5s_ease-in-out_0.2s_infinite]" />
+                            <div className="w-1 h-3 bg-ops-accent/40 animate-[ping_1.5s_ease-in-out_0.4s_infinite]" />
+                        </div>
+                    ) : (
+                        <div className="w-2 h-2 rounded-full bg-ops-radioactive shadow-[0_0_8px_rgba(0,255,102,0.8)] animate-pulse" />
+                    )}
                 </div>
             </div>
 

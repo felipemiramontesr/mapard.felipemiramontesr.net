@@ -511,6 +511,7 @@ const Dashboard: React.FC = () => {
                                         resetLabel={!isFirstAnalysisComplete ? "EJECUTAR ANÁLISIS" : undefined}
                                         resultUrl={resultUrl}
                                         onNeutralize={resultUrl || findings.length > 0 ? () => setShowNeutralization(true) : undefined}
+                                        findingsCount={findings.length}
                                     />
                                 ) : (
                                     <RiskNeutralization
