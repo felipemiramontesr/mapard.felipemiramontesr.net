@@ -436,9 +436,9 @@ const Dashboard: React.FC = () => {
 
             <header className="flex flex-col mb-4 md:mb-12 relative">
                 <div className="flex flex-col items-center justify-center relative z-10 w-full">
-                    <div className="flex items-center justify-center gap-4 mb-2">
-                        <Shield className="w-10 h-10 md:w-16 md:h-16 text-[#00f3ff]" strokeWidth={2} />
-                        <h1 className="text-4xl md:text-7xl font-sans font-black tracking-widest uppercase mapard-logo pb-2">
+                    <div className="flex items-center justify-center gap-3 md:gap-4 mb-2">
+                        <Shield className="w-8 h-8 md:w-16 md:h-16 text-[#00f3ff]" strokeWidth={2} />
+                        <h1 className="text-4xl md:text-7xl font-sans font-black tracking-widest uppercase mapard-logo">
                             MAPARD
                         </h1>
                     </div>

@@ -62,10 +62,10 @@ const ScanForm: React.FC<ScanFormProps> = ({ onScan, isLoading, lockedEmail }) =
                             EJECUTANDO...
                         </span>
                     ) : (
-                        <>
+                        <div className="flex items-center justify-center gap-2">
                             <Rocket className="w-4 h-4 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform duration-300 flex-shrink-0" />
-                            EJECUTAR ANÁLISIS
-                        </>
+                            <span>EJECUTAR ANÁLISIS</span>
+                        </div>
                     )}
                 </button>
             </form>

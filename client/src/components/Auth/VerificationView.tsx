@@ -41,7 +41,7 @@ const VerificationView: React.FC<VerificationViewProps> = ({ email, onVerify, on
                             maxLength={6}
                             required
                             autoFocus
-                            className="input-field pl-12 text-2xl text-center font-mono py-4 tracking-[0.5em]"
+                            className="input-field pl-10 md:pl-12 text-lg md:text-2xl text-center font-mono py-4 tracking-[0.2em] md:tracking-[0.5em]"
                             placeholder="000000"
                             value={code}
                             onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
