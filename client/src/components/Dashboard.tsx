@@ -516,7 +516,6 @@ const Dashboard: React.FC = () => {
                                     <RiskNeutralization
                                         findings={findings}
                                         onUpdate={handleNeutralizeUpdate}
-                                        onClose={handleReset}
                                     />
                                 )}
                             </div>

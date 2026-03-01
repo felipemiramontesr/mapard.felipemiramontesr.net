@@ -26,11 +26,10 @@ interface RiskVectorState {
 
 interface RiskNeutralizationProps {
     findings: Vector[];
-    onClose: () => void;
     onUpdate?: (updatedFindings: Vector[]) => void; // Phase 26
 }
 
-const RiskNeutralization: React.FC<RiskNeutralizationProps> = ({ findings, onClose, onUpdate }) => {
+const RiskNeutralization: React.FC<RiskNeutralizationProps> = ({ findings, onUpdate }) => {
     // Transform API data into local state with checkboxes
     const [vectors, setVectors] = useState<RiskVectorState[]>(() =>
         findings.map((f, i) => {
@@ -123,12 +122,6 @@ const RiskNeutralization: React.FC<RiskNeutralizationProps> = ({ findings, onClo
                     <ShieldAlert className="text-ops-radioactive w-5 h-5 md:w-6 md:h-6 flex-shrink-0" />
                     <span>Protocolo de Neutralización</span>
                 </h3>
-                <button
-                    onClick={onClose}
-                    className="border border-white/10 bg-black/50 px-3 py-1.5 md:px-4 md:py-2 rounded text-[10px] md:text-xs font-bold text-ops-text_dim hover:text-white hover:bg-white/5 hover:border-white/30 uppercase tracking-widest transition-all whitespace-nowrap flex-shrink-0"
-                >
-                    Cerrar Panel
-                </button>
             </div>
 
             {/* Vector List */}
@@ -185,7 +178,7 @@ const RiskNeutralization: React.FC<RiskNeutralizationProps> = ({ findings, onClo
                                         toggleNeutralization(vector.id, false);
                                         setExpandedId(vector.id); // Expand when marking as Risk
                                     }}
-                                    className={`flex-1 px-4 py-3 rounded-sm text-[10px] md:text-xs font-bold uppercase tracking-widest transition-all duration-300 max-w-[140px] flex justify-center items-center ${!vector.isNeutralized
+                                    className={`flex-1 px-2 py-3 md:px-4 md:py-3 rounded-sm text-[10px] md:text-xs font-bold uppercase tracking-widest transition-all duration-300 max-w-[140px] flex justify-center items-center whitespace-nowrap ${!vector.isNeutralized
                                         ? 'bg-ops-danger text-white border border-ops-danger'
                                         : 'text-ops-danger border border-ops-danger/30 hover:bg-ops-danger/10'
                                         }`}
@@ -202,7 +195,7 @@ const RiskNeutralization: React.FC<RiskNeutralizationProps> = ({ findings, onClo
                                             setExpandedId(null); // Collapse when Neutralized
                                         }
                                     }}
-                                    className={`flex-1 px-4 py-3 rounded-sm text-[10px] md:text-xs font-bold uppercase tracking-widest transition-all duration-300 max-w-[140px] flex justify-center items-center ${vector.isNeutralized
+                                    className={`flex-1 px-2 py-3 md:px-4 md:py-3 rounded-sm text-[10px] md:text-xs font-bold uppercase tracking-widest transition-all duration-300 max-w-[140px] flex justify-center items-center whitespace-nowrap ${vector.isNeutralized
                                         ? 'bg-ops-radioactive text-white border border-ops-radioactive'
                                         : vector.steps.every(s => s.completed)
                                             ? 'text-ops-radioactive border border-ops-radioactive/50 hover:bg-ops-radioactive/10 animate-pulse'
