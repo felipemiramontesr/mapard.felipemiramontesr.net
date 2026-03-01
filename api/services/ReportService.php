@@ -134,14 +134,14 @@ class ReportService extends FPDF
             $this->SetY(45);
         }
 
-        $this->Ln(10);
+        $this->Ln(12); // Increased spacing
         $this->SetFont('Helvetica', 'B', 12);
-        $this->SetTextColor(26, 31, 58);
-        $this->Cell(0, 8, text_sanitize($title), 0, 1, 'L');
+        $this->SetTextColor(26, 31, 58); // Navy Profundo
+        $this->Cell(0, 8, mb_convert_encoding(mb_strtoupper(text_sanitize($title), 'UTF-8'), 'ISO-8859-1', 'UTF-8'), 0, 1, 'L');
 
-        $this->SetDrawColor(138, 159, 202);
+        $this->SetDrawColor(138, 159, 202); // Azul Lavanda
         $this->Line($this->GetX(), $this->GetY(), $this->GetX() + 190, $this->GetY());
-        $this->Ln(6);
+        $this->Ln(8); // Increased spacing
     }
 
     public function renderIntelCard($breach, $analysis, $riskColor, $isNew = false, $isNeutralized = false)
@@ -167,30 +167,30 @@ class ReportService extends FPDF
 
         $classes = "Expuesto: " . implode(", ", array_map('MapaRD\Services\translate_data_class', $breach['classes']));
 
-        // COMPACT MODE SETTINGS
-        $lineH = 4; // Reduced from 4.5
+        // COMPACT MODE SETTINGS REDEFINED FOR ELEGANCE
+        $lineH = 5; // Increased line height for breathability
 
         // Context Setup
-        $this->SetFont('Helvetica', '', 9);
+        $this->SetFont('Helvetica', '', 10); // Slightly larger font 
         $storyLines = $this->wordWrapCount($story, 180);
         $riskLines = $this->wordWrapCount($risk, 180);
 
-        $this->SetFont('Helvetica', '', 8);
+        $this->SetFont('Helvetica', '', 9);
         $classLines = $this->wordWrapCount($classes, 180);
 
         $actionsHeight = 0;
-        $this->SetFont('Helvetica', '', 9);
+        $this->SetFont('Helvetica', '', 10);
         foreach ($rawActions as $act) {
             $nb = $this->wordWrapCount($act, 165);
-            $actionsHeight += ($nb * $lineH) + 1; // Reduced gap
+            $actionsHeight += ($nb * $lineH) + 2; // Extra gap
         }
-        $actionsHeight += 6; // Header padding
-        $actionsHeight += 4; // Add bottom padding
+        $actionsHeight += 8; // Header padding
+        $actionsHeight += 6; // Add bottom padding
 
         // Calculate total card height
-        $cardHeight = 15 + ($classLines * 4) + 2 + 5 +
-            ($storyLines * $lineH) + 2 + 5 +
-            ($riskLines * $lineH) + 3 + $actionsHeight + 5;
+        $cardHeight = 18 + ($classLines * 5) + 3 + 6 +
+            ($storyLines * $lineH) + 3 + 6 +
+            ($riskLines * $lineH) + 4 + $actionsHeight + 6;
 
         $this->checkPageSpace($cardHeight);
         if ($this->GetY() < 45) {
@@ -199,22 +199,23 @@ class ReportService extends FPDF
 
         $baseY = $this->GetY();
 
-        // Card Background
-        $this->SetFillColor(255, 255, 255);
+        // Card Background (Navy Glassmorphism inspired - Ultra light gray/blue)
+        $this->SetFillColor(249, 250, 252);
         $this->SetDrawColor(200, 209, 224);
         $this->SetLineWidth(0.2);
         $this->Rect(10, $baseY, 190, $cardHeight, 'DF');
 
-        // Risk Border Color (Gray if neutralized, colored otherwise)
+        // Elegant Left Accent Line instead of full border
         if ($isNeutralized) {
-            $this->SetFillColor(40, 120, 80); // Success Green for border
+            $this->SetFillColor(40, 120, 80); // Success Green
         } else {
             $this->SetFillColor($riskColor[0], $riskColor[1], $riskColor[2]);
         }
+        // Very thin, solid 2mm line on the left edge
         $this->Rect(10, $baseY, 2, $cardHeight, 'F');
 
         // Header
-        $this->SetXY(16, $baseY + 4);
+        $this->SetXY(16, $baseY + 5);
         $this->SetFont('Helvetica', 'B', 11);
         $this->SetTextColor(26, 31, 58);
         $this->Cell(110, 5, text_sanitize($source), 0, 0);
@@ -241,26 +242,26 @@ class ReportService extends FPDF
 
         // Classes
         $this->SetX(16);
-        $this->SetFont('Helvetica', '', 8);
-        $this->SetTextColor(138, 159, 202);
-        $this->MultiCell(180, 4, text_sanitize($classes));
+        $this->SetFont('Helvetica', '', 9);
+        $this->SetTextColor(138, 159, 202); // Azul Lavanda
+        $this->MultiCell(180, 5, text_sanitize($classes));
 
-        $this->Ln(1);
-        $this->SetDrawColor(240, 240, 240);
-        $this->Line(16, $this->GetY(), 195, $this->GetY());
         $this->Ln(2);
+        $this->SetDrawColor(230, 235, 245);
+        $this->Line(16, $this->GetY(), 195, $this->GetY());
+        $this->Ln(3);
 
         // Story
         $this->SetX(16);
-        $this->SetFont('Helvetica', 'B', 9);
-        $this->SetTextColor(26, 31, 58);
-        $this->Cell(0, 5, mb_convert_encoding("CONTEXTO:", 'ISO-8859-1', 'UTF-8'), 0, 1);
+        $this->SetFont('Helvetica', 'B', 10);
+        $this->SetTextColor(26, 31, 58); // Navy Profundo
+        $this->Cell(0, 6, mb_convert_encoding("CONTEXTO:", 'ISO-8859-1', 'UTF-8'), 0, 1);
 
         $this->SetX(16);
-        $this->SetFont('Helvetica', '', 9);
-        $this->SetTextColor(60, 70, 90);
+        $this->SetFont('Helvetica', '', 10);
+        $this->SetTextColor(71, 85, 105); // Gris Pizarra
         $this->MultiCell(180, $lineH, text_sanitize($story));
-        $this->Ln(2);
+        $this->Ln(3);
 
         // Risk
         $this->SetX(16);
@@ -283,33 +284,43 @@ class ReportService extends FPDF
         $remY = $this->GetY();
         if ($isNeutralized) {
             $this->SetFillColor(240, 250, 245);
-            $this->SetDrawColor(180, 220, 200);
+            $this->SetDrawColor(40, 120, 80);
         } else {
-            $this->SetFillColor(245, 250, 247);
-            $this->SetDrawColor(200, 220, 210);
+            $this->SetFillColor(245, 247, 250); // Lighter blue/gray
+            $this->SetDrawColor(138, 159, 202); // Azul Lavanda
         }
         $this->Rect(15, $remY, 180, $actionsHeight, 'DF');
+        // Elegant Left Accent
+        $this->Rect(15, $remY, 1.5, $actionsHeight, 'F');
 
-        $this->SetXY(20, $remY + 2);
-        $this->SetFont('Helvetica', 'B', 9);
-        $this->SetTextColor(40, 120, 80);
-        $title = $isNeutralized ? "ACCIONES COMPLETADAS:" : "PLAN DE ACCIÓN:";
+        $this->SetXY(20, $remY + 4);
+        $this->SetFont('Helvetica', 'B', 10);
+
+        if ($isNeutralized) {
+            $this->SetTextColor(40, 120, 80);
+            $title = "ACCIONES COMPLETADAS:";
+        } else {
+            $this->SetTextColor(26, 31, 58); // Navy Profundo
+            $title = "PLAN DE ACCIÓN TÁCTICO:";
+        }
+
         $this->Cell(0, 5, mb_convert_encoding($title, 'ISO-8859-1', 'UTF-8'), 0, 1);
+        $this->Ln(1);
 
-        $this->SetFont('Helvetica', '', 9);
-        $this->SetTextColor(50, 60, 70);
+        $this->SetFont('Helvetica', '', 10);
+        $this->SetTextColor(71, 85, 105);
 
         foreach ($rawActions as $i => $act) {
             $this->SetX(20);
             if ($isNeutralized) {
                 $this->SetTextColor(40, 120, 80);
-                $this->Cell(5, $lineH, "[X]", 0, 0);
+                $this->Cell(6, $lineH, "[X]", 0, 0);
             } else {
-                $this->SetTextColor(50, 60, 70);
-                $this->Cell(5, $lineH, ($i + 1) . ".", 0, 0);
+                $this->SetTextColor(71, 85, 105);
+                $this->Cell(6, $lineH, ($i + 1) . ".", 0, 0);
             }
             $this->MultiCell(165, $lineH, text_sanitize($act));
-            $this->Ln(1);
+            $this->Ln(2); // Increased gap between action items
         }
 
         $this->SetY($baseY + $cardHeight + 4);
@@ -318,34 +329,37 @@ class ReportService extends FPDF
     public function renderExecutiveSummary($summary)
     {
         // 1. Setup Context for Accurate Measurement
-        $this->SetFont('Helvetica', '', 9);
-        $lineH = 5;
+        $this->SetFont('Helvetica', '', 10);
+        $lineH = 6;
         $nb = $this->wordWrapCount($summary, 180);
 
-        // Calculation: Top(4) + Header(6) + Gap(2) + Text($nb * 5) + Bottom(4) = 16 + Text
-        $height = 16 + ($nb * $lineH);
+        // Calculation: Top(5) + Header(7) + Gap(3) + Text($nb * 6) + Bottom(5) = 20 + Text
+        $height = 20 + ($nb * $lineH);
 
         $this->checkPageSpace($height);
 
-        // Background
+        // Background (Navy Glassmorphism inspired)
         $this->SetFillColor(249, 250, 252);
-        $this->SetDrawColor(200, 209, 224);
+        $this->SetDrawColor(138, 159, 202);
         $this->Rect(10, $this->GetY(), 190, $height, 'DF');
+        // Left Accent Border
+        $this->Rect(10, $this->GetY(), 2, $height, 'F');
 
         // Header
-        $this->SetXY(15, $this->GetY() + 4); // Top padding 4mm
-        $this->SetFont('Helvetica', 'B', 10);
-        $this->SetTextColor(26, 31, 58);
-        $this->Cell(0, 6, mb_convert_encoding("RESUMEN DE SEGURIDAD", 'ISO-8859-1', 'UTF-8'), 0, 1);
+        $this->SetXY(16, $this->GetY() + 5);
+        $this->SetFont('Helvetica', 'B', 11);
+        $this->SetTextColor(26, 31, 58); // Navy Profundo
+        $this->Cell(0, 7, mb_convert_encoding("RESUMEN EJECUTIVO", 'ISO-8859-1', 'UTF-8'), 0, 1);
+        $this->Ln(1);
 
         // Body
-        $this->SetX(15);
-        $this->SetFont('Helvetica', '', 9);
-        $this->SetTextColor(71, 85, 105);
+        $this->SetX(16);
+        $this->SetFont('Helvetica', '', 10);
+        $this->SetTextColor(71, 85, 105); // Gris Pizarra
         $this->MultiCell(180, $lineH, text_sanitize($summary));
 
-        $this->SetY($this->GetY() + 4); // Bottom padding 4mm
-        $this->Ln(5);
+        $this->SetY($this->GetY() + 5);
+        $this->Ln(6);
     }
 
     public function renderStrategicConclusion($conclusion)
@@ -355,51 +369,56 @@ class ReportService extends FPDF
         $lineH = 6;
         $nb = $this->wordWrapCount($conclusion, 180);
 
-        // Calculation: Top(4) + Header(6) + Gap(2) + Text($nb * 6) + Bottom(4) = 16 + Text
-        // Adding +2mm safety buffer for font rendering differences -> 18
-        $height = 18 + ($nb * $lineH);
+        $height = 20 + ($nb * $lineH);
 
-        $this->Ln(5); // Top margin
+        $this->Ln(6); // Top margin
         $this->checkPageSpace($height);
 
-        // Background
-        $this->SetFillColor(255, 235, 235);
-        $this->SetDrawColor(255, 0, 0);
-        $this->Rect(10, $this->GetY(), 190, $height, 'DF');
+        $targetY = $this->GetY();
+
+        // Background 
+        $this->SetFillColor(255, 245, 245); // Very light red tint
+        $this->SetDrawColor(220, 50, 50);
+        $this->Rect(10, $targetY, 190, $height, 'DF');
+        // Red Accent Left Line
+        $this->Rect(10, $targetY, 2, $height, 'F');
 
         // Header
-        $this->SetXY(15, $this->GetY() + 4);
+        $this->SetXY(16, $targetY + 5);
         $this->SetFont('Helvetica', 'B', 11);
         $this->SetTextColor(200, 0, 0);
-        $this->Cell(0, 6, mb_convert_encoding("CONCLUSIÓN ESTRATÉGICA", 'ISO-8859-1', 'UTF-8'), 0, 1);
+        $this->Cell(0, 7, mb_convert_encoding("CONCLUSIÓN ESTRATÉGICA", 'ISO-8859-1', 'UTF-8'), 0, 1);
+        $this->Ln(1);
 
         // Body
-        $this->SetX(15);
+        $this->SetX(16);
         $this->SetFont('Helvetica', '', 10);
         $this->SetTextColor(50, 0, 0);
         $this->MultiCell(180, $lineH, text_sanitize($conclusion));
 
-        $this->SetY($this->GetY() + 4);
-        $this->Ln(5);
+        $this->SetY($this->GetY() + 5);
+        $this->Ln(6);
     }
 
     public function renderTrendAnalysis($deltaNew, $isBaseline)
     {
         $this->checkPageSpace(40);
-        $this->Ln(5);
+        $this->Ln(6);
 
         $baseY = $this->GetY();
-        $this->SetFillColor(240, 245, 255);
+        $this->SetFillColor(249, 250, 252);
         $this->SetDrawColor(138, 159, 202);
-        $this->Rect(10, $baseY, 190, 25, 'DF');
+        $this->Rect(10, $baseY, 190, 28, 'DF');
+        $this->Rect(10, $baseY, 2, 28, 'F'); // Line Accent
 
-        $this->SetXY(15, $baseY + 5);
-        $this->SetFont('Helvetica', 'B', 10);
+        $this->SetXY(16, $baseY + 5);
+        $this->SetFont('Helvetica', 'B', 11);
         $this->SetTextColor(26, 31, 58);
-        $this->Cell(0, 5, mb_convert_encoding("ANÁLISIS DE TENDENCIA", 'ISO-8859-1', 'UTF-8'), 0, 1);
+        $this->Cell(0, 6, mb_convert_encoding("ANÁLISIS DE TENDENCIA", 'ISO-8859-1', 'UTF-8'), 0, 1);
+        $this->Ln(1);
 
-        $this->SetX(15);
-        $this->SetFont('Helvetica', '', 9);
+        $this->SetX(16);
+        $this->SetFont('Helvetica', '', 10);
         $this->SetTextColor(71, 85, 105);
         if ($isBaseline) {
             $msg = "Análisis inicial realizado. Este dossier servirá como Baseline para futuras detecciones tácticas.";
@@ -408,12 +427,11 @@ class ReportService extends FPDF
                 $msg = "ALERTA: Se han detectado $deltaNew nuevas brechas de seguridad desde el análisis inicial.";
                 $this->SetTextColor(200, 0, 0);
             } else {
-                $msg = "Estado Neutralizado: No se han detectado nuevas filtraciones de datos ";
-                $msg .= "en este ciclo de monitoreo.";
+                $msg = "Estado Neutralizado: No se han detectado nuevas filtraciones de datos en este ciclo de monitoreo.";
                 $this->SetTextColor(40, 120, 80);
             }
         }
-        $this->MultiCell(180, 5, text_sanitize($msg));
-        $this->Ln(10);
+        $this->MultiCell(180, 6, text_sanitize($msg));
+        $this->Ln(12);
     }
 }
