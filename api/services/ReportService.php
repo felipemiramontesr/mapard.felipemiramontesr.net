@@ -137,7 +137,8 @@ class ReportService extends FPDF
         $this->Ln(12); // Increased spacing
         $this->SetFont('Helvetica', 'B', 12);
         $this->SetTextColor(26, 31, 58); // Navy Profundo
-        $this->Cell(0, 8, mb_convert_encoding(mb_strtoupper(text_sanitize($title), 'UTF-8'), 'ISO-8859-1', 'UTF-8'), 0, 1, 'L');
+        $titleConv = mb_convert_encoding(mb_strtoupper(text_sanitize($title), 'UTF-8'), 'ISO-8859-1', 'UTF-8');
+        $this->Cell(0, 8, $titleConv, 0, 1, 'L');
 
         $this->SetDrawColor(138, 159, 202); // Azul Lavanda
         $this->Line($this->GetX(), $this->GetY(), $this->GetX() + 190, $this->GetY());
@@ -171,7 +172,7 @@ class ReportService extends FPDF
         $lineH = 5; // Increased line height for breathability
 
         // Context Setup
-        $this->SetFont('Helvetica', '', 10); // Slightly larger font 
+        $this->SetFont('Helvetica', '', 10); // Slightly larger font
         $storyLines = $this->wordWrapCount($story, 180);
         $riskLines = $this->wordWrapCount($risk, 180);
 
@@ -376,7 +377,7 @@ class ReportService extends FPDF
 
         $targetY = $this->GetY();
 
-        // Background 
+        // Background
         $this->SetFillColor(255, 245, 245); // Very light red tint
         $this->SetDrawColor(220, 50, 50);
         $this->Rect(10, $targetY, 190, $height, 'DF');
@@ -427,7 +428,8 @@ class ReportService extends FPDF
                 $msg = "ALERTA: Se han detectado $deltaNew nuevas brechas de seguridad desde el análisis inicial.";
                 $this->SetTextColor(200, 0, 0);
             } else {
-                $msg = "Estado Neutralizado: No se han detectado nuevas filtraciones de datos en este ciclo de monitoreo.";
+                $msg = "Estado Neutralizado: No se han detectado nuevas filtraciones de datos ";
+                $msg .= "en este ciclo de monitoreo.";
                 $this->SetTextColor(40, 120, 80);
             }
         }
