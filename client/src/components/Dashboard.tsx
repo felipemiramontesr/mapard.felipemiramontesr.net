@@ -44,6 +44,7 @@ const Dashboard: React.FC = () => {
     const [isBiometricLocked, setIsBiometricLocked] = useState(false);
     const [deviceId, setDeviceId] = useState<string>('');
     const [isFirstAnalysisComplete, setIsFirstAnalysisComplete] = useState<boolean>(false);
+    const [failedAttempts, setFailedAttempts] = useState(0);
 
     // Phase 26: Hardware Guard & Navigation Policy
     const isAuthenticating = useRef(false);
@@ -76,6 +77,40 @@ const Dashboard: React.FC = () => {
         }
     }, []);
 
+    const loadDashboardData = useCallback(async (email: string) => {
+        try {
+            const statusRes = await fetch(`${API_BASE}/api/user/status?email=${email}`);
+            const statusData = await statusRes.json();
+
+            setIsFirstAnalysisComplete(!!statusData.is_first_analysis_complete);
+
+            // Phase 30: Sync state for background monitoring
+            syncBackgroundContext(email, statusData.checksum || null);
+
+            if (statusData.has_scans) {
+                setFindings(statusData.findings || []);
+                setLogs(statusData.logs || []);
+                setResultUrl(statusData.result_url || null);
+                setDeltaNew(statusData.delta_new || 0);
+
+                // User Sequence: Jump directly to neutralization panel on subsequent entries
+                if (statusData.is_first_analysis_complete) {
+                    setShowNeutralization(true);
+                }
+                setViewMode('terminal');
+            } else if (statusData.is_first_analysis_complete) {
+                // Edge case: Analysis complete but scans array is empty somehow.
+                setShowNeutralization(true);
+                setViewMode('terminal');
+            } else {
+                // Phase 29: If no scans and not complete, we are in INITIAL_SETUP
+                setViewMode('form');
+            }
+        } catch (e) {
+            console.error("Error fetching initial status", e);
+        }
+    }, [syncBackgroundContext]);
+
     useEffect(() => {
         const initHardwareGate = async () => {
             // 1. Get Device ID
@@ -89,48 +124,21 @@ const Dashboard: React.FC = () => {
             if (token && storedEmail) {
                 // 3. Hardware Challenge (Biometrics)
                 const success = await performHardwareChallenge();
+
                 if (!success) {
                     setIsBiometricLocked(true);
-                    return; // SECURITY FIX: Abort execution if biometric authentication fails
+                    setAuthStep('dashboard'); // Guarantee spinner turns off
+                    setFailedAttempts(prev => prev + 1);
+                    return; // SECURITY FIX: Abort execution
                 }
 
                 setIsBiometricLocked(false);
+                setFailedAttempts(0);
                 setUserEmail(storedEmail);
 
-                // Phase 23/28: Automatic Status Retrieval with FSM
-                try {
-                    const statusRes = await fetch(`${API_BASE}/api/user/status?email=${storedEmail}`);
-                    const statusData = await statusRes.json();
-
-                    setIsFirstAnalysisComplete(!!statusData.is_first_analysis_complete);
-
-                    // Phase 30: Sync state for background monitoring
-                    syncBackgroundContext(storedEmail, statusData.checksum || null);
-
-                    if (statusData.has_scans) {
-                        setFindings(statusData.findings || []);
-                        setLogs(statusData.logs || []);
-                        setResultUrl(statusData.result_url || null);
-                        setDeltaNew(statusData.delta_new || 0);
-
-                        // User Sequence: Jump directly to neutralization panel on subsequent entries
-                        if (statusData.is_first_analysis_complete) {
-                            setShowNeutralization(true);
-                        }
-                        setViewMode('terminal');
-                    } else if (statusData.is_first_analysis_complete) {
-                        // Edge case: Analysis complete but scans array is empty somehow.
-                        setShowNeutralization(true);
-                        setViewMode('terminal');
-                    } else {
-                        // Phase 29: If no scans and not complete, we are in INITIAL_SETUP
-                        setViewMode('form');
-                    }
-                } catch (e) {
-                    console.error("Error fetching initial status", e);
-                } finally {
-                    setAuthStep('dashboard');
-                }
+                // Load Data
+                await loadDashboardData(storedEmail);
+                setAuthStep('dashboard'); // Turn off spinner and show data
             } else {
                 setAuthStep('login');
             }
@@ -426,14 +434,33 @@ const Dashboard: React.FC = () => {
                         <h2 className="text-xl font-bold tracking-[0.3em] uppercase mb-4 text-white">Terminal Bloqueada</h2>
                         <p className="text-ops-text_dim text-sm max-w-xs mb-8 font-mono">
                             Acceso restringido. Se requiere autenticación biométrica de hardware para desencriptar el dossier.
+                            <br /><br />
+                            <span className="text-ops-danger font-bold">Intentos fallidos: {failedAttempts}/5</span>
                         </p>
                         <button
                             onClick={async () => {
                                 const success = await biometricService.authenticate();
                                 if (success) {
                                     setIsBiometricLocked(false);
-                                    // Trigger re-init to load data after unlocking
-                                    window.location.reload();
+                                    setFailedAttempts(0);
+                                    setAuthStep('initial_check'); // Show spinner briefly
+                                    const storedEmail = await secureStorage.get('target_email');
+                                    if (storedEmail) {
+                                        setUserEmail(storedEmail);
+                                        await loadDashboardData(storedEmail);
+                                    }
+                                    setAuthStep('dashboard');
+                                } else {
+                                    const newFails = failedAttempts + 1;
+                                    setFailedAttempts(newFails);
+                                    if (newFails >= 5) {
+                                        await secureStorage.remove('auth_token');
+                                        await secureStorage.remove('target_email');
+                                        await secureStorage.set('biometric_lockout', 'true');
+                                        setIsBiometricLocked(false);
+                                        setFailedAttempts(0);
+                                        setAuthStep('login');
+                                    }
                                 }
                             }}
                             className="btn-ops px-8 py-4 flex items-center gap-3 group"
