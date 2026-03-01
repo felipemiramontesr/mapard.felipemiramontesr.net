@@ -17,16 +17,45 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin, isLoading, error }) => {
     const [showPassword, setShowPassword] = useState(false);
     const [loadingMsgIdx, setLoadingMsgIdx] = useState(0);
     const [lockoutError, setLockoutError] = useState<string | null>(null);
+    const [isHardLocked, setIsHardLocked] = useState(false);
+    const [isReturningUser, setIsReturningUser] = useState(false);
 
     useEffect(() => {
+        let interval: ReturnType<typeof setInterval>;
         import('../../utils/secureStorage').then(({ secureStorage }) => {
-            secureStorage.get('biometric_lockout').then((isLocked) => {
-                if (isLocked === 'true') {
-                    setLockoutError("SISTEMA BLOQUEADO: Se superó el límite de 5 intentos biométricos fallidos. Autenticación remota requerida.");
-                    secureStorage.remove('biometric_lockout');
+            secureStorage.get('is_returning_user').then((val) => {
+                if (val === 'true') setIsReturningUser(true);
+            });
+
+            secureStorage.get('biometric_lockout_until').then((lockUntil) => {
+                if (lockUntil) {
+                    const checkLock = () => {
+                        const now = Date.now();
+                        const timeList = parseInt(lockUntil, 10);
+                        if (now < timeList) {
+                            setIsHardLocked(true);
+                            const minutes = Math.ceil((timeList - now) / 60000);
+                            setLockoutError(`SISTEMA BLOQUEADO: Exceso de fallos biométricos. Tiempo restante: ${minutes} min.`);
+                        } else {
+                            setIsHardLocked(false);
+                            setLockoutError(null);
+                            secureStorage.remove('biometric_lockout_until');
+                            clearInterval(interval);
+                        }
+                    };
+                    checkLock();
+                    interval = setInterval(checkLock, 10000);
+                } else {
+                    secureStorage.get('biometric_lockout').then((isLocked) => {
+                        if (isLocked === 'true') {
+                            setLockoutError("SISTEMA BLOQUEADO: Límite biométrico excedido. Autenticación remota requerida.");
+                            secureStorage.remove('biometric_lockout');
+                        }
+                    });
                 }
             });
         });
+        return () => { if (interval) clearInterval(interval); }
     }, []);
 
     useEffect(() => {
@@ -61,9 +90,11 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin, isLoading, error }) => {
         <div className="ops-card max-w-2xl mx-auto w-full flex flex-col justify-center animate-in fade-in zoom-in duration-500">
             <div className="text-center mb-8">
                 <ShieldCheck className="w-12 h-12 md:w-16 md:h-16 text-[#00f3ff] mx-auto mb-4" />
-                <h2 className="text-lg md:text-2xl font-bold tracking-[0.2em] mb-2 uppercase text-white">Vinculación Táctica</h2>
+                <h2 className="text-lg md:text-2xl font-bold tracking-[0.2em] mb-2 uppercase text-white">
+                    {isReturningUser ? 'Recuperación de Dispositivo' : 'Vinculación Táctica'}
+                </h2>
                 <p className="text-xs md:text-sm text-ops-text_dim uppercase tracking-widest leading-relaxed">
-                    Sincronización segura de credenciales de operador.
+                    {isReturningUser ? 'Re-sincronización de credenciales de operador.' : 'Sincronización segura de credenciales de operador.'}
                 </p>
             </div>
 
@@ -75,6 +106,9 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin, isLoading, error }) => {
             )}
 
             <form onSubmit={handleSubmit} className="space-y-4 relative z-10 transition-all duration-300 px-2 sm:px-6">
+                {isHardLocked && (
+                    <div className="absolute inset-0 z-20 bg-black/50 backdrop-blur-sm cursor-not-allowed rounded" />
+                )}
                 <div>
                     <label className="block text-[9px] tall:text-[10px] md:text-xs font-mono text-ops-accent mb-1 tracking-wider uppercase">
                         Email Target

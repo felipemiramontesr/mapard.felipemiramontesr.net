@@ -227,6 +227,7 @@ const Dashboard: React.FC = () => {
             if (res.ok) {
                 await secureStorage.set('auth_token', data.token);
                 await secureStorage.set('target_email', userEmail!);
+                await secureStorage.set('is_returning_user', 'true'); // Flag returning identity
 
                 // Phase 24 Strict: Refresh status immediately after verification
                 try {
@@ -253,12 +254,16 @@ const Dashboard: React.FC = () => {
 
                 setAuthStep('dashboard');
             } else {
-                setAuthError(data.error || 'Código inválido');
+                setAuthError(data.message || 'Código táctico inválido');
+                if (data.error === 'MAX_ATTEMPTS_REACHED') {
+                    // Kick out if tactically compromised
+                    setTimeout(() => setAuthStep('login'), 3000);
+                }
             }
         } catch {
             setAuthError('Error de validación táctica');
         } finally {
-            setIsAuthLoading(false);
+            if (authError !== 'MAX_ATTEMPTS_REACHED') setIsAuthLoading(false);
         }
     };
 
@@ -456,7 +461,8 @@ const Dashboard: React.FC = () => {
                                     if (newFails >= 5) {
                                         await secureStorage.remove('auth_token');
                                         await secureStorage.remove('target_email');
-                                        await secureStorage.set('biometric_lockout', 'true');
+                                        const lockoutTime = Date.now() + (10 * 60 * 1000);
+                                        await secureStorage.set('biometric_lockout_until', lockoutTime.toString());
                                         setIsBiometricLocked(false);
                                         setFailedAttempts(0);
                                         setAuthStep('login');

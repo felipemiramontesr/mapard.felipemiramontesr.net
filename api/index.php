@@ -154,9 +154,17 @@ try {
         password_hash TEXT,
         is_verified INTEGER DEFAULT 0,
         fa_code TEXT,
+        fa_attempts INTEGER DEFAULT 0,
         device_id TEXT,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )");
+
+    // Safely add fa_attempts column for existing databases
+    try {
+        $pdo->exec("ALTER TABLE users ADD COLUMN fa_attempts INTEGER DEFAULT 0");
+    } catch (PDOException $e) {
+        // Ignored if column already exists
+    }
 
     // [NEW] USER_SECURITY_CONFIG Table (Phase 28)
     $pdo->exec("CREATE TABLE IF NOT EXISTS user_security_config (
@@ -325,8 +333,8 @@ if (isset($pathParams[1], $pathParams[2]) && $pathParams[1] === 'auth' && $pathP
             exit;
         }
 
-        // Update FA Code for new session
-        $stmt = $pdo->prepare("UPDATE users SET fa_code = ?, is_verified = 0 WHERE email_target = ?");
+        // Update FA Code for new session and reset attempts
+        $stmt = $pdo->prepare("UPDATE users SET fa_code = ?, is_verified = 0, fa_attempts = 0 WHERE email_target = ?");
         $stmt->execute([$faCode, $email]);
     }
 
@@ -352,21 +360,46 @@ if (isset($pathParams[1], $pathParams[2]) && $pathParams[1] === 'auth' && $pathP
     $code = $input['code'] ?? '';
     $deviceId = $input['device_id'] ?? '';
 
-    $stmt = $pdo->prepare("SELECT * FROM users WHERE email_target = ? AND fa_code = ?");
-    $stmt->execute([$email, $code]);
+    $stmt = $pdo->prepare("SELECT * FROM users WHERE email_target = ?");
+    $stmt->execute([$email]);
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if (!$user) {
         recordFailedAttempt($pdo, $clientIp);
         http_response_code(401);
-        echo json_encode(["error" => "Invalid verification code"]);
+        echo json_encode(["error" => "Usuario no encontrado"]);
         exit;
+    }
+
+    // TACTICAL 5-ATTEMPT LIMIT
+    if ($user['fa_code'] !== $code) {
+        recordFailedAttempt($pdo, $clientIp);
+        $attempts = (int) ($user['fa_attempts'] ?? 0) + 1;
+
+        if ($attempts >= 5) {
+            // Destroy validation session code
+            $pdo->prepare("UPDATE users SET fa_code = NULL, fa_attempts = 0 WHERE id = ?")->execute([$user['id']]);
+            http_response_code(403);
+            echo json_encode([
+                "error" => "MAX_ATTEMPTS_REACHED",
+                "message" => "Código invalidado. Sistema táctico bloqueado temporalmente por seguridad. Solicite un nuevo código."
+            ]);
+            exit;
+        } else {
+            $pdo->prepare("UPDATE users SET fa_attempts = ? WHERE id = ?")->execute([$attempts, $user['id']]);
+            http_response_code(401);
+            echo json_encode([
+                "error" => "INVALID_CODE",
+                "message" => "Código incorrecto. Intentos restantes: " . (5 - $attempts)
+            ]);
+            exit;
+        }
     }
 
     // Phase 25/27: Floating Hardware Binding
     // Upon successful 2FA, we unify the hardware ID to the current one.
     // This allows seamless migration/re-installation.
-    $pdo->prepare("UPDATE users SET is_verified = 1, fa_code = NULL, device_id = ? WHERE id = ?")
+    $pdo->prepare("UPDATE users SET is_verified = 1, fa_code = NULL, fa_attempts = 0, device_id = ? WHERE id = ?")
         ->execute([$deviceId ?: $user['device_id'], $user['id']]);
 
     resetRateLimit($pdo, $clientIp);
