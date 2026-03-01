@@ -91,8 +91,10 @@ const Dashboard: React.FC = () => {
                 const success = await performHardwareChallenge();
                 if (!success) {
                     setIsBiometricLocked(true);
+                    return; // SECURITY FIX: Abort execution if biometric authentication fails
                 }
 
+                setIsBiometricLocked(false);
                 setUserEmail(storedEmail);
 
                 // Phase 23/28: Automatic Status Retrieval with FSM
@@ -156,8 +158,13 @@ const Dashboard: React.FC = () => {
                     // Small delay to prevent race conditions with window focus on Android
                     setTimeout(async () => {
                         const success = await performHardwareChallenge();
-                        if (!success) setIsBiometricLocked(true);
-                        else setIsBiometricLocked(false);
+                        if (!success) {
+                            setIsBiometricLocked(true);
+                            // Ensure the UI resets to the locked state
+                            setViewMode('form');
+                        } else {
+                            setIsBiometricLocked(false);
+                        }
                     }, 500);
                 }
             }
@@ -423,7 +430,11 @@ const Dashboard: React.FC = () => {
                         <button
                             onClick={async () => {
                                 const success = await biometricService.authenticate();
-                                if (success) setIsBiometricLocked(false);
+                                if (success) {
+                                    setIsBiometricLocked(false);
+                                    // Trigger re-init to load data after unlocking
+                                    window.location.reload();
+                                }
                             }}
                             className="btn-ops px-8 py-4 flex items-center gap-3 group"
                         >

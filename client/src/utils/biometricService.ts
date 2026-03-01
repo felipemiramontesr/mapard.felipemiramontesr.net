@@ -33,8 +33,8 @@ export const biometricService = {
             await NativeBiometric.verifyIdentity({
                 reason,
                 title: 'MAPARD SECURITY',
-                subtitle: 'Confirme su identidad por hardware',
-                description: 'Terminal Bloqueada: Se requiere biometría o PIN.',
+                subtitle: 'Terminal Bloqueada',
+                description: 'Se requiere Biometría o PIN',
                 useFallback: true // Enable PIN/Pattern fallback on Android/iOS
             });
             return true;

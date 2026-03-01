@@ -8,7 +8,7 @@ interface LoginViewProps {
 }
 
 const LOADING_MESSAGES = [
-    "ENCRIPTANDO"
+    "CIFRANDO"
 ];
 
 const LoginView: React.FC<LoginViewProps> = ({ onLogin, isLoading, error }) => {
