@@ -145,7 +145,7 @@ const Dashboard: React.FC = () => {
         };
 
         initHardwareGate();
-    }, [performHardwareChallenge, syncBackgroundContext]);
+    }, [performHardwareChallenge, syncBackgroundContext, loadDashboardData]);
 
     useEffect(() => {
         const prepareBackground = async () => {
