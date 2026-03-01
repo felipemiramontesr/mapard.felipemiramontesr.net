@@ -8,10 +8,7 @@ interface LoginViewProps {
 }
 
 const LOADING_MESSAGES = [
-    "INICIALIZANDO PROTOCOLO",
-    "VERIFICANDO HARDWARE_ID",
-    "ENCRIPTANDO CANAL SR-71",
-    "TRANSMITIENDO PAYLOAD"
+    "ENCRIPTANDO"
 ];
 
 const LoginView: React.FC<LoginViewProps> = ({ onLogin, isLoading, error }) => {
@@ -129,11 +126,11 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin, isLoading, error }) => {
                     className={`btn-ops w-full mt-4 h-12 text-xs sm:text-sm md:text-base gap-2 transition-all duration-300 ${isLoading ? 'bg-black/50 border-ops-accent shadow-[inset_0_0_15px_rgba(138,159,202,0.3)]' : ''}`}
                 >
                     {isLoading ? (
-                        <div className="flex items-center justify-between w-full px-2 font-mono font-bold tracking-[0.15em] text-ops-accent">
+                        <div className="flex items-center justify-between w-full px-2 font-mono font-bold tracking-[0.15em] text-[#00f3ff]">
                             <span className="flex items-center gap-2 animate-pulse w-full justify-center">
-                                <div className="w-1.5 h-1.5 bg-ops-accent animate-ping rounded-full" />
-                                [ {LOADING_MESSAGES[loadingMsgIdx]} ]
-                                <div className="w-1.5 h-1.5 bg-ops-accent animate-ping rounded-full" />
+                                <div className="w-1.5 h-1.5 bg-[#00f3ff] animate-ping rounded-full" />
+                                {LOADING_MESSAGES[loadingMsgIdx]}
+                                <div className="w-1.5 h-1.5 bg-[#00f3ff] animate-ping rounded-full" />
                             </span>
                         </div>
                     ) : (

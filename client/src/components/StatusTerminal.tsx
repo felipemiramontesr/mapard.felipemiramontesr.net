@@ -45,22 +45,22 @@ const StatusTerminal: React.FC<StatusTerminalProps> = ({ logs, isVisible, onRese
             className="ops-card mt-4 font-mono text-xs flex flex-col w-full max-w-2xl mx-auto overflow-hidden relative min-h-[160px]"
         >
             {/* Minimal Header */}
-            <div className={`px-4 py-2 flex items-center justify-between border-b border-white/5 flex-none z-10 ${isCompleted && findingsCount > 0 ? 'bg-ops-radioactive/10' : 'bg-white/5'}`}>
-                <div className={`flex items-center gap-2 ${isCompleted && findingsCount > 0 ? 'text-ops-radioactive' : 'text-ops-accent'}`}>
+            <div className={`px-4 py-2 flex items-center justify-between border-b border-white/5 flex-none z-10 ${isCompleted ? (findingsCount > 0 ? 'bg-ops-danger/10' : 'bg-[#00f3ff]/10') : 'bg-white/5'}`}>
+                <div className={`flex items-center gap-2 ${isCompleted ? (findingsCount > 0 ? 'text-ops-danger' : 'text-[#00f3ff]') : 'text-ops-accent'}`}>
                     <Activity className="w-3 h-3" />
                     <span className="tracking-widest font-bold text-[9px] md:text-xs uppercase">
-                        {isCompleted && findingsCount > 0 ? `${findingsCount} RIESGO${findingsCount !== 1 ? 'S' : ''} DETECTADOS` : 'ESTADO DE OPERACIÓN'}
+                        {isCompleted ? `${findingsCount} RIESGO${findingsCount !== 1 ? 'S' : ''} DETECTADOS` : 'ESTADO DE OPERACIÓN'}
                     </span>
                 </div>
                 <div className="flex gap-1 items-center">
                     {!isCompleted ? (
-                        <div className="flex gap-0.5">
-                            <div className="w-1 h-3 bg-ops-accent/80 animate-[ping_1.5s_ease-in-out_infinite]" />
-                            <div className="w-1 h-3 bg-ops-accent/60 animate-[ping_1.5s_ease-in-out_0.2s_infinite]" />
-                            <div className="w-1 h-3 bg-ops-accent/40 animate-[ping_1.5s_ease-in-out_0.4s_infinite]" />
+                        <div className="flex gap-1.5 opacity-80">
+                            <div className="w-0.5 h-2 bg-[#00f3ff] animate-[ping_1.5s_ease-in-out_infinite]" />
+                            <div className="w-0.5 h-2 bg-[#00f3ff] animate-[ping_1.5s_ease-in-out_0.2s_infinite]" />
+                            <div className="w-0.5 h-2 bg-[#00f3ff] animate-[ping_1.5s_ease-in-out_0.4s_infinite]" />
                         </div>
                     ) : (
-                        <div className="w-2 h-2 rounded-full bg-ops-radioactive shadow-[0_0_8px_rgba(0,255,102,0.8)] animate-pulse" />
+                        <div className={`w-2 h-2 rounded-full ${findingsCount > 0 ? 'bg-ops-danger shadow-[0_0_8px_rgba(255,60,60,0.8)]' : 'bg-[#00f3ff] shadow-[0_0_8px_rgba(0,243,255,0.8)]'} animate-pulse`} />
                     )}
                 </div>
             </div>
