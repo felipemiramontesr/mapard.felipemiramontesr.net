@@ -50,7 +50,7 @@ const Dashboard: React.FC = () => {
     const isAuthenticating = useRef(false);
 
     const performHardwareChallenge = useCallback(async () => {
-        if (isAuthenticating.current) return true;
+        if (isAuthenticating.current) return false; // CRITICAL FIX: Never bypass securely by returning true
         isAuthenticating.current = true;
         try {
             const success = await biometricService.authenticate();
@@ -122,6 +122,8 @@ const Dashboard: React.FC = () => {
             const storedEmail = await secureStorage.get('target_email');
 
             if (token && storedEmail) {
+                setUserEmail(storedEmail); // Set email early so background dashboard shows the target
+
                 // 3. Hardware Challenge (Biometrics)
                 const success = await performHardwareChallenge();
 
@@ -134,7 +136,6 @@ const Dashboard: React.FC = () => {
 
                 setIsBiometricLocked(false);
                 setFailedAttempts(0);
-                setUserEmail(storedEmail);
 
                 // Load Data
                 await loadDashboardData(storedEmail);
@@ -161,27 +162,33 @@ const Dashboard: React.FC = () => {
         // 4. App Resume Listener (Re-lock on background)
         const resumeListener = App.addListener('appStateChange', async (state: AppState) => {
             if (state.isActive) {
+                // Ignore if we are currently authenticating to prevent race conditions
+                if (isAuthenticating.current) return;
+
                 const token = await secureStorage.get('auth_token');
-                if (token && !isBiometricLocked) {
-                    // Small delay to prevent race conditions with window focus on Android
-                    setTimeout(async () => {
-                        const success = await performHardwareChallenge();
-                        if (!success) {
-                            setIsBiometricLocked(true);
-                            // Ensure the UI resets to the locked state
-                            setViewMode('form');
-                        } else {
-                            setIsBiometricLocked(false);
-                        }
-                    }, 500);
-                }
+
+                // Use functional state update to read the absolute latest value of isBiometricLocked
+                setIsBiometricLocked(prevLocked => {
+                    if (token && !prevLocked) {
+                        setTimeout(async () => {
+                            const success = await performHardwareChallenge();
+                            if (!success) {
+                                setIsBiometricLocked(true);
+                                setViewMode('form');
+                            } else {
+                                setIsBiometricLocked(false);
+                            }
+                        }, 500);
+                    }
+                    return prevLocked; // Don't change the state here, just read it
+                });
             }
         });
 
         return () => {
             resumeListener.then(l => l.remove());
         };
-    }, [isBiometricLocked, performHardwareChallenge]);
+    }, [performHardwareChallenge]);
 
     const handleLoginSubmit = async (email: string, pass: string) => {
         setIsAuthLoading(true);
