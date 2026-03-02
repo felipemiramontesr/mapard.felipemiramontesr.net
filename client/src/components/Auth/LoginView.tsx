@@ -33,10 +33,15 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin, isLoading, error }) => {
                         const now = Date.now();
                         const timeList = parseInt(lockUntil, 10);
                         if (now < timeList) {
-                            setIsHardLocked(true);
+                            setIsHardLocked(true); // Needed to hide the password hints
+                            // Phase 5 Anti-Leak / Tactical Override:
+                            // The form must remain completely unlocked so the operator
+                            // can enter their credentials to override the biometric failure.
                             const minutes = Math.ceil((timeList - now) / 60000);
                             const formattedMin = minutes < 10 ? `0${minutes}:00` : `${minutes}:00`;
-                            setLockoutError(`ACCESO RESTRINGIDO\nSe ha detectado un patrón de acceso inusual. Por seguridad, la terminal se ha bloqueado temporalmente.\nReintento disponible en: [${formattedMin}]`);
+
+                            // Change the message to indicate Tactical Override is possible
+                            setLockoutError(`HARDWARE BIOMÉTRICO COMPROMETIDO Y DESACTIVADO TEMPORALMENTE.\nSE REQUIERE CONEXIÓN MANUAL PARA SOBRESCRIBIR LA SEÑAL.\nReintento biométrico disponible en: [${formattedMin}]`);
                         } else {
                             setIsHardLocked(false);
                             setLockoutError(null);
@@ -109,9 +114,6 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin, isLoading, error }) => {
             )}
 
             <form onSubmit={handleSubmit} className="space-y-4 relative z-10 transition-all duration-300 px-2 sm:px-6">
-                {isHardLocked && (
-                    <div className="absolute inset-0 z-20 bg-black/50 backdrop-blur-sm cursor-not-allowed rounded" />
-                )}
                 <div>
                     <label className="block text-[9px] tall:text-[10px] md:text-xs font-mono text-ops-accent mb-1 tracking-wider uppercase">
                         Email Target
