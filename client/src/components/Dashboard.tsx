@@ -7,7 +7,7 @@ import VerificationView from './Auth/VerificationView';
 import { secureStorage } from '../utils/secureStorage';
 import { format } from 'date-fns';
 import { Shield, Target, Lock, Fingerprint } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { Capacitor } from '@capacitor/core';
 import { App, type AppState } from '@capacitor/app';
 import { Device } from '@capacitor/device';
@@ -428,62 +428,64 @@ const Dashboard: React.FC = () => {
             setViewMode('form');
         }
     };
+    // Phase 5 Hermetic Seal: If biometric is locked, return ONLY the lock screen
+    if (isBiometricLocked) {
+        return (
+            <div className="w-full min-h-screen bg-black/95 flex flex-col items-center justify-center p-6 text-center text-white selection:bg-ops-accent/30 selection:text-white">
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="flex flex-col items-center"
+                >
+                    <div className="relative mb-8">
+                        <div className="absolute inset-0 bg-ops-danger/20 blur-3xl rounded-full animate-pulse" />
+                        <Lock className="w-16 h-16 text-ops-danger relative z-10" />
+                    </div>
+                    <h2 className="text-xl font-bold tracking-[0.3em] uppercase mb-4 text-white">Terminal Bloqueada</h2>
+                    <p className="text-ops-text_dim text-sm max-w-xs mb-8 font-mono">
+                        Acceso restringido. Se requiere autenticación biométrica de hardware para desencriptar el dossier.
+                        <br /><br />
+                        <span className="text-ops-danger font-bold">Intentos fallidos: {failedAttempts}/5</span>
+                    </p>
+                    <button
+                        onClick={async () => {
+                            const success = await biometricService.authenticate();
+                            if (success) {
+                                setIsBiometricLocked(false);
+                                setFailedAttempts(0);
+                                setAuthStep('initial_check'); // Show spinner briefly
+                                const storedEmail = await secureStorage.get('target_email');
+                                if (storedEmail) {
+                                    setUserEmail(storedEmail);
+                                    await loadDashboardData(storedEmail);
+                                }
+                                setAuthStep('dashboard');
+                            } else {
+                                const newFails = failedAttempts + 1;
+                                setFailedAttempts(newFails);
+                                if (newFails >= 5) {
+                                    await secureStorage.remove('auth_token');
+                                    await secureStorage.remove('target_email');
+                                    const lockoutTime = Date.now() + (10 * 60 * 1000);
+                                    await secureStorage.set('biometric_lockout_until', lockoutTime.toString());
+                                    setIsBiometricLocked(false);
+                                    setFailedAttempts(0);
+                                    setAuthStep('login');
+                                }
+                            }
+                        }}
+                        className="btn-ops px-8 py-4 flex items-center gap-3 group"
+                    >
+                        <Fingerprint className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                        REINTENTAR ACCESO
+                    </button>
+                </motion.div>
+            </div>
+        );
+    }
 
     return (
         <div className="w-full my-auto text-white selection:bg-ops-accent/30 selection:text-white flex flex-col py-4 md:py-8">
-            <AnimatePresence>
-                {isBiometricLocked && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-xl flex flex-col items-center justify-center p-6 text-center"
-                    >
-                        <div className="relative mb-8">
-                            <div className="absolute inset-0 bg-ops-danger/20 blur-3xl rounded-full animate-pulse" />
-                            <Lock className="w-16 h-16 text-ops-danger relative z-10" />
-                        </div>
-                        <h2 className="text-xl font-bold tracking-[0.3em] uppercase mb-4 text-white">Terminal Bloqueada</h2>
-                        <p className="text-ops-text_dim text-sm max-w-xs mb-8 font-mono">
-                            Acceso restringido. Se requiere autenticación biométrica de hardware para desencriptar el dossier.
-                            <br /><br />
-                            <span className="text-ops-danger font-bold">Intentos fallidos: {failedAttempts}/5</span>
-                        </p>
-                        <button
-                            onClick={async () => {
-                                const success = await biometricService.authenticate();
-                                if (success) {
-                                    setIsBiometricLocked(false);
-                                    setFailedAttempts(0);
-                                    setAuthStep('initial_check'); // Show spinner briefly
-                                    const storedEmail = await secureStorage.get('target_email');
-                                    if (storedEmail) {
-                                        setUserEmail(storedEmail);
-                                        await loadDashboardData(storedEmail);
-                                    }
-                                    setAuthStep('dashboard');
-                                } else {
-                                    const newFails = failedAttempts + 1;
-                                    setFailedAttempts(newFails);
-                                    if (newFails >= 5) {
-                                        await secureStorage.remove('auth_token');
-                                        await secureStorage.remove('target_email');
-                                        const lockoutTime = Date.now() + (10 * 60 * 1000);
-                                        await secureStorage.set('biometric_lockout_until', lockoutTime.toString());
-                                        setIsBiometricLocked(false);
-                                        setFailedAttempts(0);
-                                        setAuthStep('login');
-                                    }
-                                }
-                            }}
-                            className="btn-ops px-8 py-4 flex items-center gap-3 group"
-                        >
-                            <Fingerprint className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                            REINTENTAR ACCESO
-                        </button>
-                    </motion.div>
-                )}
-            </AnimatePresence>
 
             <header className="flex flex-col mb-4 md:mb-12 relative">
                 <div className="flex flex-col items-center justify-center relative z-10 w-full">
