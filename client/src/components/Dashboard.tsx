@@ -436,7 +436,7 @@ const Dashboard: React.FC = () => {
     // Phase 5 Hermetic Seal: If biometric is locked, return ONLY the lock screen
     if (isBiometricLocked) {
         return (
-            <div className="w-full min-h-screen bg-black/95 flex flex-col items-center justify-center p-6 text-center text-white selection:bg-ops-accent/30 selection:text-white">
+            <div className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-xl flex flex-col items-center justify-center p-6 text-center text-white selection:bg-ops-accent/30 selection:text-white">
                 <motion.div
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}

@@ -94,9 +94,11 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin, isLoading, error }) => {
                 <h2 className="text-lg md:text-2xl font-bold tracking-[0.2em] mb-2 uppercase text-white">
                     {isReturningUser ? 'RECUPERACIÓN DE DISPOSITIVO DETECTADA' : 'Vinculación Táctica'}
                 </h2>
-                <p className="text-xs md:text-sm text-ops-text_dim uppercase tracking-widest leading-relaxed">
-                    {isReturningUser ? 'Bienvenido de nuevo, Operador. Detectamos una instancia previa en este terminal. Ingrese sus credenciales para re-sincronizar su llave de acceso con el servidor central.' : 'Sincronización segura de credenciales de operador.'}
-                </p>
+                {isReturningUser && (
+                    <p className="text-xs md:text-sm text-ops-text_dim uppercase tracking-widest leading-relaxed">
+                        Bienvenido de nuevo, Operador. Detectamos una instancia previa en este terminal. Ingrese sus credenciales para re-sincronizar su llave de acceso con el servidor central.
+                    </p>
+                )}
             </div>
 
             {lockoutError && (
@@ -155,20 +157,22 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin, isLoading, error }) => {
                     </div>
 
                     {/* Protocol Validation Indicators */}
-                    <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2 text-[9px] tall:text-[10px] font-mono tracking-wider opacity-80 pl-1">
-                        {validations.map((v) => (
-                            <div key={v.id} className="flex items-center gap-1.5 transition-colors duration-300">
-                                {v.passed ? (
-                                    <CheckCircle2 className="w-3 h-3 text-[#00f3ff]" />
-                                ) : (
-                                    <Circle className="w-3 h-3 text-ops-text_dim/40" />
-                                )}
-                                <span className={v.passed ? "text-white" : "text-ops-text_dim"}>
-                                    {v.text}
-                                </span>
-                            </div>
-                        ))}
-                    </div>
+                    {!isHardLocked && (
+                        <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2 text-[9px] tall:text-[10px] font-mono tracking-wider opacity-80 pl-1">
+                            {validations.map((v) => (
+                                <div key={v.id} className="flex items-center gap-1.5 transition-colors duration-300">
+                                    {v.passed ? (
+                                        <CheckCircle2 className="w-3 h-3 text-[#00f3ff]" />
+                                    ) : (
+                                        <Circle className="w-3 h-3 text-ops-text_dim/40" />
+                                    )}
+                                    <span className={v.passed ? "text-white" : "text-ops-text_dim"}>
+                                        {v.text}
+                                    </span>
+                                </div>
+                            ))}
+                        </div>
+                    )}
                 </div>
 
                 {error && (
