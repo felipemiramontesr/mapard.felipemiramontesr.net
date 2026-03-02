@@ -161,27 +161,32 @@ const Dashboard: React.FC = () => {
     useEffect(() => {
         // 4. App Resume Listener (Re-lock on background)
         const resumeListener = App.addListener('appStateChange', async (state: AppState) => {
+            const token = await secureStorage.get('auth_token');
+            if (!token) return;
+
+            if (!state.isActive) {
+                // Phase 5 Anti-Leak: Instantly lock the app when backgrounded so it's hidden
+                // from the OS task switcher and securely locked before they resume.
+                setIsBiometricLocked(true);
+                return;
+            }
+
             if (state.isActive) {
                 // Ignore if we are currently authenticating to prevent race conditions
                 if (isAuthenticating.current) return;
 
-                const token = await secureStorage.get('auth_token');
+                // Hermetic seal: ensure UI is locked before the challenge delay
+                setIsBiometricLocked(true);
 
-                // Use functional state update to read the absolute latest value of isBiometricLocked
-                setIsBiometricLocked(prevLocked => {
-                    if (token && !prevLocked) {
-                        setTimeout(async () => {
-                            const success = await performHardwareChallenge();
-                            if (!success) {
-                                setIsBiometricLocked(true);
-                                setViewMode('form');
-                            } else {
-                                setIsBiometricLocked(false);
-                            }
-                        }, 500);
+                setTimeout(async () => {
+                    const success = await performHardwareChallenge();
+                    if (!success) {
+                        setIsBiometricLocked(true);
+                        setViewMode('form');
+                    } else {
+                        setIsBiometricLocked(false);
                     }
-                    return prevLocked; // Don't change the state here, just read it
-                });
+                }, 500);
             }
         });
 
