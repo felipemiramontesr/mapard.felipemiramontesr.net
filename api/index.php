@@ -320,7 +320,20 @@ if (isset($pathParams[1], $pathParams[2]) && $pathParams[1] === 'auth' && $pathP
     $hashedPassword = SecurityUtils::hashPassword($password);
 
     if (!$user) {
-        // Create New User & Bind Device (First Use)
+        // Enforce Single-User System (The Target)
+        // Check if ANY user exists in the database.
+        $stmtCount = $pdo->query("SELECT COUNT(*) FROM users");
+        $userCount = $stmtCount->fetchColumn();
+
+        if ($userCount > 0) {
+            // A user already exists, but this email is different from the target. Intruders blocked.
+            recordFailedAttempt($pdo, $clientIp);
+            http_response_code(403);
+            echo json_encode(["error" => "Operación Denegada: El sistema ya está vinculado a un Operador."]);
+            exit;
+        }
+
+        // Create New User & Bind Device (First Use ONLY)
         $stmt = $pdo->prepare("INSERT INTO users (email_target, password_hash, fa_code, device_id) VALUES (?, ?, ?, ?)");
         $stmt->execute([$email, $hashedPassword, $faCode, $deviceId]);
         $newUserId = $pdo->lastInsertId();
