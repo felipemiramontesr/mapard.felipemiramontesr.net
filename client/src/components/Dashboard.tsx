@@ -31,7 +31,6 @@ const Dashboard: React.FC = () => {
     const [logs, setLogs] = useState<Log[]>([]);
     const [isScanning, setIsScanning] = useState(false);
     const [viewMode, setViewMode] = useState<'form' | 'terminal'>('form');
-    const [resultUrl, setResultUrl] = useState<string | null>(null);
     const [findings, setFindings] = useState<Vector[]>([]);
     const [showNeutralization, setShowNeutralization] = useState(false);
 
@@ -90,7 +89,6 @@ const Dashboard: React.FC = () => {
             if (statusData.has_scans) {
                 setFindings(statusData.findings || []);
                 setLogs(statusData.logs || []);
-                setResultUrl(statusData.result_url || null);
                 setDeltaNew(statusData.delta_new || 0);
 
                 // User Sequence: Jump directly to neutralization panel on subsequent entries
@@ -252,7 +250,6 @@ const Dashboard: React.FC = () => {
                     if (statusData.has_scans) {
                         setFindings(statusData.findings || []);
                         setLogs(statusData.logs || []);
-                        setResultUrl(statusData.result_url || null);
                         if (statusData.findings && statusData.findings.length > 0) {
                             setShowNeutralization(true);
                             setViewMode('terminal');
@@ -296,7 +293,6 @@ const Dashboard: React.FC = () => {
 
     const handleStartScan = async (data: { name: string; email: string; domain?: string }) => {
         setIsScanning(true);
-        setResultUrl(null);
         setFindings([]);
         setShowNeutralization(false);
         setViewMode('terminal');
@@ -351,23 +347,14 @@ const Dashboard: React.FC = () => {
                         }
 
                         // Force Completion Message 
-                        addLog('Análisis Completado. Generando reporte...', 'success');
+                        addLog('Análisis Completado. Generando inteligencia táctica...', 'success');
 
-                        if (jobData.result_url) {
-                            setTimeout(() => {
-                                setResultUrl(jobData.result_url);
-
-                                if (jobData.findings && Array.isArray(jobData.findings)) {
-                                    setFindings(jobData.findings);
-                                }
-                                addLog('Dossier de Inteligencia Listo.', 'success');
-                            }, 1500); // 1.5s delay for smooth transition
-                        } else {
-                            // Fallback if no result URL
+                        setTimeout(() => {
                             if (jobData.findings && Array.isArray(jobData.findings)) {
                                 setFindings(jobData.findings);
                             }
-                        }
+                            addLog('Dossier de Inteligencia Listo.', 'success');
+                        }, 1500); // 1.5s delay for smooth transition
                     }
                     else if (jobData.status === 'FAILED') {
                         completionHandled = true; // LOCK
@@ -567,8 +554,7 @@ const Dashboard: React.FC = () => {
                                         isVisible={true}
                                         onReset={!isScanning && !isFirstAnalysisComplete ? handleReset : undefined}
                                         resetLabel={!isFirstAnalysisComplete ? "EJECUTAR ANÁLISIS" : undefined}
-                                        resultUrl={resultUrl}
-                                        onNeutralize={resultUrl || findings.length > 0 ? () => setShowNeutralization(true) : undefined}
+                                        onNeutralize={isFirstAnalysisComplete ? () => setShowNeutralization(true) : undefined}
                                         findingsCount={findings.length}
                                     />
                                 ) : (

@@ -52,14 +52,11 @@ describe('StatusTerminal Component', () => {
                 logs={completeLogs}
                 isVisible={true}
                 onReset={onResetMock}
-                resultUrl="http://example.com/report.pdf"
             />
         );
 
         // Check for buttons text
         expect(screen.getByText(/EJECUTAR ANÁLISIS/i)).toBeInTheDocument();
-        expect(screen.getByText(/DESCARGAR DOSSIER/i)).toBeInTheDocument();
-
         // Click reset
         fireEvent.click(screen.getByText(/EJECUTAR ANÁLISIS/i));
         expect(onResetMock).toHaveBeenCalledTimes(1);

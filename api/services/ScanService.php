@@ -5,7 +5,6 @@ namespace MapaRD\Services;
 use PDO;
 use Exception;
 use MapaRD\Services\GeminiService;
-use MapaRD\Services\ReportService;
 use MapaRD\Services\SecurityUtils;
 
 class ScanService
@@ -189,44 +188,14 @@ class ScanService
                 }
             }
 
-            // Step 4: PDF Report
-            $addLog($logs, "Generating Intelligence Report...", "info");
-            $pdf = new ReportService();
-            $pdf->AliasNbPages();
-            $pdf->AddPage();
-
-            // Set Risk Color
-            $riskColor = $this->getRiskColor($riskLevel);
-
-            // Render Report Sections
-            $this->renderPdfReport(
-                $pdf,
-                $email,
-                $riskLevel,
-                $riskColor,
-                $aiIntel,
-                $breachData,
-                $isFirstScan,
-                $newFindingsCount,
-                $baselineFindings,
-                $richFindings // Pass the enriched findings here
-            );
-
-            $outputPath = __DIR__ . "/../reports/mapard_report_$jobId.pdf";
-            if (!is_dir(__DIR__ . '/../reports')) {
-                mkdir(__DIR__ . '/../reports', 0777, true);
-            }
-            $pdf->Output('F', $outputPath);
-
             // Save Progress
             $encryptedFindings = SecurityUtils::encrypt(json_encode($richFindings));
             $encryptedLogs = SecurityUtils::encrypt(json_encode($logs));
 
-            $scanUpdateSql = "UPDATE scans SET status='COMPLETED', result_path=?, logs=?, findings=?, is_encrypted=1 ";
+            $scanUpdateSql = "UPDATE scans SET status='COMPLETED', result_path=NULL, logs=?, findings=?, is_encrypted=1 ";
             $scanUpdateSql .= "WHERE job_id=?";
             $this->pdo->prepare($scanUpdateSql)
                 ->execute([
-                    "api/reports/mapard_report_$jobId.pdf",
                     $encryptedLogs,
                     $encryptedFindings,
                     $jobId
@@ -258,7 +227,7 @@ class ScanService
 
             return [
                 "status" => "COMPLETED",
-                "result_url" => "api/reports/mapard_report_$jobId.pdf",
+                "result_url" => null,
                 "findings" => $richFindings,
                 "delta_new" => $newFindingsCount ?? 0,
                 "is_baseline" => $isFirstScan,
@@ -277,104 +246,6 @@ class ScanService
         }
     }
 
-    private function getRiskColor($level)
-    {
-        if ($level === 'CRITICAL' || $level === 'CRÍTICO') {
-            return [255, 0, 80];
-        }
-        if ($level === 'HIGH' || $level === 'ALTO') {
-            return [255, 130, 0];
-        }
-        if ($level === 'MEDIUM' || $level === 'MEDIO') {
-            return [255, 200, 0];
-        }
-        return [0, 243, 255];
-    }
-
-    private function renderPdfReport(
-        $pdf,
-        $email,
-        $riskLevel,
-        $riskColor,
-        $aiIntel,
-        $breachData,
-        $isBaseline,
-        $deltaNew,
-        $baselineFindings,
-        $richFindings = [] // Added Phase 26
-    ) {
-        $pdf->header($isBaseline);
-        $pdf->SetY(40);
-        $pdf->SetFont('Helvetica', 'B', 9);
-        $pdf->SetTextColor(107, 116, 144);
-        $pdf->Cell(35, 6, text_sanitize('Objetivo:'), 0, 0);
-        $pdf->SetFont('Helvetica', '', 10);
-        $pdf->SetTextColor(26, 31, 58);
-        $pdf->Cell(0, 6, $email, 0, 1);
-        $pdf->SetFont('Helvetica', 'B', 9);
-        $pdf->SetTextColor(107, 116, 144);
-        $pdf->Cell(35, 6, text_sanitize('Nivel de Riesgo:'), 0, 0);
-        $pdf->SetFont('Helvetica', 'B', 10);
-        $pdf->SetTextColor($riskColor[0], $riskColor[1], $riskColor[2]);
-        $pdf->Cell(0, 6, text_sanitize($riskLevel), 0, 1);
-        $pdf->Ln(5);
-
-        // Phase 24: Trend Analysis
-        $pdf->renderTrendAnalysis($deltaNew, $isBaseline);
-        $pdf->Ln(5);
-
-        if ($aiIntel && isset($aiIntel['executive_summary'])) {
-            $pdf->RenderExecutiveSummary($aiIntel['executive_summary']);
-        }
-
-        if ($aiIntel && !empty($aiIntel['detailed_analysis'])) {
-            $pdf->SectionTitle("1. Análisis Detallado");
-            foreach ($aiIntel['detailed_analysis'] as $analysis) {
-                // Find matching breach data
-                $original = null;
-                foreach ($breachData as $b) {
-                    if (stripos($b['name'], $analysis['source_name'] ?? '') !== false) {
-                        $original = $b;
-                        break;
-                    }
-                }
-                if ($original) {
-                    // Phase 24: Tag as new if not in baseline
-                    $isNew = false;
-                    if (!$isBaseline) {
-                        $matchFound = false;
-                        foreach ($baselineFindings as $bf) {
-                            $bfName = is_array($bf) ? ($bf['source_name'] ?? '') : $bf;
-                            if (stripos($bfName, $original['name']) !== false) {
-                                $matchFound = true;
-                                break;
-                            }
-                        }
-                        $isNew = !$matchFound;
-                        if ($isNew) {
-                            $deltaNew++;
-                        }
-                    }
-
-                    // Phase 26: Determine if this specific card is neutralized
-                    $isNeutralized = false;
-                    foreach ($richFindings as $rf) {
-                        if ($rf['source_name'] === ($analysis['source_name'] ?? '')) {
-                            $isNeutralized = $rf['isNeutralized'] ?? false;
-                            break;
-                        }
-                    }
-
-                    $pdf->RenderIntelCard($original, $analysis, $riskColor, $isNew, $isNeutralized);
-                    $pdf->Ln(5);
-                }
-            }
-        }
-
-        if (isset($aiIntel['strategic_conclusion'])) {
-            $pdf->renderStrategicConclusion($aiIntel['strategic_conclusion']);
-        }
-    }
 
     /**
      * Automated Engine: Runs daily scans for all verified users.

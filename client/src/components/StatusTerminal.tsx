@@ -1,7 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Zap, Activity, FileCheck, ShieldAlert } from 'lucide-react';
-import { Capacitor } from '@capacitor/core';
+import { Zap, Activity, ShieldAlert } from 'lucide-react';
 
 interface Log {
     id: number;
@@ -15,12 +14,11 @@ interface StatusTerminalProps {
     isVisible: boolean;
     onReset?: () => void;
     resetLabel?: string;
-    resultUrl?: string | null;
     onNeutralize?: () => void;
     findingsCount?: number;
 }
 
-const StatusTerminal: React.FC<StatusTerminalProps> = ({ logs, isVisible, onReset, resetLabel, resultUrl, onNeutralize, findingsCount = 0 }) => {
+const StatusTerminal: React.FC<StatusTerminalProps> = ({ logs, isVisible, onReset, resetLabel, onNeutralize, findingsCount = 0 }) => {
     // ... (existing code logs setup) ...
     const endRef = useRef<HTMLDivElement>(null);
     const isCompleted = logs.some(l =>
@@ -92,9 +90,9 @@ const StatusTerminal: React.FC<StatusTerminalProps> = ({ logs, isVisible, onRese
             </div>
 
             {/* Footer de Acciones (Fijo al fondo) */}
-            {isCompleted && (onReset || resultUrl || onNeutralize) && (
+            {isCompleted && (onReset || onNeutralize) && (
                 <div className="p-4 border-t border-white/10 bg-white/5 flex-none z-20 space-y-3">
-                    {(onReset && (hasError || resultUrl)) && (
+                    {(onReset && (hasError || isCompleted)) && (
                         <button
                             onClick={(e) => {
                                 e.preventDefault();
@@ -109,40 +107,6 @@ const StatusTerminal: React.FC<StatusTerminalProps> = ({ logs, isVisible, onRese
                     )}
 
                     <div className="flex flex-col sm:flex-row gap-3">
-                        {resultUrl && (
-                            <button
-                                onClick={async (e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    console.log("Attempting download:", resultUrl);
-                                    try {
-                                        if (Capacitor.isNativePlatform()) {
-                                            const API_BASE = 'https://mapard.felipemiramontesr.net';
-                                            let fullUrl = resultUrl;
-                                            if (fullUrl && !fullUrl.startsWith('http')) {
-                                                fullUrl = `${API_BASE}${fullUrl.startsWith('/') ? '' : '/'}${fullUrl}`;
-                                            }
-                                            // Force Android OS to handle the PDF download natively
-                                            window.open(fullUrl, '_system');
-                                        } else {
-                                            const link = document.createElement('a');
-                                            link.href = resultUrl;
-                                            link.download = `MAPARD_DOSSIER.pdf`;
-                                            document.body.appendChild(link);
-                                            link.click();
-                                            document.body.removeChild(link);
-                                        }
-                                    } catch (err) {
-                                        console.error("Download Error", err);
-                                        alert("Error al abrir documento: " + JSON.stringify(err));
-                                    }
-                                }}
-                                className="btn-ops flex-1 bg-transparent border-ops-border text-ops-text hover:border-ops-accent hover:text-white text-[10px] sm:text-xs md:text-sm gap-2 sm:gap-3"
-                            >
-                                <FileCheck className="w-4 h-4 hidden sm:block" />
-                                DESCARGAR DOSSIER
-                            </button>
-                        )}
 
                         {onNeutralize && (
                             <button
