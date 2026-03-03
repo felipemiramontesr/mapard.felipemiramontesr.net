@@ -320,20 +320,33 @@ if (isset($pathParams[1], $pathParams[2]) && $pathParams[1] === 'auth' && $pathP
     $hashedPassword = SecurityUtils::hashPassword($password);
 
     if (!$user) {
-        // Enforce Single-User System (The Target)
+        // 1. Is this hardware already bound to SOMEONE ELSE?
+        $stmtDev = $pdo->prepare("SELECT email_target FROM users WHERE device_id = ?");
+        $stmtDev->execute([$deviceId]);
+        $boundUser = $stmtDev->fetchColumn();
+
+        if ($boundUser) {
+            // MATCH HARDWARE + MISMATCH EMAIL
+            recordFailedAttempt($pdo, $clientIp);
+            http_response_code(403);
+            echo json_encode(["error" => "DISPOSITIVO COMPROMETIDO: Este hardware ya está vinculado a otra credencial táctica."]);
+            exit;
+        }
+
+        // 2. Enforce Single-User System (The Target)
         // Check if ANY user exists in the database.
         $stmtCount = $pdo->query("SELECT COUNT(*) FROM users");
         $userCount = $stmtCount->fetchColumn();
 
         if ($userCount > 0) {
-            // A user already exists, but this email is different from the target. Intruders blocked.
+            // MISMATCH HARDWARE + MISMATCH EMAIL
             recordFailedAttempt($pdo, $clientIp);
             http_response_code(403);
-            echo json_encode(["error" => "Operación Denegada: El sistema ya está vinculado a un Operador."]);
+            echo json_encode(["error" => "SISTEMA CERRADO: La cuota de Operadores Maestros (1/1) está llena."]);
             exit;
         }
 
-        // Create New User & Bind Device (First Use ONLY)
+        // 3. System Virgin: Create New User & Bind Device (First Use ONLY)
         $stmt = $pdo->prepare("INSERT INTO users (email_target, password_hash, fa_code, device_id) VALUES (?, ?, ?, ?)");
         $stmt->execute([$email, $hashedPassword, $faCode, $deviceId]);
         $newUserId = $pdo->lastInsertId();
@@ -344,11 +357,12 @@ if (isset($pathParams[1], $pathParams[2]) && $pathParams[1] === 'auth' && $pathP
         // Enforce Hardware Binding (TOFU)
         $storedDeviceId = $user['device_id'];
 
-        // If a device is bound, it MUST match the incoming device ID
+        // 4. Mismo Email. Evaluamos el hardware inmediatamente.
         if (!empty($storedDeviceId) && $storedDeviceId !== $deviceId) {
+            // MATCH EMAIL + MISMATCH HARDWARE
             recordFailedAttempt($pdo, $clientIp);
             http_response_code(403);
-            echo json_encode(["error" => "Dispositivo no autorizado. Credencial anclada a hardware distinto."]);
+            echo json_encode(["error" => "HARDWARE RECHAZADO: Credencial anclada a un dispositivo distinto."]);
             exit;
         }
 
