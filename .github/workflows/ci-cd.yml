@@ -58,7 +58,7 @@ jobs:
     - name: Install Frontend Deps
       run: |
         cd client
-        npm ci
+        npm ci || npm ci || npm ci
 
     - name: 🛡️ Linter (ESLint)
       run: |
@@ -98,7 +98,7 @@ jobs:
       - name: 🔨 Build Frontend
         run: |
           cd client
-          npm ci
+          npm ci || npm ci || npm ci
           npm run build
           # ------------------------------------------------------------------
       # 2.B INSTALL PHP DEPENDENCIES
