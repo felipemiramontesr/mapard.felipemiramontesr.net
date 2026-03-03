@@ -192,7 +192,8 @@ class ScanService
             $encryptedFindings = SecurityUtils::encrypt(json_encode($richFindings));
             $encryptedLogs = SecurityUtils::encrypt(json_encode($logs));
 
-            $scanUpdateSql = "UPDATE scans SET status='COMPLETED', result_path=NULL, logs=?, findings=?, is_encrypted=1 ";
+            $scanUpdateSql = "UPDATE scans SET status='COMPLETED', result_path=NULL, ";
+            $scanUpdateSql .= "logs=?, findings=?, is_encrypted=1 ";
             $scanUpdateSql .= "WHERE job_id=?";
             $this->pdo->prepare($scanUpdateSql)
                 ->execute([
