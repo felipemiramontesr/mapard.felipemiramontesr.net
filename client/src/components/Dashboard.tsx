@@ -122,29 +122,42 @@ const Dashboard: React.FC = () => {
             if (token && storedEmail) {
                 setUserEmail(storedEmail); // Set email early so background dashboard shows the target
 
-                // 3. Hardware Challenge (Biometrics)
-                const success = await performHardwareChallenge();
-
-                if (!success) {
-                    setIsBiometricLocked(true);
-                    setAuthStep('dashboard'); // Guarantee spinner turns off
-                    setFailedAttempts(prev => prev + 1);
-                    return; // SECURITY FIX: Abort execution
+                // Check for existing lockout before biometrics
+                const lockUntilStr = await secureStorage.get('biometric_lockout_until');
+                if (lockUntilStr) {
+                    const lockUntilMs = parseInt(lockUntilStr, 10);
+                    if (Date.now() < lockUntilMs) {
+                        setLockoutTimeRemaining(lockUntilMs - Date.now());
+                        setIsBiometricLocked(true);
+                        setAuthStep('dashboard'); // Turn off spinner
+                        return; // Halt process
+                    } else {
+                        // Time served, BURN THE SESSION as requested
+                        await secureStorage.remove('auth_token');
+                        await secureStorage.remove('target_email');
+                        await secureStorage.remove('biometric_lockout_until');
+                        await secureStorage.remove('biometric_failed_attempts');
+                        setAuthStep('login');
+                        return;
+                    }
                 }
 
-                setIsBiometricLocked(false);
-                setFailedAttempts(0);
+                // Check persistent failed attempts
+                const storedAttempts = await secureStorage.get('biometric_failed_attempts');
+                if (storedAttempts) {
+                    setFailedAttempts(parseInt(storedAttempts, 10));
+                }
 
-                // Load Data
-                await loadDashboardData(storedEmail);
-                setAuthStep('dashboard'); // Turn off spinner and show data
+                // Initial boot ONLY: hardware challenge
+                setIsBiometricLocked(true);
+                setAuthStep('dashboard'); // Guarantee spinner turns off so they see the lock screen
             } else {
                 setAuthStep('login');
             }
         };
 
         initHardwareGate();
-    }, [performHardwareChallenge, syncBackgroundContext, loadDashboardData]);
+    }, []);
 
     useEffect(() => {
         const prepareBackground = async () => {
@@ -155,6 +168,37 @@ const Dashboard: React.FC = () => {
         };
         prepareBackground();
     }, []);
+
+    // Interval for Lockout timer
+    useEffect(() => {
+        let timerId: ReturnType<typeof setInterval>;
+        if (lockoutTimeRemaining !== null && lockoutTimeRemaining > 0) {
+            timerId = setInterval(() => {
+                setLockoutTimeRemaining(prev => {
+                    if (prev === null) return null;
+                    const next = prev - 1000;
+                    if (next <= 0) {
+                        clearInterval(timerId);
+                        // Time served, BURN THE SESSION as requested
+                        secureStorage.remove('auth_token').then(() => {
+                            secureStorage.remove('target_email').then(() => {
+                                secureStorage.remove('biometric_lockout_until').then(() => {
+                                    secureStorage.remove('biometric_failed_attempts').then(() => {
+                                        setAuthStep('login');
+                                    });
+                                });
+                            });
+                        });
+                        return 0;
+                    }
+                    return next;
+                });
+            }, 1000);
+        }
+        return () => {
+            if (timerId) clearInterval(timerId);
+        };
+    }, [lockoutTimeRemaining]);
 
     useEffect(() => {
         // 4. App Resume Listener (Re-lock on background)
@@ -168,30 +212,14 @@ const Dashboard: React.FC = () => {
                 setIsBiometricLocked(true);
                 return;
             }
-
-            if (state.isActive) {
-                // Ignore if we are currently authenticating to prevent race conditions
-                if (isAuthenticating.current) return;
-
-                // Hermetic seal: ensure UI is locked before the challenge delay
-                setIsBiometricLocked(true);
-
-                setTimeout(async () => {
-                    const success = await performHardwareChallenge();
-                    if (!success) {
-                        setIsBiometricLocked(true);
-                        setViewMode('form');
-                    } else {
-                        setIsBiometricLocked(false);
-                    }
-                }, 500);
-            }
+            // By design: We DO NOT auto-prompt biometrics here anymore.
+            // The user must click "REINTENTAR ACCESO" to trigger performHardwareChallenge.
         });
 
         return () => {
             resumeListener.then(l => l.remove());
         };
-    }, [performHardwareChallenge]);
+    }, []);
 
     const handleLoginSubmit = async (email: string, pass: string) => {
         setIsAuthLoading(true);
@@ -437,40 +465,53 @@ const Dashboard: React.FC = () => {
                     <p className="text-ops-text_dim text-sm max-w-xs mb-8 font-mono">
                         Acceso restringido. Se requiere autenticación biométrica de hardware para desencriptar el dossier.
                         <br /><br />
-                        <span className="text-ops-danger font-bold">Intentos fallidos: {failedAttempts}/5</span>
+                        {!lockoutTimeRemaining && <span className="text-ops-danger font-bold">Intentos fallidos: {failedAttempts}/5</span>}
                     </p>
-                    <button
-                        onClick={async () => {
-                            const success = await biometricService.authenticate();
-                            if (success) {
-                                setIsBiometricLocked(false);
-                                setFailedAttempts(0);
-                                setAuthStep('initial_check'); // Show spinner briefly
-                                const storedEmail = await secureStorage.get('target_email');
-                                if (storedEmail) {
-                                    setUserEmail(storedEmail);
-                                    await loadDashboardData(storedEmail);
-                                }
-                                setAuthStep('dashboard');
-                            } else {
-                                const newFails = failedAttempts + 1;
-                                setFailedAttempts(newFails);
-                                if (newFails >= 5) {
-                                    await secureStorage.remove('auth_token');
-                                    await secureStorage.remove('target_email');
-                                    const lockoutTime = Date.now() + (10 * 60 * 1000);
-                                    await secureStorage.set('biometric_lockout_until', lockoutTime.toString());
+
+                    {lockoutTimeRemaining && lockoutTimeRemaining > 0 ? (
+                        <div className="flex flex-col items-center justify-center p-6 bg-ops-danger/10 border border-ops-danger/30 rounded-lg animate-pulse">
+                            <span className="text-xs uppercase tracking-widest text-ops-danger mb-2 font-bold">Cuarentena Táctica Activa</span>
+                            <span className="text-3xl font-mono text-ops-danger tracking-widest font-black">
+                                {Math.floor(lockoutTimeRemaining / 60000).toString().padStart(2, '0')}:
+                                {Math.floor((lockoutTimeRemaining % 60000) / 1000).toString().padStart(2, '0')}
+                            </span>
+                            <span className="text-[10px] text-ops-danger/70 mt-3 font-mono text-center">PRIVILEGIO DE BIOMETRÍA REVOCADO<br />TIEMPO RESTANTE PARA RESET DE SESIÓN</span>
+                        </div>
+                    ) : (
+                        <button
+                            onClick={async () => {
+                                const success = await performHardwareChallenge();
+                                if (success) {
                                     setIsBiometricLocked(false);
                                     setFailedAttempts(0);
-                                    setAuthStep('login');
+                                    await secureStorage.remove('biometric_failed_attempts');
+
+                                    setAuthStep('initial_check'); // Show spinner briefly
+                                    const storedEmail = await secureStorage.get('target_email');
+                                    if (storedEmail) {
+                                        setUserEmail(storedEmail);
+                                        await loadDashboardData(storedEmail);
+                                    }
+                                    setAuthStep('dashboard');
+                                } else {
+                                    const newFails = failedAttempts + 1;
+                                    setFailedAttempts(newFails);
+                                    await secureStorage.set('biometric_failed_attempts', newFails.toString());
+
+                                    if (newFails >= 5) {
+                                        const lockDuration = 10 * 60 * 1000; // 10 minutes
+                                        const lockoutTime = Date.now() + lockDuration;
+                                        await secureStorage.set('biometric_lockout_until', lockoutTime.toString());
+                                        setLockoutTimeRemaining(lockDuration);
+                                    }
                                 }
-                            }
-                        }}
-                        className="btn-ops px-8 py-4 flex items-center gap-3 group"
-                    >
-                        <Fingerprint className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                        REINTENTAR ACCESO
-                    </button>
+                            }}
+                            className="btn-ops px-8 py-4 flex items-center gap-3 group"
+                        >
+                            <Fingerprint className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                            REINTENTAR ACCESO
+                        </button>
+                    )}
                 </motion.div>
             </div>
         );
