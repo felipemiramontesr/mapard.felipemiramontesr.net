@@ -3,6 +3,7 @@ import { Mail, Lock, ShieldCheck, Eye, EyeOff, CheckCircle2, Circle } from 'luci
 
 interface LoginViewProps {
     onLogin: (email: string, pass: string) => void;
+    onRequestRescue: (email: string) => void;
     isLoading: boolean;
     error?: string | null;
 }
@@ -11,7 +12,7 @@ const LOADING_MESSAGES = [
     "CIFRANDO"
 ];
 
-const LoginView: React.FC<LoginViewProps> = ({ onLogin, isLoading, error }) => {
+const LoginView: React.FC<LoginViewProps> = ({ onLogin, onRequestRescue, isLoading, error }) => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
@@ -19,12 +20,16 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin, isLoading, error }) => {
     const [lockoutError, setLockoutError] = useState<string | null>(null);
     const [isHardLocked, setIsHardLocked] = useState(false);
     const [isReturningUser, setIsReturningUser] = useState(false);
+    const [authMode, setAuthMode] = useState<'login' | 'signup'>('signup');
 
     useEffect(() => {
         let interval: ReturnType<typeof setInterval>;
         import('../../utils/secureStorage').then(({ secureStorage }) => {
             secureStorage.get('is_returning_user').then((val) => {
-                if (val === 'true') setIsReturningUser(true);
+                if (val === 'true') {
+                    setIsReturningUser(true);
+                    setAuthMode('login');
+                }
             });
 
             secureStorage.get('biometric_lockout_until').then((lockUntil) => {
@@ -84,7 +89,9 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin, isLoading, error }) => {
         { id: 'special', text: 'MIN. 1 CARÁCTER ESPECIAL', passed: /[!@#$%^&*(),.?":{}|<>]/.test(password) }
     ];
 
-    const isPasswordValid = validations.every(v => v.passed);
+    const isPasswordValid = authMode === 'signup'
+        ? validations.every(v => v.passed)
+        : password.length > 0;
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -110,6 +117,25 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin, isLoading, error }) => {
                 <div className="mb-6 p-4 border border-ops-danger/50 bg-ops-danger/10 rounded break-words text-center flex flex-col items-center justify-center animate-[pulse_2s_ease-in-out_infinite]">
                     <ShieldCheck className="w-6 h-6 text-ops-danger mb-2" />
                     <span className="text-ops-danger font-mono text-[9px] md:text-xs uppercase tracking-wider whitespace-pre-line leading-relaxed">{lockoutError}</span>
+                </div>
+            )}
+
+            {!isHardLocked && (
+                <div className="flex border-b border-ops-border/50 mb-6 w-full">
+                    <button
+                        type="button"
+                        className={`flex-1 pb-2 text-[10px] md:text-xs font-mono tracking-widest uppercase transition-colors duration-300 ${authMode === 'signup' ? 'text-[#00f3ff] border-b-2 border-[#00f3ff]' : 'text-ops-text_dim hover:text-white'}`}
+                        onClick={() => { setAuthMode('signup'); setPassword(''); }}
+                    >
+                        Nueva Acreditación
+                    </button>
+                    <button
+                        type="button"
+                        className={`flex-1 pb-2 text-[10px] md:text-xs font-mono tracking-widest uppercase transition-colors duration-300 ${authMode === 'login' ? 'text-[#00f3ff] border-b-2 border-[#00f3ff]' : 'text-ops-text_dim hover:text-white'}`}
+                        onClick={() => { setAuthMode('login'); setPassword(''); }}
+                    >
+                        Acceder
+                    </button>
                 </div>
             )}
 
@@ -159,8 +185,8 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin, isLoading, error }) => {
                     </div>
 
                     {/* Protocol Validation Indicators */}
-                    {!isHardLocked && (
-                        <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2 text-[9px] tall:text-[10px] font-mono tracking-wider opacity-80 pl-1">
+                    {!isHardLocked && authMode === 'signup' && (
+                        <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2 text-[9px] tall:text-[10px] font-mono tracking-wider opacity-80 pl-1 animate-in slide-in-from-top-2">
                             {validations.map((v) => (
                                 <div key={v.id} className="flex items-center gap-1.5 transition-colors duration-300">
                                     {v.passed ? (
@@ -202,6 +228,18 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin, isLoading, error }) => {
                         </>
                     )}
                 </button>
+
+                {!isHardLocked && authMode === 'login' && (
+                    <div className="pt-2 text-center animate-in fade-in">
+                        <button
+                            type="button"
+                            onClick={() => onRequestRescue(email)}
+                            className="text-[10px] md:text-xs font-mono text-ops-text_dim hover:text-[#00f3ff] transition-colors uppercase tracking-widest underline underline-offset-4"
+                        >
+                            ¿Olvidaste tu contraseña?
+                        </button>
+                    </div>
+                )}
             </form>
 
             <p className="mt-6 text-[8px] md:text-[10px] text-ops-text_dim text-center uppercase tracking-[0.1em] opacity-60 px-4">

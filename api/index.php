@@ -147,7 +147,7 @@ try {
     $pdo->setAttribute(PDO::ATTR_TIMEOUT, 5);
     $pdo->exec('PRAGMA journal_mode = wal;');
     $pdo->exec('PRAGMA busy_timeout = 5000;');
-    // USERS Table (Phase 21 + Phase 25)
+    // USERS Table (Phase 21 + Phase 25 + Phase 29)
     $pdo->exec("CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         email_target TEXT UNIQUE,
@@ -156,14 +156,28 @@ try {
         fa_code TEXT,
         fa_attempts INTEGER DEFAULT 0,
         device_id TEXT,
+        rescue_code TEXT,
+        rescue_attempts INTEGER DEFAULT 0,
+        rescue_expires_at DATETIME,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )");
 
-    // Safely add fa_attempts column for existing databases
+    // Safely add columns for existing databases
     try {
         $pdo->exec("ALTER TABLE users ADD COLUMN fa_attempts INTEGER DEFAULT 0");
     } catch (PDOException $e) {
-        // Ignored if column already exists
+    }
+    try {
+        $pdo->exec("ALTER TABLE users ADD COLUMN rescue_code TEXT");
+    } catch (PDOException $e) {
+    }
+    try {
+        $pdo->exec("ALTER TABLE users ADD COLUMN rescue_attempts INTEGER DEFAULT 0");
+    } catch (PDOException $e) {
+    }
+    try {
+        $pdo->exec("ALTER TABLE users ADD COLUMN rescue_expires_at DATETIME");
+    } catch (PDOException $e) {
     }
 
     // [NEW] USER_SECURITY_CONFIG Table (Phase 28)
@@ -410,6 +424,129 @@ if (isset($pathParams[1], $pathParams[2]) && $pathParams[1] === 'auth' && $pathP
         "email" => $email,
         "is_first_analysis_complete" => false // Default for new verification
     ]);
+    exit;
+}
+
+// AUTH RESCUE REQUEST (Phase 29)
+if (isset($pathParams[1], $pathParams[2]) && $pathParams[1] === 'auth' && $pathParams[2] === 'rescue-request' && $method === 'POST') {
+    enforceRateLimit($pdo, $clientIp);
+    $input = json_decode(file_get_contents('php://input'), true);
+    $email = $input['email'] ?? '';
+
+    $stmt = $pdo->prepare("SELECT id FROM users WHERE email_target = ?");
+    $stmt->execute([$email]);
+    $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$user) {
+        recordFailedAttempt($pdo, $clientIp);
+        http_response_code(401);
+        echo json_encode(["error" => "Email no autorizado"]);
+        exit;
+    }
+
+    $rescueCode = SecurityUtils::generate2FA(); // Reusing the secure 6-digit generator
+    $expiresAt = date('Y-m-d H:i:s', time() + (10 * 60)); // 10 minutes from now
+
+    $stmt = $pdo->prepare("UPDATE users SET rescue_code = ?, rescue_attempts = 0, rescue_expires_at = ?, rescue_token = NULL WHERE id = ?");
+    $stmt->execute([$rescueCode, $expiresAt, $user['id']]);
+
+    try {
+        MailService::sendRescueCode($email, $rescueCode);
+        file_put_contents(__DIR__ . '/temp/2fa_tactical.log', "[RESCUE] CODE FOR $email: $rescueCode - SENT VIA SMTP\n", FILE_APPEND);
+    } catch (Exception $e) {
+        file_put_contents(__DIR__ . '/temp/2fa_tactical.log', "[RESCUE ERROR] For $email: " . $e->getMessage() . "\n", FILE_APPEND);
+    }
+
+    echo json_encode(["status" => "RESCUE_SENT", "message" => "Código de rescate enviado."]);
+    exit;
+}
+
+// AUTH RESCUE VERIFY (Phase 29)
+if (isset($pathParams[1], $pathParams[2]) && $pathParams[1] === 'auth' && $pathParams[2] === 'rescue-verify' && $method === 'POST') {
+    enforceRateLimit($pdo, $clientIp);
+    $input = json_decode(file_get_contents('php://input'), true);
+    $email = $input['email'] ?? '';
+    $code = $input['code'] ?? '';
+
+    $stmt = $pdo->prepare("SELECT * FROM users WHERE email_target = ?");
+    $stmt->execute([$email]);
+    $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$user || empty($user['rescue_code'])) {
+        recordFailedAttempt($pdo, $clientIp);
+        http_response_code(401);
+        echo json_encode(["error" => "Solicitud inválida"]);
+        exit;
+    }
+
+    if (strtotime($user['rescue_expires_at']) < time()) {
+        $pdo->prepare("UPDATE users SET rescue_code = NULL, rescue_attempts = 0 WHERE id = ?")->execute([$user['id']]);
+        http_response_code(403);
+        echo json_encode(["error" => "EXPIRED_CODE", "message" => "El código de rescate ha expirado."]);
+        exit;
+    }
+
+    if ($user['rescue_code'] !== $code) {
+        recordFailedAttempt($pdo, $clientIp);
+        $attempts = (int) ($user['rescue_attempts'] ?? 0) + 1;
+
+        if ($attempts >= 5) {
+            $pdo->prepare("UPDATE users SET rescue_code = NULL, rescue_attempts = 0 WHERE id = ?")->execute([$user['id']]);
+            http_response_code(403);
+            echo json_encode(["error" => "MAX_ATTEMPTS_REACHED", "message" => "Demasiados intentos fallidos. Proceso de rescate abortado."]);
+            exit;
+        } else {
+            $pdo->prepare("UPDATE users SET rescue_attempts = ? WHERE id = ?")->execute([$attempts, $user['id']]);
+            http_response_code(401);
+            echo json_encode(["error" => "INVALID_CODE", "message" => "Código incorrecto. Intentos restantes: " . (5 - $attempts)]);
+            exit;
+        }
+    }
+
+    // Code is valid! Issue a one-time rescue token
+    $rescueToken = bin2hex(random_bytes(32));
+    $pdo->prepare("UPDATE users SET rescue_code = NULL, rescue_attempts = 0, rescue_token = ? WHERE id = ?")->execute([$rescueToken, $user['id']]);
+    resetRateLimit($pdo, $clientIp);
+
+    echo json_encode(["status" => "RESCUE_VERIFIED", "rescue_token" => $rescueToken]);
+    exit;
+}
+
+// AUTH RESCUE EXECUTE (Phase 29)
+if (isset($pathParams[1], $pathParams[2]) && $pathParams[1] === 'auth' && $pathParams[2] === 'rescue-execute' && $method === 'POST') {
+    enforceRateLimit($pdo, $clientIp);
+    $input = json_decode(file_get_contents('php://input'), true);
+    $email = $input['email'] ?? '';
+    $token = $input['rescue_token'] ?? '';
+    $newPassword = $input['new_password'] ?? '';
+    $deviceId = $input['device_id'] ?? '';
+
+    if (empty($token) || empty($newPassword)) {
+        http_response_code(400);
+        echo json_encode(["error" => "Datos incompletos"]);
+        exit;
+    }
+
+    $stmt = $pdo->prepare("SELECT id FROM users WHERE email_target = ? AND rescue_token = ?");
+    $stmt->execute([$email, $token]);
+    $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$user) {
+        recordFailedAttempt($pdo, $clientIp);
+        http_response_code(403);
+        echo json_encode(["error" => "Token de rescate inválido o expirado."]);
+        exit;
+    }
+
+    $hashedPassword = SecurityUtils::hashPassword($newPassword);
+
+    // Update password, destroy rescue token, and optionally update device_id if they are recovering from a new device
+    $pdo->prepare("UPDATE users SET password_hash = ?, rescue_token = NULL, fa_code = NULL, fa_attempts = 0, is_verified = 0, device_id = ? WHERE id = ?")
+        ->execute([$hashedPassword, $deviceId, $user['id']]);
+
+    resetRateLimit($pdo, $clientIp);
+
+    echo json_encode(["status" => "PASSWORD_CHANGED", "message" => "Acreditación táctica actualizada. Proceda a establecer conexión."]);
     exit;
 }
 

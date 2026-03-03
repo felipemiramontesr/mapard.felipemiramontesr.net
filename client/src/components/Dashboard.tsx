@@ -4,6 +4,8 @@ import StatusTerminal from './StatusTerminal';
 import RiskNeutralization, { type Vector } from './RiskNeutralization';
 import LoginView from './Auth/LoginView';
 import VerificationView from './Auth/VerificationView';
+import RescueVerificationView from './Auth/RescueVerificationView';
+import RescueResetView from './Auth/RescueResetView';
 import { secureStorage } from '../utils/secureStorage';
 import { format } from 'date-fns';
 import { Shield, Target, Lock, Fingerprint } from 'lucide-react';
@@ -34,11 +36,12 @@ const Dashboard: React.FC = () => {
     const [findings, setFindings] = useState<Vector[]>([]);
     const [showNeutralization, setShowNeutralization] = useState(false);
 
-    // AUTH STATE (Phase 22)
-    const [authStep, setAuthStep] = useState<'initial_check' | 'login' | 'verify' | 'dashboard'>('initial_check');
+    // AUTH STATE (Phase 22 + Phase 29)
+    const [authStep, setAuthStep] = useState<'initial_check' | 'login' | 'verify' | 'rescue_verify' | 'rescue_reset' | 'dashboard'>('initial_check');
     const [userEmail, setUserEmail] = useState<string | null>(null);
     const [authError, setAuthError] = useState<string | null>(null);
     const [isAuthLoading, setIsAuthLoading] = useState(false);
+    const [rescueToken, setRescueToken] = useState<string | null>(null);
     const [deltaNew, setDeltaNew] = useState<number>(0);
     const [isBiometricLocked, setIsBiometricLocked] = useState(false);
     const [deviceId, setDeviceId] = useState<string>('');
@@ -307,6 +310,81 @@ const Dashboard: React.FC = () => {
         }
     };
 
+    // Phase 29: Rescue Flow Handlers
+    const handleRescueRequest = async (email: string) => {
+        setIsAuthLoading(true);
+        setAuthError(null);
+        try {
+            const res = await fetch(`${API_BASE}/api/auth/rescue-request`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                setUserEmail(email);
+                setAuthStep('rescue_verify');
+            } else {
+                setAuthError(data.error || 'Fallo al inicializar rescate');
+            }
+        } catch {
+            setAuthError('Error de red durante protocolo de rescate');
+        } finally {
+            setIsAuthLoading(false);
+        }
+    };
+
+    const handleRescueVerify = async (code: string) => {
+        setIsAuthLoading(true);
+        setAuthError(null);
+        try {
+            const res = await fetch(`${API_BASE}/api/auth/rescue-verify`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: userEmail, code })
+            });
+            const data = await res.json();
+            if (res.ok && data.rescue_token) {
+                setRescueToken(data.rescue_token);
+                setAuthStep('rescue_reset');
+            } else {
+                setAuthError(data.message || data.error || 'Código de rescate inválido');
+                if (data.error === 'MAX_ATTEMPTS_REACHED' || data.error === 'EXPIRED_CODE') {
+                    setTimeout(() => setAuthStep('login'), 3000);
+                }
+            }
+        } catch {
+            setAuthError('Error validando código de rescate');
+        } finally {
+            setIsAuthLoading(false);
+        }
+    };
+
+    const handleRescueExecute = async (newPassword: string) => {
+        setIsAuthLoading(true);
+        setAuthError(null);
+        try {
+            const res = await fetch(`${API_BASE}/api/auth/rescue-execute`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: userEmail, rescue_token: rescueToken, new_password: newPassword, device_id: deviceId })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                // Success! Force them to login normally now with the new password.
+                setAuthError(data.message); // Temporarily show success message in the login view
+                setAuthStep('login');
+                setRescueToken(null);
+            } else {
+                setAuthError(data.error || 'Fallo al sobrescribir credencial');
+            }
+        } catch {
+            setAuthError('Error de red al actualizar credencial');
+        } finally {
+            setIsAuthLoading(false);
+        }
+    };
+
     const addLog = (message: string, type: Log['type'] = 'info') => {
         setLogs(currentLogs => {
             // STRICT DE-DUPLICATION:
@@ -539,7 +617,7 @@ const Dashboard: React.FC = () => {
 
             <main className="flex-grow flex flex-col items-center w-full max-w-4xl mx-auto px-4 md:px-8">
                 {authStep === 'login' && (
-                    <LoginView onLogin={handleLoginSubmit} isLoading={isAuthLoading} error={authError} />
+                    <LoginView onLogin={handleLoginSubmit} onRequestRescue={handleRescueRequest} isLoading={isAuthLoading} error={authError} />
                 )}
 
                 {authStep === 'verify' && (
@@ -547,6 +625,23 @@ const Dashboard: React.FC = () => {
                         email={userEmail || ''}
                         onVerify={handleVerifySubmit}
                         onResend={() => handleLoginSubmit(userEmail!, '')}
+                        isLoading={isAuthLoading}
+                        error={authError}
+                    />
+                )}
+
+                {authStep === 'rescue_verify' && (
+                    <RescueVerificationView
+                        email={userEmail || ''}
+                        onVerify={handleRescueVerify}
+                        isLoading={isAuthLoading}
+                        error={authError}
+                    />
+                )}
+
+                {authStep === 'rescue_reset' && (
+                    <RescueResetView
+                        onReset={handleRescueExecute}
                         isLoading={isAuthLoading}
                         error={authError}
                     />

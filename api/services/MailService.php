@@ -89,4 +89,87 @@ class MailService
             return false;
         }
     }
+
+    /**
+     * Sends a tactical rescue code to the target email for password recovery.
+     */
+    public static function sendRescueCode($toEmail, $code)
+    {
+        $mail = new PHPMailer(true);
+
+        try {
+            // Server settings
+            $mail->isSMTP();
+            $mail->Host = defined('SMTP_HOST') ? SMTP_HOST : '';
+            $mail->SMTPAuth = true;
+            $mail->Username = defined('SMTP_USER') ? SMTP_USER : '';
+            $mail->Password = defined('SMTP_PASS') ? SMTP_PASS : '';
+            $mail->SMTPSecure = defined('SMTP_ENCRYPTION') ? SMTP_ENCRYPTION : 'ssl';
+            $mail->Port = defined('SMTP_PORT') ? SMTP_PORT : 465;
+            $mail->CharSet = 'UTF-8';
+
+            // Recipients
+            $fromEmail = defined('SMTP_USER') ? SMTP_USER : 'noreply@mapard.felipemiramontesr.net';
+            $mail->setFrom($fromEmail, 'MAPARD Intelligence');
+            $mail->addAddress($toEmail);
+
+            // Content
+            $mail->isHTML(true);
+            $mail->Subject = "MAPARD: Emergency Access Recovery";
+
+            $message = "
+            <html>
+            <head>
+                <style>
+                    body {
+                        background-color: #0a0e27; color: #ffffff;
+                        font-family: 'Courier New', Courier, monospace; padding: 20px;
+                    }
+                    .card {
+                        border: 1px solid #ff3366; padding: 20px; max-width: 500px;
+                        margin: auto; box-shadow: 0 0 20px rgba(255, 51, 102, 0.2);
+                    }
+                    .header {
+                        color: #ff3366; text-transform: uppercase; font-size: 18px;
+                        border-bottom: 1px solid #1e293b; padding-bottom: 10px; margin-bottom: 20px;
+                    }
+                    .code-box {
+                        background-color: #1e293b; padding: 20px; text-align: center;
+                        font-size: 32px; letter-spacing: 12px; color: #ff3366;
+                        border: 1px dashed #ff3366; margin: 20px 0; font-weight: bold;
+                    }
+                    .footer {
+                        margin-top: 30px; font-size: 11px; color: #64748b;
+                        border-top: 1px solid #1e293b; padding-top: 10px;
+                    }
+                </style>
+            </head>
+            <body>
+                <div class='card'>
+                    <div class='header'>Protocolo de Rescate Iniciado</div>
+                    <p>Se ha detectado una solicitud de recuperación de clave para la credencial:</p>
+                    <p style='color: #fca311; font-weight: bold;'>$toEmail</p>
+                    
+                    <p>Utilice el siguiente código de rescate temporal:</p>
+                    <div class='code-box'>$code</div>
+                    
+                    <p>Este código anulará la seguridad anterior. Tiene una validez de 10 minutos.</p>
+                    
+                    <div class='footer'>
+                        MAPARD CORTEX ENGINE | PROTOCOLO EMERGENCY<br>
+                        Identificador de Rescate: " . bin2hex(random_bytes(4)) . "
+                    </div>
+                </div>
+            </body>
+            </html>
+            ";
+
+            $mail->Body = $message;
+            $mail->send();
+            return true;
+        } catch (Exception $e) {
+            error_log("MailService Error (Rescue): {$mail->ErrorInfo}");
+            return false;
+        }
+    }
 }
