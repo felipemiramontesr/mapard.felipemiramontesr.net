@@ -181,16 +181,18 @@ const Dashboard: React.FC = () => {
                     if (next <= 0) {
                         clearInterval(timerId);
                         // Time served, BURN THE SESSION as requested
-                        secureStorage.remove('auth_token').then(() => {
-                            secureStorage.remove('target_email').then(() => {
-                                secureStorage.remove('biometric_lockout_until').then(() => {
-                                    secureStorage.remove('biometric_failed_attempts').then(() => {
-                                        setAuthStep('login');
-                                    });
-                                });
-                            });
-                        });
-                        return 0;
+                        // Sync UI update ensures an immediate visual transition to Login
+                        setAuthStep('login');
+                        setIsBiometricLocked(false);
+
+                        Promise.all([
+                            secureStorage.remove('auth_token'),
+                            secureStorage.remove('target_email'),
+                            secureStorage.remove('biometric_lockout_until'),
+                            secureStorage.remove('biometric_failed_attempts')
+                        ]).catch(e => console.error("Error wiping session", e));
+
+                        return null;
                     }
                     return next;
                 });
@@ -466,7 +468,7 @@ const Dashboard: React.FC = () => {
                     <p className="text-ops-text_dim text-sm max-w-xs mb-8 font-mono">
                         Acceso restringido. Se requiere autenticación biométrica de hardware para desencriptar el dossier.
                         <br /><br />
-                        {!lockoutTimeRemaining && <span className="text-ops-danger font-bold">Intentos fallidos: {failedAttempts}/5</span>}
+                        {!lockoutTimeRemaining && <span className="text-ops-danger font-bold">Intentos fallidos: {failedAttempts}/2</span>}
                     </p>
 
                     {lockoutTimeRemaining && lockoutTimeRemaining > 0 ? (
@@ -499,7 +501,7 @@ const Dashboard: React.FC = () => {
                                     setFailedAttempts(newFails);
                                     await secureStorage.set('biometric_failed_attempts', newFails.toString());
 
-                                    if (newFails >= 5) {
+                                    if (newFails >= 2) {
                                         const lockDuration = 10 * 60 * 1000; // 10 minutes
                                         const lockoutTime = Date.now() + lockDuration;
                                         await secureStorage.set('biometric_lockout_until', lockoutTime.toString());
