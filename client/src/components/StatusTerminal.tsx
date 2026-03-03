@@ -22,7 +22,6 @@ const StatusTerminal: React.FC<StatusTerminalProps> = ({ logs, isVisible, onRese
     // ... (existing code logs setup) ...
     const endRef = useRef<HTMLDivElement>(null);
     const isCompleted = logs.some(l =>
-        l.message.includes('Completado') ||
         l.message.includes('Listo') ||
         l.message.includes('Failed') ||
         l.message.includes('Error')
