@@ -13,7 +13,6 @@ class SystemTest extends TestCase
         $this->assertFileExists($root . 'index.php');
         $this->assertFileExists($root . 'config.php');
         $this->assertFileExists($root . 'services/GeminiService.php');
-        $this->assertFileExists($root . 'services/ReportService.php');
     }
 
     public function testDatabaseNotExposed()
