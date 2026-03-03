@@ -44,6 +44,7 @@ const Dashboard: React.FC = () => {
     const [deviceId, setDeviceId] = useState<string>('');
     const [isFirstAnalysisComplete, setIsFirstAnalysisComplete] = useState<boolean>(false);
     const [failedAttempts, setFailedAttempts] = useState(0);
+    const [lockoutTimeRemaining, setLockoutTimeRemaining] = useState<number | null>(null);
 
     // Phase 26: Hardware Guard & Navigation Policy
     const isAuthenticating = useRef(false);
