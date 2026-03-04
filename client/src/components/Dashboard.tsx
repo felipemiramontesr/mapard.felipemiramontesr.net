@@ -227,7 +227,7 @@ const Dashboard: React.FC = () => {
         };
     }, []);
 
-    const handleLoginSubmit = async (email: string, pass: string) => {
+    const handleLoginSubmit = async (email: string, pass: string, mode: 'login' | 'signup') => {
         setIsAuthLoading(true);
         setAuthError(null);
 
@@ -238,7 +238,7 @@ const Dashboard: React.FC = () => {
             const resPromise = fetch(`${API_BASE}/api/auth/setup`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, password: pass, device_id: deviceId })
+                body: JSON.stringify({ email, password: pass, device_id: deviceId, mode })
             });
 
             const [res] = await Promise.all([resPromise, animationPromise]);
@@ -624,7 +624,7 @@ const Dashboard: React.FC = () => {
                     <VerificationView
                         email={userEmail || ''}
                         onVerify={handleVerifySubmit}
-                        onResend={() => handleLoginSubmit(userEmail!, '')}
+                        onResend={() => handleLoginSubmit(userEmail!, '', 'signup')}
                         isLoading={isAuthLoading}
                         error={authError}
                     />

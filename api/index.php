@@ -304,6 +304,8 @@ if (isset($pathParams[1], $pathParams[2]) && $pathParams[1] === 'auth' && $pathP
     $email = $input['email'] ?? '';
     $password = $input['password'] ?? '';
     $deviceId = $input['device_id'] ?? '';
+    // Phase 29b: Separation of Intents
+    $mode = $input['mode'] ?? 'signup';
 
     if (empty($email) || empty($password)) {
         http_response_code(400);
@@ -315,6 +317,14 @@ if (isset($pathParams[1], $pathParams[2]) && $pathParams[1] === 'auth' && $pathP
     $stmt = $pdo->prepare("SELECT * FROM users WHERE email_target = ?");
     $stmt->execute([$email]);
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    // BLOCKER: Explicitly reject "login" intent if account doesn't exist
+    if ($mode === 'login' && !$user) {
+        recordFailedAttempt($pdo, $clientIp);
+        http_response_code(404);
+        echo json_encode(["error" => "CREDENCIAL INEXISTENTE. Requiere 'Nueva Acreditación' inicial."]);
+        exit;
+    }
 
     $faCode = SecurityUtils::generate2FA();
     $hashedPassword = SecurityUtils::hashPassword($password);

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Mail, Lock, ShieldCheck, Eye, EyeOff, CheckCircle2, Circle } from 'lucide-react';
 
 interface LoginViewProps {
-    onLogin: (email: string, pass: string) => void;
+    onLogin: (email: string, pass: string, mode: 'login' | 'signup') => void;
     onRequestRescue: (email: string) => void;
     isLoading: boolean;
     error?: string | null;
@@ -96,7 +96,7 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin, onRequestRescue, isLoadi
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (!email || !isPasswordValid) return;
-        onLogin(email, password);
+        onLogin(email, password, authMode);
     };
 
     return (
