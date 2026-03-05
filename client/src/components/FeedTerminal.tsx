@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ShieldAlert, Globe, Clock, CheckCircle } from 'lucide-react';
 import { Capacitor } from '@capacitor/core';
@@ -28,7 +28,7 @@ const FeedTerminal: React.FC<FeedTerminalProps> = ({ email }) => {
     const [feed, setFeed] = useState<FeedItem[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
-    const loadFeed = async () => {
+    const loadFeed = useCallback(async () => {
         try {
             const res = await fetch(`${API_BASE}/api/intelligence/sync?email=${encodeURIComponent(email)}`);
             const data = await res.json();
@@ -40,14 +40,14 @@ const FeedTerminal: React.FC<FeedTerminalProps> = ({ email }) => {
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [email]);
 
     useEffect(() => {
         loadFeed();
         // Polling every 5 minutes
         const interval = setInterval(loadFeed, 300000);
         return () => clearInterval(interval);
-    }, [email]);
+    }, [loadFeed]);
 
     const handleArchive = async (id: number) => {
         // Optimistic UI update

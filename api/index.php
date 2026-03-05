@@ -1,4 +1,5 @@
 <?php
+
 // Enable Error Reporting (Log only, no display in production)
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
@@ -255,7 +256,6 @@ created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         attempts INTEGER DEFAULT 0,
         locked_until DATETIME DEFAULT NULL
     )");
-
 } catch (Exception $e) {
     http_response_code(500);
     echo json_encode(["error" => "Database Init Failed: " . $e->getMessage()]);
@@ -270,8 +270,9 @@ $pathParams = explode('/', trim($requestUri, '/'));
 // --- NSA Rate Limiting (Phase 18) ---
 function enforceRateLimit($pdo, $ip)
 {
-    if (!$ip)
+    if (!$ip) {
         return;
+    }
     $stmt = $pdo->prepare("SELECT attempts, locked_until FROM rate_limits WHERE ip_address = ?");
     $stmt->execute([$ip]);
     $record = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -285,8 +286,9 @@ function enforceRateLimit($pdo, $ip)
 
 function recordFailedAttempt($pdo, $ip)
 {
-    if (!$ip)
+    if (!$ip) {
         return;
+    }
     $pdo->exec("INSERT INTO rate_limits (ip_address, attempts) VALUES ('$ip', 1) 
                 ON CONFLICT(ip_address) DO UPDATE SET attempts = attempts + 1");
 
@@ -301,8 +303,9 @@ function recordFailedAttempt($pdo, $ip)
 
 function resetRateLimit($pdo, $ip)
 {
-    if (!$ip)
+    if (!$ip) {
         return;
+    }
     $pdo->prepare("DELETE FROM rate_limits WHERE ip_address = ?")->execute([$ip]);
 }
 

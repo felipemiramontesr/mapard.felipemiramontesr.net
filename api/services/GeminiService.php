@@ -161,7 +161,8 @@ class GeminiService
 
         // Tactical Fallback if AI fails or times out
         return [
-            'summary' => 'Alerta Global Interceptada. Escaneo automático fallido, proceda con cautela e inspeccione la fuente manualmente.',
+            'summary' => 'Alerta Global Interceptada. Escaneo automático fallido, proceda con cautela ' .
+                'e inspeccione la fuente manualmente.',
             'severity' => 'HIGH'
         ];
     }
