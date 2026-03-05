@@ -701,22 +701,22 @@ const Dashboard: React.FC = () => {
                                     <div className="w-full flex flex-col gap-4">
                                         <motion.div
                                             onClick={() => setIsRiskPanelOpen(!isRiskPanelOpen)}
-                                            className="w-full border border-ops-border/50 bg-[#0f1219]/90 backdrop-blur-md rounded-lg p-4 cursor-pointer hover:bg-[#0f1219] transition-colors flex flex-col items-center shadow-lg relative overflow-hidden"
+                                            className="w-full border border-ops-border/55 bg-white/[0.03] backdrop-blur-md rounded-lg p-5 cursor-pointer hover:bg-white/[0.05] transition-colors flex flex-col items-center shadow-[0_18px_50px_rgba(0,0,0,0.18)] relative overflow-hidden"
                                             whileHover={{ scale: 1.01 }}
                                             whileTap={{ scale: 0.98 }}
                                         >
-                                            <div className="absolute top-0 left-0 w-1 h-full bg-ops-accent"></div>
+                                            <div className="absolute top-0 left-0 w-[3px] h-full bg-ops-accent"></div>
                                             <div className="flex items-center gap-2 mb-3">
-                                                <Target className="w-4 h-4 text-ops-text_dim" />
-                                                <h2 className="text-xs font-bold tracking-[0.2em] text-white uppercase">ESTADO DE RIESGO</h2>
+                                                <Target className="w-5 h-5 text-ops-accent flex-shrink-0" />
+                                                <h2 className="text-[1.1rem] font-medium tracking-wide text-ops-text uppercase">ESTADO DE RIESGO</h2>
                                             </div>
-                                            <div className="flex gap-4 text-sm font-mono tracking-widest uppercase mb-4">
-                                                <span className="text-[#00f3ff]">🟢 {findings.filter(f => f.isNeutralized).length} NEUTRALIZADOS</span>
+                                            <div className="flex flex-wrap items-center justify-center gap-4 text-[0.95rem] font-light tracking-widest uppercase mb-5 text-ops-text">
+                                                <span className="text-ops-success">🟢 {findings.filter(f => f.isNeutralized).length} NEUTRALIZADOS</span>
                                                 <span className="text-ops-danger">🔴 {findings.filter(f => !f.isNeutralized).length} ACTIVOS</span>
                                             </div>
-                                            <div className="text-ops-text_dim text-[10px] uppercase font-bold tracking-widest flex items-center gap-1.5 border border-ops-border/40 px-3 py-1.5 rounded-sm bg-white/5">
+                                            <div className="text-ops-accent text-[0.85rem] font-semibold tracking-[0.08em] uppercase flex items-center gap-2 border border-ops-border/40 px-4 py-2 rounded-md bg-transparent hover:bg-white/[0.05] transition-colors">
                                                 {isRiskPanelOpen ? 'OCULTAR DETALLES' : 'DESPLEGAR DETALLES'}
-                                                {isRiskPanelOpen ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                                                {isRiskPanelOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                                             </div>
                                         </motion.div>
 
