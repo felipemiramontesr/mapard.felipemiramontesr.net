@@ -208,6 +208,18 @@ try {
         timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
     )");
 
+    // [NEW] TACTICAL_FEED Table (Phase 3)
+    $pdo->exec("CREATE TABLE IF NOT EXISTS tactical_feed (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title TEXT,
+        gemini_summary TEXT,
+        severity TEXT,
+        source TEXT,
+        url TEXT,
+        status TEXT DEFAULT 'UNREAD',
+        timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+    )");
+
     // Migration: Add device_id to users if it doesn't exist
     $userCols = $pdo->query("PRAGMA table_info(users)")->fetchAll(PDO::FETCH_COLUMN, 1);
     if (!in_array('device_id', $userCols)) {
@@ -585,6 +597,52 @@ if (isset($pathParams[1], $pathParams[2]) && $pathParams[1] === 'auth' && $pathP
 
     echo json_encode(["status" => "PASSWORD_CHANGED", "message" => "Acreditación táctica actualizada. Proceda a establecer conexión."]);
     exit;
+}
+
+// --------------------------------------------------------------------------
+// INTELLIGENCE SYNC (Phase 3)
+// --------------------------------------------------------------------------
+if (isset($pathParams[1]) && $pathParams[1] === 'intelligence' && isset($pathParams[2]) && $pathParams[2] === 'sync') {
+    $email = $_GET['email'] ?? '';
+    if ($method === 'POST') {
+        $input = json_decode(file_get_contents('php://input'), true);
+        $email = $input['email'] ?? $email;
+    }
+
+    $stmt = $pdo->prepare("SELECT id FROM users WHERE email_target = ?");
+    $stmt->execute([$email]);
+    $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$user) {
+        http_response_code(401);
+        echo json_encode(["error" => "No autorizado"]);
+        exit;
+    }
+
+    if ($method === 'GET') {
+        // Fetch active feed items (not archived)
+        $stmt = $pdo->prepare("SELECT * FROM tactical_feed WHERE status != 'ARCHIVED' ORDER BY timestamp DESC LIMIT 50");
+        $stmt->execute();
+        $feed = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        echo json_encode(["status" => "SUCCESS", "feed" => $feed]);
+        exit;
+    }
+
+    if ($method === 'POST') {
+        $feedId = $input['id'] ?? null;
+        $newStatus = $input['status'] ?? null;
+
+        if ($feedId && $newStatus) {
+            $stmt = $pdo->prepare("UPDATE tactical_feed SET status = ? WHERE id = ?");
+            $stmt->execute([$newStatus, $feedId]);
+            echo json_encode(["status" => "UPDATED"]);
+        } else {
+            http_response_code(400);
+            echo json_encode(["error" => "Datos incompletos"]);
+        }
+        exit;
+    }
 }
 
 // USER STATUS (Phase 23)

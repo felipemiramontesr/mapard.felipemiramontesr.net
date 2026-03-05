@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import ScanForm from './ScanForm';
 import StatusTerminal from './StatusTerminal';
 import RiskNeutralization, { type Vector } from './RiskNeutralization';
+import FeedTerminal from './FeedTerminal';
 import LoginView from './Auth/LoginView';
 import VerificationView from './Auth/VerificationView';
 import RescueVerificationView from './Auth/RescueVerificationView';
@@ -733,6 +734,9 @@ const Dashboard: React.FC = () => {
                                                 />
                                             </div>
                                         </motion.div>
+
+                                        {/* Statefull Tactical Feed (Phase 3) */}
+                                        <FeedTerminal email={userEmail!} />
                                     </div>
                                 )}
                             </div>

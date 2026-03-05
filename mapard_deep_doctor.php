@@ -83,6 +83,12 @@ try {
     $stmt3->execute();
     echo "     Rows deleted: " . $stmt3->rowCount() . "\n";
 
+    // Wiping Tactical Feed (Inbox)
+    echo "  -> Executing WIPE on 'tactical_feed'...\n";
+    $stmt4 = $pdo->prepare("DELETE FROM tactical_feed");
+    $stmt4->execute();
+    echo "     Rows deleted: " . $stmt4->rowCount() . "\n";
+
     echo "  [OK] DATABASE WIPED SUCCESSFULLY.\n";
 
 } catch (\Throwable $e) {

@@ -135,6 +135,37 @@ class GeminiService
         ];
     }
 
+    public function summarizeIntelligence($title, $content)
+    {
+        $url = $this->baseUrl . $this->model . ':generateContent?key=' . $this->apiKey;
+
+        $systemPrompt = "Eres un analista de Inteligencia Táctica (OSINT) de MAPARD. " .
+            "Se ha interceptado una alerta global de ciberseguridad. Tu objetivo es resumirla para tu COMANDANTE. " .
+            "Usa lenguaje militar, directo y conciso. PROHIBIDO saludos corporativos.";
+
+        $userPrompt = "Título Interceptado: $title\nDetenido Texto crudo: $content\n\n" .
+            "Analiza y devuelve SOLO JSON válido con estra estructura:\n" .
+            "{\n" .
+            "  \"gemini_summary\": \"Resumen ultra-conciso (Max 40 palabras) del vector de amenaza reportado.\",\n" .
+            "  \"severity\": \"CRITICAL|HIGH|MEDIUM|LOW\"\n" .
+            "}\n";
+
+        $response = $this->callGemini($url, $systemPrompt, $userPrompt);
+
+        if ($response && isset($response['gemini_summary'])) {
+            return [
+                'summary' => $response['gemini_summary'],
+                'severity' => $response['severity'] ?? 'MEDIUM'
+            ];
+        }
+
+        // Tactical Fallback if AI fails or times out
+        return [
+            'summary' => 'Alerta Global Interceptada. Escaneo automático fallido, proceda con cautela e inspeccione la fuente manualmente.',
+            'severity' => 'HIGH'
+        ];
+    }
+
     protected function callGemini($url, $sys, $user)
     {
         $payload = [
