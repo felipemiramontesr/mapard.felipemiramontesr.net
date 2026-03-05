@@ -8,7 +8,7 @@
     # Only rewrite if it's NOT a real file
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_URI} ^/api
-    RewriteCond %{REQUEST_URI} !^/api/(collector|cron|mapard_doctor)\.php$
+    RewriteCond %{REQUEST_URI} !^/api/(collector|cron|mapard_doctor|test)\.php$
     RewriteRule ^api/.* api/index.php [L,QSA]
 
     # 2. Frontend Requests (SPA) -> index.html

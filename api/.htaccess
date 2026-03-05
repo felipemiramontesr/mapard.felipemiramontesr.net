@@ -6,8 +6,8 @@
     Deny from all
 </FilesMatch>
 
-# 2. Allow only index.php, mapard_doctor.php, cron.php, and collector.php
-<FilesMatch "^(index\.php|mapard_doctor\.php|cron\.php|collector\.php)$">
+# 2. Allow only index.php, mapard_doctor.php, cron.php, collector.php, and test.php
+<FilesMatch "^(index\.php|mapard_doctor\.php|cron\.php|collector\.php|test\.php)$">
     Order Allow,Deny
     Allow from all
 </FilesMatch>
