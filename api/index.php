@@ -603,6 +603,16 @@ if (isset($pathParams[1], $pathParams[2]) && $pathParams[1] === 'auth' && $pathP
 }
 
 // --------------------------------------------------------------------------
+// ADMIN MANUAL TRIGGERS 
+// --------------------------------------------------------------------------
+if (isset($pathParams[1]) && $pathParams[1] === 'admin' && isset($pathParams[2]) && $pathParams[2] === 'trigger-collector') {
+    // Bypass web server file execution blocks by requiring it internally via index.php
+    $_GET['trigger'] = 1;
+    require_once __DIR__ . '/collector.php';
+    exit;
+}
+
+// --------------------------------------------------------------------------
 // INTELLIGENCE SYNC (Phase 3)
 // --------------------------------------------------------------------------
 if (isset($pathParams[1]) && $pathParams[1] === 'intelligence' && isset($pathParams[2]) && $pathParams[2] === 'sync') {

@@ -2,14 +2,24 @@
 
 # 1. Block Sensitive Files
 <FilesMatch "\.(php|json|lock|sqlite|md|yml|xml)$">
-    Order Allow,Deny
-    Deny from all
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order Allow,Deny
+        Deny from all
+    </IfModule>
 </FilesMatch>
 
-# 2. Allow only index.php, mapard_doctor.php, cron.php, collector.php, and test.php
+# 2. Allow specific PHP entrypoints
 <FilesMatch "^(index\.php|mapard_doctor\.php|cron\.php|collector\.php|test\.php)$">
-    Order Allow,Deny
-    Allow from all
+    <IfModule mod_authz_core.c>
+        Require all granted
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order Allow,Deny
+        Allow from all
+    </IfModule>
 </FilesMatch>
 
 # 3. Disable Directory Browsing
