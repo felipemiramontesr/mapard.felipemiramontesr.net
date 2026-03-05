@@ -8,7 +8,7 @@ import RescueVerificationView from './Auth/RescueVerificationView';
 import RescueResetView from './Auth/RescueResetView';
 import { secureStorage } from '../utils/secureStorage';
 import { format } from 'date-fns';
-import { Shield, Target, Lock, Fingerprint } from 'lucide-react';
+import { Shield, Target, Lock, Fingerprint, ChevronDown, ChevronUp } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Capacitor } from '@capacitor/core';
 import { App, type AppState } from '@capacitor/app';
@@ -35,6 +35,7 @@ const Dashboard: React.FC = () => {
     const [viewMode, setViewMode] = useState<'form' | 'terminal'>('form');
     const [findings, setFindings] = useState<Vector[]>([]);
     const [showNeutralization, setShowNeutralization] = useState(false);
+    const [isRiskPanelOpen, setIsRiskPanelOpen] = useState(false);
 
     // AUTH STATE (Phase 22 + Phase 29)
     const [authStep, setAuthStep] = useState<'initial_check' | 'login' | 'verify' | 'rescue_verify' | 'rescue_reset' | 'dashboard'>('initial_check');
@@ -693,14 +694,46 @@ const Dashboard: React.FC = () => {
                                         isVisible={true}
                                         onReset={!isScanning && !isFirstAnalysisComplete ? handleReset : undefined}
                                         resetLabel={!isFirstAnalysisComplete ? "EJECUTAR ANÁLISIS" : undefined}
-                                        onNeutralize={isFirstAnalysisComplete ? () => setShowNeutralization(true) : undefined}
+                                        onNeutralize={isFirstAnalysisComplete ? () => { setShowNeutralization(true); setIsRiskPanelOpen(true); } : undefined}
                                         findingsCount={findings.length}
                                     />
                                 ) : (
-                                    <RiskNeutralization
-                                        findings={findings}
-                                        onUpdate={handleNeutralizeUpdate}
-                                    />
+                                    <div className="w-full flex flex-col gap-4">
+                                        <motion.div
+                                            onClick={() => setIsRiskPanelOpen(!isRiskPanelOpen)}
+                                            className="w-full border border-ops-border/50 bg-[#0f1219]/90 backdrop-blur-md rounded-lg p-4 cursor-pointer hover:bg-[#0f1219] transition-colors flex flex-col items-center shadow-lg relative overflow-hidden"
+                                            whileHover={{ scale: 1.01 }}
+                                            whileTap={{ scale: 0.98 }}
+                                        >
+                                            <div className="absolute top-0 left-0 w-1 h-full bg-ops-accent"></div>
+                                            <div className="flex items-center gap-2 mb-3">
+                                                <Target className="w-4 h-4 text-ops-text_dim" />
+                                                <h2 className="text-xs font-bold tracking-[0.2em] text-white uppercase">ESTADO DE RIESGO</h2>
+                                            </div>
+                                            <div className="flex gap-4 text-sm font-mono tracking-widest uppercase mb-4">
+                                                <span className="text-[#00f3ff]">🟢 {findings.filter(f => f.isNeutralized).length} NEUTRALIZADOS</span>
+                                                <span className="text-ops-danger">🔴 {findings.filter(f => !f.isNeutralized).length} ACTIVOS</span>
+                                            </div>
+                                            <div className="text-ops-text_dim text-[10px] uppercase font-bold tracking-widest flex items-center gap-1.5 border border-ops-border/40 px-3 py-1.5 rounded-sm bg-white/5">
+                                                {isRiskPanelOpen ? 'OCULTAR DETALLES' : 'DESPLEGAR DETALLES'}
+                                                {isRiskPanelOpen ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                                            </div>
+                                        </motion.div>
+
+                                        <motion.div
+                                            initial={{ height: 0, opacity: 0 }}
+                                            animate={{ height: isRiskPanelOpen ? 'auto' : 0, opacity: isRiskPanelOpen ? 1 : 0 }}
+                                            transition={{ duration: 0.4, ease: [0.04, 0.62, 0.23, 0.98] }}
+                                            className="overflow-hidden w-full flex flex-col"
+                                        >
+                                            <div className="py-2">
+                                                <RiskNeutralization
+                                                    findings={findings}
+                                                    onUpdate={handleNeutralizeUpdate}
+                                                />
+                                            </div>
+                                        </motion.div>
+                                    </div>
                                 )}
                             </div>
                         )}
