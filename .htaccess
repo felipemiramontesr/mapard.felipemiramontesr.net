@@ -4,6 +4,9 @@
     # 0. Prevent Loop: If it's already index.php, stop.
     RewriteRule ^api/index\.php$ - [L]
 
+    # 0.5 Allow manual test scripts to bypass EVERYTHING
+    RewriteRule ^test_collector\.php$ - [L]
+
     # 1. API Requests -> Sent to PHP Router
     # Only rewrite if it's NOT a real file
     RewriteCond %{REQUEST_FILENAME} !-f
