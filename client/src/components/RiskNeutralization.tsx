@@ -13,6 +13,7 @@ export interface Vector {
     incident_story: string;
     risk_explanation: string;
     specific_remediation: string[];
+    gemini_insight?: string; // Phase 2: AI Educational Note
     isNeutralized?: boolean; // Phase 26
     steps?: RemediationStep[]; // Phase 26
 }
@@ -91,6 +92,16 @@ const RiskNeutralization: React.FC<RiskNeutralizationProps> = ({ findings, onUpd
                 const newSteps = newState === false
                     ? v.steps.map(s => ({ ...s, completed: false }))
                     : v.steps;
+
+                // Phase 2: If neutralizing, ensure card stays expanded and scroll to insight
+                if (newState === true) {
+                    setTimeout(() => {
+                        document.getElementById(`insight-panel-${v.id}`)?.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'center'
+                        });
+                    }, 300);
+                }
 
                 return { ...v, isNeutralized: newState, steps: newSteps };
             });
@@ -192,7 +203,8 @@ const RiskNeutralization: React.FC<RiskNeutralizationProps> = ({ findings, onUpd
                                     onClick={() => {
                                         if (vector.steps.every(s => s.completed)) {
                                             toggleNeutralization(vector.id, true);
-                                            setExpandedId(null); // Collapse when Neutralized
+                                            // DO NOT COLPAPSE. We want them to read the insight.
+                                            setExpandedId(vector.id);
                                         }
                                     }}
                                     className={`flex-1 px-2 py-3 md:px-4 md:py-3 rounded-sm text-[10px] md:text-xs font-bold uppercase tracking-widest transition-all duration-300 max-w-[140px] flex justify-center items-center whitespace-nowrap ${vector.isNeutralized
@@ -268,6 +280,39 @@ const RiskNeutralization: React.FC<RiskNeutralizationProps> = ({ findings, onUpd
                                                 ))}
                                             </div>
                                         </div>
+
+                                        {/* Phase 2: Gemini Insight Embedded Panel (Only shows when neutralized) */}
+                                        <AnimatePresence>
+                                            {vector.isNeutralized && (
+                                                <motion.div
+                                                    id={`insight-panel-${vector.id}`}
+                                                    initial={{ height: 0, opacity: 0, marginTop: 0 }}
+                                                    animate={{ height: 'auto', opacity: 1, marginTop: 24 }}
+                                                    exit={{ height: 0, opacity: 0, marginTop: 0 }}
+                                                    className="overflow-hidden"
+                                                >
+                                                    <div className="border border-ops-accent/30 bg-ops-accent/10 rounded-lg p-5 relative shadow-[0_0_20px_rgba(138,159,202,0.1)]">
+                                                        <div className="absolute top-0 left-0 w-1 h-full bg-ops-accent rounded-l-lg"></div>
+                                                        <h5 className="text-[10px] md:text-xs font-bold text-white mb-3 uppercase tracking-widest flex items-center gap-2">
+                                                            <Shield className="w-4 h-4 text-ops-accent" />
+                                                            Nota Directiva Táctica
+                                                        </h5>
+                                                        <p className="text-sm text-ops-text_dim font-light leading-relaxed mb-6">
+                                                            {vector.data.gemini_insight || "Módulo de Instrucción: Revise sus protocolos de higiene digital para prevenir futuras vulneraciones en este perímetro."}
+                                                        </p>
+
+                                                        <div className="flex justify-end">
+                                                            <button
+                                                                onClick={() => setExpandedId(null)}
+                                                                className="px-6 py-2 bg-ops-accent/20 hover:bg-ops-accent/40 text-white border border-ops-accent/50 rounded text-xs font-bold uppercase tracking-widest transition-colors flex items-center gap-2"
+                                                            >
+                                                                ENTENDIDO <ShieldCheck className="w-4 h-4" />
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </motion.div>
+                                            )}
+                                        </AnimatePresence>
                                     </div>
                                 </motion.div>
                             )}

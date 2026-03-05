@@ -72,7 +72,8 @@ class GeminiService
                 "      \"source_name\": \"Nombre del servicio\", \n" .
                 "      \"incident_story\": \"Brief táctico del incidente (Min 30 palabras).\", \n" .
                 "      \"risk_explanation\": \"Nivel de amenaza directa para el COMANDANTE.\", \n" .
-                "      \"specific_remediation\": [\"Protocolo 1\", \"Protocolo 2\", \"Protocolo 3\"] \n" .
+                "      \"specific_remediation\": [\"Protocolo 1\", \"Protocolo 2\", \"Protocolo 3\"], \n" .
+                "      \"gemini_insight\": \"Nota Directiva Táctica Corta (1-2 oraciones) educativa sobre el vector de ataque y cómo bloquearlo a futuro.\" \n" .
                 "    }\n" .
                 "  ]\n" .
                 "}\n\n" .
@@ -267,11 +268,16 @@ class GeminiService
                 "Audite el rastro de nuevas cuentas registradas bajo este identificador."
             ];
 
+        $insight = $isSensitive
+            ? "Módulo de Instrucción: Reutilizar llaves de acceso en infraestructuras de alto valor compromete la red completa. Adopte bóvedas de conocimiento cero."
+            : "Módulo de Instrucción: Los adversarios cruzan estos datos públicos para perfilar ataques de pesca (Phishing). Desconfíe de comunicaciones que apelen a la urgencia.";
+
         return [
             'source_name' => $breachName,
             'incident_story' => $story,
             'risk_explanation' => $risk,
-            'specific_remediation' => $remediation
+            'specific_remediation' => $remediation,
+            'gemini_insight' => $insight
         ];
     }
 
