@@ -23,6 +23,19 @@ if (!file_exists($dbPath)) {
 }
 $pdo = new PDO("sqlite:$dbPath");
 $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+// Ensure the table exists (Self-healing for Phase 3)
+$pdo->exec("CREATE TABLE IF NOT EXISTS tactical_feed (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT,
+    gemini_summary TEXT,
+    severity TEXT,
+    source TEXT,
+    url TEXT,
+    status TEXT DEFAULT 'UNREAD',
+    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+)");
+
 $gemini = new GeminiService();
 $rssFeeds = [
     'CISA' => 'https://www.cisa.gov/cybersecurity-advisories/all.xml'
