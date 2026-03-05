@@ -1,31 +1,26 @@
 # NSA Level Security for API Directory
 
-# 1. Block Sensitive Files
-<FilesMatch "\.(php|json|lock|sqlite|md|yml|xml)$">
-    <IfModule mod_authz_core.c>
-        Require all denied
-    </IfModule>
-    <IfModule !mod_authz_core.c>
-        Order Allow,Deny
-        Deny from all
-    </IfModule>
-</FilesMatch>
-
-# 2. Allow specific PHP entrypoints
-<FilesMatch "^(index\.php|mapard_doctor\.php|cron\.php|collector\.php|test\.php)$">
-    <IfModule mod_authz_core.c>
-        Require all granted
-    </IfModule>
-    <IfModule !mod_authz_core.c>
-        Order Allow,Deny
-        Allow from all
-    </IfModule>
-</FilesMatch>
-
-# 3. Disable Directory Browsing
+# 1. Disable Directory Browsing
 Options -Indexes
 
-# 4. Force HTTPS (Temporarily Disabled for Debugging)
+# 2. Block direct access to sensitive file types and directories
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Prevent access to config, sqlite, and other sensitive extensions
+    RewriteCond %{REQUEST_URI} \.(json|lock|sqlite|md|yml|xml|log)$ [NC]
+    RewriteRule ^ - [F,L]
+
+    # Prevent direct access to internal directories
+    RewriteRule ^(classes|services|tests|vendor|logs)/ - [F,L]
+    
+    # Allow specific PHP entry points explicitly
+    RewriteCond %{REQUEST_URI} !^/api/(index|mapard_doctor|cron|collector|test|hibp_test)\.php$ [NC]
+    # Block any other direct .php file access
+    RewriteRule \.php$ - [F,L]
+</IfModule>
+
+# 3. Force HTTPS (Temporarily Disabled for Debugging)
 # <IfModule mod_rewrite.c>
 #     RewriteEngine On
 #     RewriteCond %{HTTPS} off
