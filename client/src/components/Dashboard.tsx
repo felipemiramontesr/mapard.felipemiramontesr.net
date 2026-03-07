@@ -603,17 +603,36 @@ const Dashboard: React.FC = () => {
     return (
         <div className="w-full my-auto text-white selection:bg-ops-accent/30 selection:text-white flex flex-col py-4 md:py-8">
 
-            <header className="flex flex-col mb-4 md:mb-12 relative">
-                <div className="flex flex-col items-center justify-center relative z-10 w-full">
-                    <div className="flex items-center justify-center gap-3 md:gap-4 mb-2">
-                        <Shield className="w-8 h-8 md:w-16 md:h-16 text-[#00f3ff]" strokeWidth={2} />
-                        <h1 className="text-4xl md:text-7xl font-sans font-black tracking-widest uppercase mapard-logo">
+            <header className="flex flex-col mb-4 md:mb-12 relative w-full">
+                <div className="flex items-center justify-between relative z-10 w-full mb-4">
+                    <div className="flex items-center gap-3">
+                        <Shield className="w-8 h-8 md:w-12 md:h-12 text-[#8a9fca]" strokeWidth={1.5} />
+                        <h1 className="text-3xl md:text-[3.0rem] font-sans font-light tracking-[-0.02em] uppercase text-white leading-none">
                             MAPARD
                         </h1>
                     </div>
-                    <p className="text-ops-text_dim font-mono text-[10px] md:text-sm tracking-[0.3em] uppercase opacity-70">
+                    <div className="border border-[#4a5578] px-3 py-1 flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-ops-success animate-pulse shadow-[0_0_8px_rgba(0,255,153,0.8)]"></div>
+                        <span className="text-[.80rem] font-semibold text-ops-success uppercase tracking-[.16em]">
+                            SYSTEM ONLINE
+                        </span>
+                    </div>
+                </div>
+                <div className="flex flex-col items-center justify-center w-full">
+                    <p className="text-ops-text_dim font-mono text-[10px] md:text-sm tracking-[0.3em] uppercase opacity-70 mb-2">
                         INTELIGENCIA TÁCTICA Y VIGILANCIA
                     </p>
+                    {authStep === 'dashboard' && userEmail && (
+                        <div className="flex items-center justify-center gap-2 border border-ops-border/50 px-4 py-1.5 bg-white/5 backdrop-blur-md">
+                            <Target className="w-3.5 h-3.5 text-[#6b7490] flex-shrink-0" />
+                            <span className="text-[#6b7490] font-light text-[.85rem] tracking-[.16em] uppercase">
+                                TARGET LOCKED:
+                            </span>
+                            <span className="text-[#e8e8e8] font-light text-[.85rem] tracking-wide">
+                                {userEmail.toLowerCase()}
+                            </span>
+                        </div>
+                    )}
                 </div>
             </header>
 
@@ -651,18 +670,6 @@ const Dashboard: React.FC = () => {
 
                 {authStep === 'dashboard' && (
                     <>
-                        <div className="flex flex-col md:flex-row items-center justify-center text-center gap-1 md:gap-3 border border-ops-border/50 px-5 py-3 md:py-2.5 bg-white/5 backdrop-blur-md rounded mb-4 animate-in fade-in slide-in-from-top-4 duration-700 w-full">
-                            <div className="flex items-center gap-2">
-                                <Target className="w-4 h-4 text-ops-text_dim flex-shrink-0" />
-                                <span className="text-xs font-medium text-ops-text_dim uppercase tracking-wider">
-                                    TARGET LOCKED:
-                                </span>
-                            </div>
-                            <span className="text-white font-semibold text-[13px] md:text-sm truncate max-w-full tracking-wide">
-                                {userEmail?.toLowerCase()}
-                            </span>
-                        </div>
-
                         {deltaNew > 0 && (
                             <div className="w-full max-w-lg mb-6 border border-red-500/50 bg-red-500/10 p-4 rounded-lg animate-pulse backdrop-blur-sm self-center">
                                 <div className="flex items-center">
@@ -688,7 +695,7 @@ const Dashboard: React.FC = () => {
                                 />
                             </div>
                         ) : (
-                            <div className="animate-[slideUp_0.5s_ease-out] w-full flex flex-col mt-2 md:mt-4">
+                            <div className="animate-[slideUp_0.5s_ease-out] w-full flex flex-col">
                                 {!showNeutralization ? (
                                     <StatusTerminal
                                         logs={logs}
@@ -699,43 +706,76 @@ const Dashboard: React.FC = () => {
                                         findingsCount={findings.length}
                                     />
                                 ) : (
-                                    <div className="w-full flex flex-col gap-4">
+                                    <div className="w-full flex flex-col gap-6">
+                                        {/* PANEL 1: PROTOCOLO DE NEUTRALIZACIÓN */}
+                                        <div className="w-full flex flex-col">
+                                            <motion.div
+                                                onClick={() => setIsRiskPanelOpen(!isRiskPanelOpen)}
+                                                className="w-full border border-[rgba(74,85,120,0.55)] bg-white/[0.03] backdrop-blur-md p-6 cursor-pointer hover:bg-white/[0.05] transition-colors flex flex-col items-center shadow-[0_18px_50px_rgba(0,0,0,0.18)] relative overflow-hidden group"
+                                                whileHover={{ scale: 1.005 }}
+                                                whileTap={{ scale: 0.99 }}
+                                            >
+                                                <div className="absolute top-0 left-0 w-1 h-full bg-[#8a9fca] opacity-50 group-hover:opacity-100 transition-opacity"></div>
+                                                <div className="flex items-center gap-2 mb-2 w-full justify-start">
+                                                    <Target className="w-4 h-4 text-[#8a9fca] flex-shrink-0" />
+                                                    <h3 className="text-[.95rem] font-semibold tracking-[.10em] text-white uppercase">PROTOCOLO DE NEUTRALIZACIÓN</h3>
+                                                </div>
+
+                                                <div className="flex flex-col items-center justify-center my-6">
+                                                    <span className={`text-[4.5rem] font-extralight leading-none ${findings.filter(f => !f.isNeutralized).length > 0 ? 'text-ops-danger drop-shadow-[0_0_15px_rgba(255,51,102,0.4)]' : 'text-ops-success drop-shadow-[0_0_15px_rgba(0,255,153,0.4)]'}`}>
+                                                        {findings.filter(f => !f.isNeutralized).length}
+                                                    </span>
+                                                    <span className="text-[.98rem] font-light text-[#c5cae0] uppercase mt-4 tracking-widest">
+                                                        {findings.filter(f => !f.isNeutralized).length > 0 ? 'AMENAZAS ACTIVAS DETECTADAS' : 'NINGUNA AMENAZA ACTIVA'}
+                                                    </span>
+                                                </div>
+
+                                                <div className="w-full text-center text-[.98rem] font-light text-[#c5cae0] uppercase border-t border-[#4a5578]/50 pt-4 tracking-[.16em] flex items-center justify-center gap-2">
+                                                    ÍNDICE DE RIESGO
+                                                    {isRiskPanelOpen ? <ChevronUp className="w-4 h-4 text-[#8a9fca]" /> : <ChevronDown className="w-4 h-4 text-[#8a9fca]" />}
+                                                </div>
+                                            </motion.div>
+
+                                            <motion.div
+                                                initial={{ height: 0, opacity: 0 }}
+                                                animate={{ height: isRiskPanelOpen ? 'auto' : 0, opacity: isRiskPanelOpen ? 1 : 0 }}
+                                                transition={{ duration: 0.4, ease: [0.04, 0.62, 0.23, 0.98] }}
+                                                className="overflow-hidden w-full flex flex-col"
+                                            >
+                                                <div className="pt-2">
+                                                    <RiskNeutralization
+                                                        findings={findings}
+                                                        onUpdate={handleNeutralizeUpdate}
+                                                    />
+                                                </div>
+                                            </motion.div>
+                                        </div>
+
+                                        {/* PANEL 2: PROTOCOLO DE ENTRENAMIENTO (MOCK) */}
                                         <motion.div
-                                            onClick={() => setIsRiskPanelOpen(!isRiskPanelOpen)}
-                                            className="w-full border border-ops-border/55 bg-white/[0.03] backdrop-blur-md rounded-lg p-5 cursor-pointer hover:bg-white/[0.05] transition-colors flex flex-col items-center shadow-[0_18px_50px_rgba(0,0,0,0.18)] relative overflow-hidden"
-                                            whileHover={{ scale: 1.01 }}
-                                            whileTap={{ scale: 0.98 }}
+                                            className="w-full border border-[rgba(74,85,120,0.55)] bg-white/[0.03] backdrop-blur-md p-6 flex flex-col items-center shadow-[0_18px_50px_rgba(0,0,0,0.18)] relative overflow-hidden opacity-60 pointer-events-none"
                                         >
-                                            <div className="absolute top-0 left-0 w-[3px] h-full bg-ops-accent"></div>
-                                            <div className="flex items-center gap-2 mb-3">
-                                                <Target className="w-5 h-5 text-ops-accent flex-shrink-0" />
-                                                <h2 className="text-[1.1rem] font-medium tracking-wide text-ops-text uppercase">ESTADO DE RIESGO</h2>
+                                            <div className="absolute top-0 left-0 w-1 h-full bg-[#4a5578]"></div>
+                                            <div className="flex items-center gap-2 mb-2 w-full justify-start">
+                                                <Shield className="w-4 h-4 text-[#8a9fca] flex-shrink-0" />
+                                                <h3 className="text-[.95rem] font-semibold tracking-[.10em] text-white uppercase">PROTOCOLO DE ENTRENAMIENTO</h3>
                                             </div>
-                                            <div className="flex flex-wrap items-center justify-center gap-4 text-[0.95rem] font-light tracking-widest uppercase mb-5 text-ops-text">
-                                                <span className="text-ops-success">🟢 {findings.filter(f => f.isNeutralized).length} NEUTRALIZADOS</span>
-                                                <span className="text-ops-danger">🔴 {findings.filter(f => !f.isNeutralized).length} ACTIVOS</span>
+
+                                            <div className="flex flex-col items-center justify-center my-6">
+                                                <span className="text-[4.5rem] font-extralight leading-none text-[#6b7490]">
+                                                    0
+                                                </span>
+                                                <span className="text-[.98rem] font-light text-[#c5cae0] uppercase mt-4 tracking-widest">
+                                                    DE 12 LECTURAS
+                                                </span>
                                             </div>
-                                            <div className="text-ops-accent text-[0.85rem] font-semibold tracking-[0.08em] uppercase flex items-center gap-2 border border-ops-border/40 px-4 py-2 rounded-md bg-transparent hover:bg-white/[0.05] transition-colors">
-                                                {isRiskPanelOpen ? 'OCULTAR DETALLES' : 'DESPLEGAR DETALLES'}
-                                                {isRiskPanelOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+
+                                            <div className="w-full text-center text-[.98rem] font-light text-[#c5cae0] uppercase border-t border-[#4a5578]/50 pt-4 tracking-[.16em]">
+                                                LECCIONES COMPRENDIDAS
                                             </div>
                                         </motion.div>
 
-                                        <motion.div
-                                            initial={{ height: 0, opacity: 0 }}
-                                            animate={{ height: isRiskPanelOpen ? 'auto' : 0, opacity: isRiskPanelOpen ? 1 : 0 }}
-                                            transition={{ duration: 0.4, ease: [0.04, 0.62, 0.23, 0.98] }}
-                                            className="overflow-hidden w-full flex flex-col"
-                                        >
-                                            <div className="py-2">
-                                                <RiskNeutralization
-                                                    findings={findings}
-                                                    onUpdate={handleNeutralizeUpdate}
-                                                />
-                                            </div>
-                                        </motion.div>
-
-                                        {/* Statefull Tactical Feed (Phase 3) */}
+                                        {/* PANEL 3: PROTOCOLO INFORMATIVO (Statefull Tactical Feed) */}
                                         <FeedTerminal email={userEmail!} />
                                     </div>
                                 )}
