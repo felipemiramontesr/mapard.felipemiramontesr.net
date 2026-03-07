@@ -603,36 +603,17 @@ const Dashboard: React.FC = () => {
     return (
         <div className="w-full my-auto text-white selection:bg-ops-accent/30 selection:text-white flex flex-col py-4 md:py-8">
 
-            <header className="flex flex-col mb-4 md:mb-12 relative w-full">
-                <div className="flex items-center justify-between relative z-10 w-full mb-4">
-                    <div className="flex items-center gap-3">
-                        <Shield className="w-8 h-8 md:w-12 md:h-12 text-[#8a9fca]" strokeWidth={1.5} />
-                        <h1 className="text-3xl md:text-[3.0rem] font-sans font-light tracking-[-0.02em] uppercase text-white leading-none">
+            <header className="flex flex-col mb-4 md:mb-12 relative">
+                <div className="flex flex-col items-center justify-center relative z-10 w-full">
+                    <div className="flex items-center justify-center gap-3 md:gap-4 mb-2">
+                        <Shield className="w-8 h-8 md:w-16 md:h-16 text-[#00f3ff]" strokeWidth={2} />
+                        <h1 className="text-4xl md:text-7xl font-sans font-black tracking-widest uppercase mapard-logo">
                             MAPARD
                         </h1>
                     </div>
-                    <div className="border border-[#4a5578] px-3 py-1 flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-ops-success animate-pulse shadow-[0_0_8px_rgba(0,255,153,0.8)]"></div>
-                        <span className="text-[.80rem] font-semibold text-ops-success uppercase tracking-[.16em]">
-                            SYSTEM ONLINE
-                        </span>
-                    </div>
-                </div>
-                <div className="flex flex-col items-center justify-center w-full">
-                    <p className="text-ops-text_dim font-mono text-[10px] md:text-sm tracking-[0.3em] uppercase opacity-70 mb-2">
+                    <p className="text-ops-text_dim font-mono text-[10px] md:text-sm tracking-[0.3em] uppercase opacity-70">
                         INTELIGENCIA TÁCTICA Y VIGILANCIA
                     </p>
-                    {authStep === 'dashboard' && userEmail && (
-                        <div className="flex items-center justify-center gap-2 border border-ops-border/50 px-4 py-1.5 bg-white/5 backdrop-blur-md">
-                            <Target className="w-3.5 h-3.5 text-[#6b7490] flex-shrink-0" />
-                            <span className="text-[#6b7490] font-light text-[.85rem] tracking-[.16em] uppercase">
-                                TARGET LOCKED:
-                            </span>
-                            <span className="text-[#e8e8e8] font-light text-[.85rem] tracking-wide">
-                                {userEmail.toLowerCase()}
-                            </span>
-                        </div>
-                    )}
                 </div>
             </header>
 
@@ -670,6 +651,18 @@ const Dashboard: React.FC = () => {
 
                 {authStep === 'dashboard' && (
                     <>
+                        <div className="flex flex-col md:flex-row items-center justify-center text-center gap-1 md:gap-3 border border-ops-border/50 px-5 py-3 md:py-2.5 bg-white/5 backdrop-blur-md rounded mb-4 animate-in fade-in slide-in-from-top-4 duration-700 w-full">
+                            <div className="flex items-center gap-2">
+                                <Target className="w-4 h-4 text-ops-text_dim flex-shrink-0" />
+                                <span className="text-xs font-medium text-ops-text_dim uppercase tracking-wider">
+                                    TARGET LOCKED:
+                                </span>
+                            </div>
+                            <span className="text-white font-semibold text-[13px] md:text-sm truncate max-w-full tracking-wide">
+                                {userEmail?.toLowerCase()}
+                            </span>
+                        </div>
+
                         {deltaNew > 0 && (
                             <div className="w-full max-w-lg mb-6 border border-red-500/50 bg-red-500/10 p-4 rounded-lg animate-pulse backdrop-blur-sm self-center">
                                 <div className="flex items-center">
