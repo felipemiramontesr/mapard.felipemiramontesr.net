@@ -726,13 +726,13 @@ const Dashboard: React.FC = () => {
                                                         whileHover={{ scale: 1.005 }}
                                                         whileTap={{ scale: 0.99 }}
                                                     >
-                                                        <div className="absolute top-4 right-6 opacity-50 group-hover:opacity-100 transition-opacity">
-                                                            {isRiskPanelOpen ? <ChevronUp className="w-5 h-5" style={{ color: tacticalColor }} /> : <ChevronDown className="w-5 h-5" style={{ color: tacticalColor }} />}
+                                                        <div className="absolute top-4 right-4 flex items-center justify-center w-8 h-8 border border-white/10 bg-white/[0.03] backdrop-blur-sm rounded-md transition-all group-hover:border-white/20 group-hover:bg-white/[0.08]">
+                                                            {isRiskPanelOpen ? <ChevronUp className="w-4 h-4" style={{ color: tacticalColor }} /> : <ChevronDown className="w-4 h-4" style={{ color: tacticalColor }} />}
                                                         </div>
 
-                                                        <div className="flex items-center gap-2 mb-2 w-full justify-center">
+                                                        <div className="flex items-center gap-2 mb-2 w-full justify-center px-8">
                                                             <Target className="w-4 h-4 flex-shrink-0" style={{ color: tacticalColor }} />
-                                                            <h3 className="text-[.95rem] font-semibold tracking-[.10em] text-white uppercase whitespace-nowrap">PROTOCOLO DE NEUTRALIZACIÓN</h3>
+                                                            <h3 className="text-[.72rem] font-semibold tracking-[.15em] text-white uppercase whitespace-nowrap">PROTOCOLO DE NEUTRALIZACIÓN</h3>
                                                         </div>
 
                                                         <div className="flex flex-col items-center justify-center my-6">
@@ -766,12 +766,12 @@ const Dashboard: React.FC = () => {
                                         <motion.div
                                             className="w-full border border-[rgba(74,85,120,0.55)] bg-white/[0.03] backdrop-blur-md p-6 flex flex-col items-center shadow-[0_18px_50px_rgba(0,0,0,0.18)] relative overflow-hidden opacity-60 pointer-events-none"
                                         >
-                                            <div className="absolute top-4 right-6 opacity-30">
-                                                <ChevronDown className="w-5 h-5 text-[#8a9fca]" />
+                                            <div className="absolute top-4 right-4 flex items-center justify-center w-8 h-8 border border-white/10 bg-white/[0.03] rounded-md opacity-30">
+                                                <ChevronDown className="w-4 h-4 text-[#8a9fca]" />
                                             </div>
-                                            <div className="flex items-center gap-2 mb-2 w-full justify-center">
+                                            <div className="flex items-center gap-2 mb-2 w-full justify-center px-8">
                                                 <Shield className="w-4 h-4 text-[#8a9fca] flex-shrink-0" />
-                                                <h3 className="text-[.95rem] font-semibold tracking-[.10em] text-white uppercase whitespace-nowrap">PROTOCOLO DE ENTRENAMIENTO</h3>
+                                                <h3 className="text-[.72rem] font-semibold tracking-[.15em] text-white uppercase whitespace-nowrap">PROTOCOLO DE ENTRENAMIENTO</h3>
                                             </div>
 
                                             <div className="flex flex-col items-center justify-center my-6">
