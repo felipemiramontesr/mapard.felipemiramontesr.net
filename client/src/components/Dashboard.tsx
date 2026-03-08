@@ -30,6 +30,19 @@ interface Log {
     timestamp: string;
 }
 
+// Phase 4.1 Tactical Color Matrix
+const getTacticalColor = (count: number, total: number) => {
+    if (total === 0) return '#8a9fca'; // Default Lavender
+    const ratio = (total - count) / total;
+
+    if (ratio === 0) return '#a855f7';     // 0/5 - Púrpura (id: 1)
+    if (ratio <= 0.25) return '#ef4444';   // 1/5 - Rojo (id: 2)
+    if (ratio <= 0.50) return '#f97316';   // 2/5 - Naranja (id: 3)
+    if (ratio <= 0.75) return '#eab308';   // 3/5 - Amarillo (id: 4)
+    if (ratio < 1) return '#22c55e';       // 4/5 - Verde (id: 5)
+    return '#0ea5e9';                      // 5/5 - Azul (id: 6)
+};
+
 const Dashboard: React.FC = () => {
     const [logs, setLogs] = useState<Log[]>([]);
     const [isScanning, setIsScanning] = useState(false);
@@ -702,32 +715,37 @@ const Dashboard: React.FC = () => {
                                     <div className="w-full flex flex-col gap-6">
                                         {/* PANEL 1: PROTOCOLO DE NEUTRALIZACIÓN */}
                                         <div className="w-full flex flex-col">
-                                            <motion.div
-                                                onClick={() => setIsRiskPanelOpen(!isRiskPanelOpen)}
-                                                className="w-full border border-[rgba(74,85,120,0.55)] bg-white/[0.03] backdrop-blur-md p-6 cursor-pointer hover:bg-white/[0.05] transition-colors flex flex-col items-center shadow-[0_18px_50px_rgba(0,0,0,0.18)] relative overflow-hidden group"
-                                                whileHover={{ scale: 1.005 }}
-                                                whileTap={{ scale: 0.99 }}
-                                            >
-                                                <div className="absolute top-0 left-0 w-1 h-full bg-[#8a9fca] opacity-50 group-hover:opacity-100 transition-opacity"></div>
-                                                <div className="flex items-center gap-2 mb-2 w-full justify-start">
-                                                    <Target className="w-4 h-4 text-[#8a9fca] flex-shrink-0" />
-                                                    <h3 className="text-[.95rem] font-semibold tracking-[.10em] text-white uppercase">PROTOCOLO DE NEUTRALIZACIÓN</h3>
-                                                </div>
+                                            {(() => {
+                                                const activeCount = findings.filter(f => !f.isNeutralized).length;
+                                                const tacticalColor = getTacticalColor(activeCount, findings.length);
+                                                return (
+                                                    <motion.div
+                                                        onClick={() => setIsRiskPanelOpen(!isRiskPanelOpen)}
+                                                        className="w-full border bg-white/[0.03] backdrop-blur-md p-6 cursor-pointer hover:bg-white/[0.05] transition-colors flex flex-col items-center shadow-[0_18px_50px_rgba(0,0,0,0.18)] relative overflow-hidden group"
+                                                        style={{ borderColor: `${tacticalColor}55` }}
+                                                        whileHover={{ scale: 1.005 }}
+                                                        whileTap={{ scale: 0.99 }}
+                                                    >
+                                                        <div className="absolute top-4 right-6 opacity-50 group-hover:opacity-100 transition-opacity">
+                                                            {isRiskPanelOpen ? <ChevronUp className="w-5 h-5" style={{ color: tacticalColor }} /> : <ChevronDown className="w-5 h-5" style={{ color: tacticalColor }} />}
+                                                        </div>
 
-                                                <div className="flex flex-col items-center justify-center my-6">
-                                                    <span className={`text-[4.5rem] font-extralight leading-none ${findings.filter(f => !f.isNeutralized).length > 0 ? 'text-ops-danger drop-shadow-[0_0_15px_rgba(255,51,102,0.4)]' : 'text-ops-success drop-shadow-[0_0_15px_rgba(0,255,153,0.4)]'}`}>
-                                                        {findings.filter(f => !f.isNeutralized).length}
-                                                    </span>
-                                                    <span className="text-[.98rem] font-light text-[#c5cae0] uppercase mt-4 tracking-widest">
-                                                        {findings.filter(f => !f.isNeutralized).length > 0 ? 'AMENAZAS ACTIVAS DETECTADAS' : 'NINGUNA AMENAZA ACTIVA'}
-                                                    </span>
-                                                </div>
+                                                        <div className="flex items-center gap-2 mb-2 w-full justify-center">
+                                                            <Target className="w-4 h-4 flex-shrink-0" style={{ color: tacticalColor }} />
+                                                            <h3 className="text-[.95rem] font-semibold tracking-[.10em] text-white uppercase whitespace-nowrap">PROTOCOLO DE NEUTRALIZACIÓN</h3>
+                                                        </div>
 
-                                                <div className="w-full text-center text-[.98rem] font-light text-[#c5cae0] uppercase border-t border-[#4a5578]/50 pt-4 tracking-[.16em] flex items-center justify-center gap-2">
-                                                    ÍNDICE DE RIESGO
-                                                    {isRiskPanelOpen ? <ChevronUp className="w-4 h-4 text-[#8a9fca]" /> : <ChevronDown className="w-4 h-4 text-[#8a9fca]" />}
-                                                </div>
-                                            </motion.div>
+                                                        <div className="flex flex-col items-center justify-center my-6">
+                                                            <span className="text-[4.5rem] font-extralight leading-none transition-colors duration-500" style={{ color: tacticalColor, textShadow: `0 0 20px ${tacticalColor}44` }}>
+                                                                {activeCount}
+                                                            </span>
+                                                            <span className="text-[.98rem] font-light text-[#c5cae0] uppercase mt-4 tracking-widest text-center">
+                                                                {activeCount > 0 ? 'AMENAZAS ACTIVAS' : 'NINGUNA AMENAZA ACTIVA'}
+                                                            </span>
+                                                        </div>
+                                                    </motion.div>
+                                                );
+                                            })()}
 
                                             <motion.div
                                                 initial={{ height: 0, opacity: 0 }}
@@ -748,23 +766,21 @@ const Dashboard: React.FC = () => {
                                         <motion.div
                                             className="w-full border border-[rgba(74,85,120,0.55)] bg-white/[0.03] backdrop-blur-md p-6 flex flex-col items-center shadow-[0_18px_50px_rgba(0,0,0,0.18)] relative overflow-hidden opacity-60 pointer-events-none"
                                         >
-                                            <div className="absolute top-0 left-0 w-1 h-full bg-[#4a5578]"></div>
-                                            <div className="flex items-center gap-2 mb-2 w-full justify-start">
+                                            <div className="absolute top-4 right-6 opacity-30">
+                                                <ChevronDown className="w-5 h-5 text-[#8a9fca]" />
+                                            </div>
+                                            <div className="flex items-center gap-2 mb-2 w-full justify-center">
                                                 <Shield className="w-4 h-4 text-[#8a9fca] flex-shrink-0" />
-                                                <h3 className="text-[.95rem] font-semibold tracking-[.10em] text-white uppercase">PROTOCOLO DE ENTRENAMIENTO</h3>
+                                                <h3 className="text-[.95rem] font-semibold tracking-[.10em] text-white uppercase whitespace-nowrap">PROTOCOLO DE ENTRENAMIENTO</h3>
                                             </div>
 
                                             <div className="flex flex-col items-center justify-center my-6">
                                                 <span className="text-[4.5rem] font-extralight leading-none text-[#6b7490]">
                                                     0
                                                 </span>
-                                                <span className="text-[.98rem] font-light text-[#c5cae0] uppercase mt-4 tracking-widest">
+                                                <span className="text-[.98rem] font-light text-[#c5cae0] uppercase mt-4 tracking-widest text-center">
                                                     DE 12 LECTURAS
                                                 </span>
-                                            </div>
-
-                                            <div className="w-full text-center text-[.98rem] font-light text-[#c5cae0] uppercase border-t border-[#4a5578]/50 pt-4 tracking-[.16em]">
-                                                LECCIONES COMPRENDIDAS
                                             </div>
                                         </motion.div>
 

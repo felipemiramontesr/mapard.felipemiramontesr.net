@@ -94,24 +94,22 @@ const FeedTerminal: React.FC<FeedTerminalProps> = ({ email }) => {
                 whileHover={{ scale: 1.005 }}
                 whileTap={{ scale: 0.99 }}
             >
-                <div className="absolute top-0 left-0 w-1 h-full bg-ops-warning opacity-50 group-hover:opacity-100 transition-opacity"></div>
-                <div className="flex items-center gap-2 mb-2 w-full justify-start">
+                <div className="absolute top-4 right-6 opacity-50 group-hover:opacity-100 transition-opacity">
+                    {isFeedOpen ? <ChevronUp className="w-5 h-5 text-ops-warning" /> : <ChevronDown className="w-5 h-5 text-ops-warning" />}
+                </div>
+
+                <div className="flex items-center gap-2 mb-2 w-full justify-center">
                     <Globe className="w-4 h-4 text-ops-warning flex-shrink-0" />
-                    <h3 className="text-[.95rem] font-semibold tracking-[.10em] text-white uppercase">PROTOCOLO INFORMATIVO</h3>
+                    <h3 className="text-[.95rem] font-semibold tracking-[.10em] text-white uppercase whitespace-nowrap">PROTOCOLO INFORMATIVO</h3>
                 </div>
 
                 <div className="flex flex-col items-center justify-center my-6">
                     <span className={`text-[4.5rem] font-extralight leading-none ${feed.length > 0 ? 'text-ops-warning drop-shadow-[0_0_15px_rgba(255,170,0,0.4)]' : 'text-[#6b7490]'}`}>
                         {feed.length}
                     </span>
-                    <span className="text-[.98rem] font-light text-[#c5cae0] uppercase mt-4 tracking-widest">
+                    <span className="text-[.98rem] font-light text-[#c5cae0] uppercase mt-4 tracking-widest text-center">
                         {feed.length > 0 ? 'ALERTAS GLOBALES ACTIVAS' : 'SIN INTELIGENCIA NUEVA'}
                     </span>
-                </div>
-
-                <div className="w-full text-center text-[.98rem] font-light text-[#c5cae0] uppercase border-t border-[#4a5578]/50 pt-4 tracking-[.16em] flex items-center justify-center gap-2">
-                    NOTAS CRÍTICAS VISUALIZADAS
-                    {isFeedOpen ? <ChevronUp className="w-4 h-4 text-[#8a9fca]" /> : <ChevronDown className="w-4 h-4 text-[#8a9fca]" />}
                 </div>
             </motion.div>
 
