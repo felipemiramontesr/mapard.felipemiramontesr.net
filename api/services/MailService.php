@@ -39,42 +39,71 @@ class MailService
             <head>
                 <style>
                     body {
-                        background-color: #0a0e27; color: #ffffff;
-                        font-family: 'Courier New', Courier, monospace; padding: 20px;
+                        background-color: #0a0e27; 
+                        margin: 0; padding: 40px 20px;
+                        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
                     }
                     .card {
-                        border: 1px solid #00f3ff; padding: 20px; max-width: 500px;
-                        margin: auto; box-shadow: 0 0 20px rgba(0, 243, 255, 0.2);
+                        background-color: #111827;
+                        border: 1px solid #4a5578;
+                        padding: 40px;
+                        max-width: 500px;
+                        margin: auto;
+                        border-radius: 4px;
+                        text-align: center;
                     }
                     .header {
-                        color: #00f3ff; text-transform: uppercase; font-size: 18px;
-                        border-bottom: 1px solid #1e293b; padding-bottom: 10px; margin-bottom: 20px;
+                        color: #ffffff;
+                        text-transform: uppercase;
+                        font-size: 14px;
+                        font-weight: 600;
+                        letter-spacing: 0.2em;
+                        margin-bottom: 30px;
+                    }
+                    .content-text {
+                        color: #c5cae0;
+                        font-size: 14px;
+                        line-height: 1.6;
+                        margin-bottom: 30px;
                     }
                     .code-box {
-                        background-color: #1e293b; padding: 20px; text-align: center;
-                        font-size: 32px; letter-spacing: 12px; color: #00f3ff;
-                        border: 1px dashed #00f3ff; margin: 20px 0; font-weight: bold;
+                        color: #8a9fca;
+                        font-size: 42px;
+                        letter-spacing: 12px;
+                        font-family: 'Courier New', Courier, monospace;
+                        font-weight: 200;
+                        margin: 40px 0;
+                        padding: 20px;
+                        border-top: 1px solid #4a5578;
+                        border-bottom: 1px solid #4a5578;
                     }
                     .footer {
-                        margin-top: 30px; font-size: 11px; color: #64748b;
-                        border-top: 1px solid #1e293b; padding-top: 10px;
+                        margin-top: 40px;
+                        font-size: 10px;
+                        color: #6b7490;
+                        font-family: 'Courier New', Courier, monospace;
+                        letter-spacing: 0.1em;
+                        text-transform: uppercase;
                     }
                 </style>
             </head>
             <body>
                 <div class='card'>
-                    <div class='header'>Terminal Access Required</div>
-                    <p>Se ha detectado una solicitud de acceso al Dossier de Inteligencia para:</p>
-                    <p style='color: #fca311; font-weight: bold;'>$toEmail</p>
+                    <div class='header'>TERMINAL ACCESS REQUIRED</div>
+                    <div class='content-text'>
+                        Se ha detectado una solicitud de acceso al Dossier de Inteligencia para la credencial:<br>
+                        <strong style='color: #ffffff; display: block; margin-top: 10px;'>$toEmail</strong>
+                    </div>
                     
-                    <p>Utilice el siguiente código táctico de verificación:</p>
                     <div class='code-box'>$code</div>
                     
-                    <p>Este código es de un solo uso y expirará en breve.</p>
+                    <div class='content-text' style='font-size: 12px; opacity: 0.8;'>
+                        Este código táctico es de un solo uso y expirará en breve.
+                    </div>
                     
                     <div class='footer'>
-                        MAPARD CORTEX ENGINE | PROTOCOLO TÁCTICO M<br>
-                        Identificador de Operación: " . bin2hex(random_bytes(4)) . "
+                        MAPARD CORTEX ENGINE // TACTICAL_GATE_M<br>
+                        ID_OP: " . strtoupper(bin2hex(random_bytes(4))) . "
                     </div>
                 </div>
             </body>
@@ -122,42 +151,71 @@ class MailService
             <head>
                 <style>
                     body {
-                        background-color: #0a0e27; color: #ffffff;
-                        font-family: 'Courier New', Courier, monospace; padding: 20px;
+                        background-color: #0a0e27; 
+                        margin: 0; padding: 40px 20px;
+                        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
                     }
                     .card {
-                        border: 1px solid #ff3366; padding: 20px; max-width: 500px;
-                        margin: auto; box-shadow: 0 0 20px rgba(255, 51, 102, 0.2);
+                        background-color: #111827;
+                        border: 1px solid #4a5578;
+                        padding: 40px;
+                        max-width: 500px;
+                        margin: auto;
+                        border-radius: 4px;
+                        text-align: center;
                     }
                     .header {
-                        color: #ff3366; text-transform: uppercase; font-size: 18px;
-                        border-bottom: 1px solid #1e293b; padding-bottom: 10px; margin-bottom: 20px;
+                        color: #ff3366;
+                        text-transform: uppercase;
+                        font-size: 14px;
+                        font-weight: 600;
+                        letter-spacing: 0.2em;
+                        margin-bottom: 30px;
+                    }
+                    .content-text {
+                        color: #c5cae0;
+                        font-size: 14px;
+                        line-height: 1.6;
+                        margin-bottom: 30px;
                     }
                     .code-box {
-                        background-color: #1e293b; padding: 20px; text-align: center;
-                        font-size: 32px; letter-spacing: 12px; color: #ff3366;
-                        border: 1px dashed #ff3366; margin: 20px 0; font-weight: bold;
+                        color: #ff3366;
+                        font-size: 42px;
+                        letter-spacing: 12px;
+                        font-family: 'Courier New', Courier, monospace;
+                        font-weight: 200;
+                        margin: 40px 0;
+                        padding: 20px;
+                        border-top: 1px solid #4a5578;
+                        border-bottom: 1px solid #4a5578;
                     }
                     .footer {
-                        margin-top: 30px; font-size: 11px; color: #64748b;
-                        border-top: 1px solid #1e293b; padding-top: 10px;
+                        margin-top: 40px;
+                        font-size: 10px;
+                        color: #6b7490;
+                        font-family: 'Courier New', Courier, monospace;
+                        letter-spacing: 0.1em;
+                        text-transform: uppercase;
                     }
                 </style>
             </head>
             <body>
                 <div class='card'>
-                    <div class='header'>Protocolo de Rescate Iniciado</div>
-                    <p>Se ha detectado una solicitud de recuperación de clave para la credencial:</p>
-                    <p style='color: #fca311; font-weight: bold;'>$toEmail</p>
+                    <div class='header'>RECOVERY PROTOCOL ACTIVATED</div>
+                    <div class='content-text'>
+                        Se ha detectado una solicitud de recuperación de clave para la credencial:<br>
+                        <strong style='color: #ffffff; display: block; margin-top: 10px;'>$toEmail</strong>
+                    </div>
                     
-                    <p>Utilice el siguiente código de rescate temporal:</p>
                     <div class='code-box'>$code</div>
                     
-                    <p>Este código anulará la seguridad anterior. Tiene una validez de 10 minutos.</p>
+                    <div class='content-text' style='font-size: 12px; opacity: 0.8;'>
+                        Este código anulará la seguridad anterior. Tiene una validez de 10 minutos.
+                    </div>
                     
                     <div class='footer'>
-                        MAPARD CORTEX ENGINE | PROTOCOLO EMERGENCY<br>
-                        Identificador de Rescate: " . bin2hex(random_bytes(4)) . "
+                        MAPARD CORTEX ENGINE // TACTICAL_RESCUE_S<br>
+                        ID_RESCUE: " . strtoupper(bin2hex(random_bytes(4))) . "
                     </div>
                 </div>
             </body>
