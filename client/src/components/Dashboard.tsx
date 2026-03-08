@@ -605,7 +605,7 @@ const Dashboard: React.FC = () => {
                             className="btn-ops px-8 py-4 flex items-center gap-3 group"
                         >
                             <Fingerprint className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                            REINTENTAR ACCESO
+                            ACCEDER
                         </button>
                     )}
                 </motion.div>
@@ -730,7 +730,7 @@ const Dashboard: React.FC = () => {
                                                             {isRiskPanelOpen ? <ChevronUp className="w-4 h-4" style={{ color: tacticalColor }} /> : <ChevronDown className="w-4 h-4" style={{ color: tacticalColor }} />}
                                                         </div>
 
-                                                        <div className="flex items-center gap-2 mb-2 w-full justify-center px-8">
+                                                        <div className="flex items-center gap-2 mb-2 w-full justify-center px-12">
                                                             <Target className="w-4 h-4 flex-shrink-0" style={{ color: tacticalColor }} />
                                                             <h3 className="text-[.72rem] font-semibold tracking-[.15em] text-white uppercase whitespace-nowrap">PROTOCOLO DE NEUTRALIZACIÓN</h3>
                                                         </div>
@@ -739,8 +739,8 @@ const Dashboard: React.FC = () => {
                                                             <span className="text-[4.5rem] font-extralight leading-none transition-colors duration-500" style={{ color: tacticalColor, textShadow: `0 0 20px ${tacticalColor}44` }}>
                                                                 {activeCount}
                                                             </span>
-                                                            <span className="text-[.98rem] font-light text-[#c5cae0] uppercase mt-4 tracking-widest text-center">
-                                                                {activeCount > 0 ? 'AMENAZAS ACTIVAS' : 'NINGUNA AMENAZA ACTIVA'}
+                                                            <span className="text-[.98rem] font-light text-[#c5cae0] uppercase mt-4 tracking-widest text-center whitespace-nowrap">
+                                                                DE {findings.length} AMENAZAS ACTIVAS
                                                             </span>
                                                         </div>
                                                     </motion.div>
@@ -769,7 +769,7 @@ const Dashboard: React.FC = () => {
                                             <div className="absolute top-4 right-4 flex items-center justify-center w-8 h-8 border border-white/10 bg-white/[0.03] rounded-md opacity-30">
                                                 <ChevronDown className="w-4 h-4 text-[#8a9fca]" />
                                             </div>
-                                            <div className="flex items-center gap-2 mb-2 w-full justify-center px-8">
+                                            <div className="flex items-center gap-2 mb-2 w-full justify-center px-12">
                                                 <Shield className="w-4 h-4 text-[#8a9fca] flex-shrink-0" />
                                                 <h3 className="text-[.72rem] font-semibold tracking-[.15em] text-white uppercase whitespace-nowrap">PROTOCOLO DE ENTRENAMIENTO</h3>
                                             </div>
@@ -778,7 +778,7 @@ const Dashboard: React.FC = () => {
                                                 <span className="text-[4.5rem] font-extralight leading-none text-[#6b7490]">
                                                     0
                                                 </span>
-                                                <span className="text-[.98rem] font-light text-[#c5cae0] uppercase mt-4 tracking-widest text-center">
+                                                <span className="text-[.98rem] font-light text-[#c5cae0] uppercase mt-4 tracking-widest text-center whitespace-nowrap">
                                                     DE 12 LECTURAS
                                                 </span>
                                             </div>

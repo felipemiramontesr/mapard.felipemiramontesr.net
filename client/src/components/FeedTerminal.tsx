@@ -98,7 +98,7 @@ const FeedTerminal: React.FC<FeedTerminalProps> = ({ email }) => {
                     {isFeedOpen ? <ChevronUp className="w-4 h-4 text-ops-warning" /> : <ChevronDown className="w-4 h-4 text-ops-warning" />}
                 </div>
 
-                <div className="flex items-center gap-2 mb-2 w-full justify-center px-8">
+                <div className="flex items-center gap-2 mb-2 w-full justify-center px-12">
                     <Globe className="w-4 h-4 text-ops-warning flex-shrink-0" />
                     <h3 className="text-[.72rem] font-semibold tracking-[.15em] text-white uppercase whitespace-nowrap">PROTOCOLO INFORMATIVO</h3>
                 </div>
@@ -107,8 +107,8 @@ const FeedTerminal: React.FC<FeedTerminalProps> = ({ email }) => {
                     <span className={`text-[4.5rem] font-extralight leading-none ${feed.length > 0 ? 'text-ops-warning drop-shadow-[0_0_15px_rgba(255,170,0,0.4)]' : 'text-[#6b7490]'}`}>
                         {feed.length}
                     </span>
-                    <span className="text-[.98rem] font-light text-[#c5cae0] uppercase mt-4 tracking-widest text-center">
-                        {feed.length > 0 ? 'ALERTAS GLOBALES ACTIVAS' : 'SIN INTELIGENCIA NUEVA'}
+                    <span className="text-[.98rem] font-light text-[#c5cae0] uppercase mt-4 tracking-widest text-center whitespace-nowrap">
+                        DE {feed.length} ALERTAS GLOBALES ACTIVAS
                     </span>
                 </div>
             </motion.div>

@@ -128,12 +128,6 @@ const RiskNeutralization: React.FC<RiskNeutralizationProps> = ({ findings, onUpd
             exit={{ opacity: 0, y: 50 }}
             className="w-full max-w-4xl mx-auto mt-8 relative z-20 pb-10"
         >
-            <div className="flex items-center justify-center mb-6 border-b border-white/10 pb-4 gap-4">
-                <h3 className="text-[11px] min-[400px]:text-xs md:text-xl font-bold text-white tracking-widest uppercase flex items-center gap-2 md:gap-3 whitespace-nowrap">
-                    <ShieldAlert className="text-ops-radioactive w-4 h-4 md:w-6 md:h-6 flex-shrink-0" />
-                    <span>Protocolo de Neutralización</span>
-                </h3>
-            </div>
 
             {/* Vector List */}
             <div className="flex-grow overflow-y-auto space-y-4 md:space-y-6">
