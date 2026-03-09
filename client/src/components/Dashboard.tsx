@@ -9,7 +9,7 @@ import RescueVerificationView from './Auth/RescueVerificationView';
 import RescueResetView from './Auth/RescueResetView';
 import { secureStorage } from '../utils/secureStorage';
 import { format } from 'date-fns';
-import { Target, Shield, ChevronDown, CheckCircle2, User, Power, Settings, LogOut, Loader2, AlertTriangle, Fingerprint } from 'lucide-react';
+import { Target, Shield, ChevronDown, Lock, Fingerprint } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Capacitor } from '@capacitor/core';
 import { App, type AppState } from '@capacitor/app';
