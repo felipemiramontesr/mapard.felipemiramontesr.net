@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShieldAlert, Globe, Clock, CheckCircle, ChevronUp, ChevronDown } from 'lucide-react';
+import { ShieldAlert, Globe, Clock, CheckCircle, ChevronDown } from 'lucide-react';
 import { Capacitor } from '@capacitor/core';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -94,25 +94,34 @@ const FeedTerminal: React.FC<FeedTerminalProps> = ({ email }) => {
                 whileHover={{ scale: 1.005 }}
                 whileTap={{ scale: 0.99 }}
             >
-                <div className="relative w-full mb-4">
-                    <div className="h-10 w-full relative">
-                        <div className="absolute top-[5px] right-[5px] flex items-center justify-center w-8 h-8 border border-ops-warning/30 bg-white/10 backdrop-blur-md rounded-md transition-all group-hover:bg-white/20 z-20">
-                            {isFeedOpen ? <ChevronUp className="w-4 h-4 text-ops-warning" /> : <ChevronDown className="w-4 h-4 text-ops-warning" />}
-                        </div>
-                    </div>
-                    <div className="flex items-center justify-center gap-2 mt-2 w-full px-4">
-                        <Globe className="w-4 h-4 text-ops-warning flex-shrink-0" />
-                        <h3 className="text-[.72rem] font-semibold tracking-[.15em] text-white uppercase whitespace-nowrap">PROTOCOLO INFORMATIVO</h3>
+                {/* Cabecera con Título y Línea */}
+                <div className="w-full pt-4 pb-2 border-b border-white/10 mb-6 px-6">
+                    <div className="flex items-center justify-center gap-2">
+                        <Globe className="w-4 h-4 flex-shrink-0 text-ops-warning" />
+                        <h3 className="text-[.72rem] font-semibold tracking-[.2em] text-white uppercase text-center">PROTOCOLO INFORMATIVO</h3>
                     </div>
                 </div>
 
-                <div className="flex flex-col items-center justify-center my-6">
-                    <span className={`text-[4.5rem] font-extralight leading-none ${feed.length > 0 ? 'text-ops-warning drop-shadow-[0_0_15px_rgba(255,170,0,0.4)]' : 'text-[#6b7490]'}`}>
-                        {feed.length}
-                    </span>
-                    <span className="text-[.98rem] font-light text-[#c5cae0] uppercase mt-4 tracking-widest text-center whitespace-nowrap">
-                        DE {feed.length} ALERTAS GLOBALES
-                    </span>
+                {/* Etiqueta de Contexto Superior */}
+                <div className="bg-white/5 border border-white/10 px-4 py-1 rounded-sm mb-4">
+                    <span className="text-[0.65rem] uppercase tracking-[.25em] text-[#c5cae0] font-light">ALERTAS GLOBALES</span>
+                </div>
+
+                {/* Núcleo Circular (Radar) */}
+                <div className="relative group/radar">
+                    <div className={`w-32 h-32 rounded-full border ${feed.length > 0 ? 'border-ops-warning/30' : 'border-white/10'} flex items-center justify-center relative overflow-hidden backdrop-blur-sm bg-white/[0.02] transition-all duration-500 group-hover/radar:border-white/20`} style={feed.length > 0 ? { boxShadow: `0 0 30px rgba(255,170,0,0.15), inset 0 0 15px rgba(255,170,0,0.1)` } : {}}>
+                        <span className={`text-[4rem] font-extralight transition-all duration-500 ${feed.length > 0 ? 'text-ops-warning' : 'text-[#6b7490]'}`} style={feed.length > 0 ? { textShadow: `0 0 15px rgba(255,170,0,0.4)` } : {}}>
+                            {feed.length}
+                        </span>
+                    </div>
+                </div>
+
+                {/* Pie de Panel: Botón DETALLES */}
+                <div className="w-full mt-6 px-4">
+                    <div className="w-full py-2 border border-white/10 bg-white/5 rounded-md flex items-center justify-center gap-2 transition-all hover:bg-white/10 hover:border-white/20" style={{ borderColor: 'rgba(255,170,0,0.2)' }}>
+                        <span className="text-[0.65rem] uppercase tracking-[.3em] font-light text-white">DETALLES</span>
+                        <ChevronDown className={`w-3 h-3 transition-transform duration-300 ${isFeedOpen ? 'rotate-180' : ''} text-ops-warning`} />
+                    </div>
                 </div>
             </motion.div>
 

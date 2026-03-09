@@ -9,7 +9,7 @@ import RescueVerificationView from './Auth/RescueVerificationView';
 import RescueResetView from './Auth/RescueResetView';
 import { secureStorage } from '../utils/secureStorage';
 import { format } from 'date-fns';
-import { Shield, Target, Lock, Fingerprint, ChevronDown, ChevronUp } from 'lucide-react';
+import { Target, Shield, ChevronDown, CheckCircle2, User, Power, Settings, LogOut, Loader2, AlertTriangle, Fingerprint } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Capacitor } from '@capacitor/core';
 import { App, type AppState } from '@capacitor/app';
@@ -726,28 +726,34 @@ const Dashboard: React.FC = () => {
                                                         whileHover={{ scale: 1.005 }}
                                                         whileTap={{ scale: 0.99 }}
                                                     >
-                                                        <div className="relative w-full mb-4">
-                                                            {/* Nivel Superior: Espaciado Reforzado para Pill */}
-                                                            <div className="h-10 w-full relative">
-                                                                <div className="absolute top-[5px] right-[5px] flex items-center justify-center w-8 h-8 border backdrop-blur-md rounded-md transition-all group-hover:bg-white/20 bg-white/10 z-20" style={{ borderColor: `${tacticalColor}44` }}>
-                                                                    {isRiskPanelOpen ? <ChevronUp className="w-4 h-4" style={{ color: tacticalColor }} /> : <ChevronDown className="w-4 h-4" style={{ color: tacticalColor }} />}
-                                                                </div>
-                                                            </div>
-
-                                                            {/* Nivel Inferior: Título con Desplazamiento Vertical */}
-                                                            <div className="flex items-center justify-center gap-2 mt-2 w-full px-4">
+                                                        {/* Cabecera con Título y Línea */}
+                                                        <div className="w-full pt-4 pb-2 border-b border-white/10 mb-6 px-6">
+                                                            <div className="flex items-center justify-center gap-2">
                                                                 <Target className="w-4 h-4 flex-shrink-0" style={{ color: tacticalColor }} />
-                                                                <h3 className="text-[.72rem] font-semibold tracking-[.15em] text-white uppercase whitespace-nowrap">PROTOCOLO DE NEUTRALIZACIÓN</h3>
+                                                                <h3 className="text-[.72rem] font-semibold tracking-[.2em] text-white uppercase text-center">PROTOCOLO DE NEUTRALIZACIÓN</h3>
                                                             </div>
                                                         </div>
 
-                                                        <div className="flex flex-col items-center justify-center my-6">
-                                                            <span className="text-[4.5rem] font-extralight leading-none transition-colors duration-500" style={{ color: tacticalColor, textShadow: `0 0 20px ${tacticalColor}44` }}>
-                                                                {activeCount}
-                                                            </span>
-                                                            <span className="text-[.98rem] font-light text-[#c5cae0] uppercase mt-4 tracking-widest text-center whitespace-nowrap">
-                                                                DE {findings.length} AMENAZAS ACTIVAS
-                                                            </span>
+                                                        {/* Etiqueta de Contexto Superior */}
+                                                        <div className="bg-white/5 border border-white/10 px-4 py-1 rounded-sm mb-4">
+                                                            <span className="text-[0.65rem] uppercase tracking-[.25em] text-[#c5cae0] font-light">AMENAZAS ACTIVAS</span>
+                                                        </div>
+
+                                                        {/* Núcleo Circular (Radar) */}
+                                                        <div className="relative group/radar">
+                                                            <div className="w-32 h-32 rounded-full border border-white/10 flex items-center justify-center relative overflow-hidden backdrop-blur-sm bg-white/[0.02] shadow-[inset_0_0_20px_rgba(255,255,255,0.02)] transition-all duration-500 group-hover/radar:border-white/20" style={{ borderColor: `${tacticalColor}33`, boxShadow: `0 0 30px ${tacticalColor}15, inset 0 0 15px ${tacticalColor}10` }}>
+                                                                <span className="text-[4rem] font-extralight transition-all duration-500" style={{ color: tacticalColor, textShadow: `0 0 15px ${tacticalColor}44` }}>
+                                                                    {activeCount}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+
+                                                        {/* Pie de Panel: Botón DETALLES */}
+                                                        <div className="w-full mt-6 px-4">
+                                                            <div className="w-full py-2 border border-white/10 bg-white/5 rounded-md flex items-center justify-center gap-2 transition-all hover:bg-white/10 hover:border-white/20" style={{ borderColor: `${tacticalColor}22` }}>
+                                                                <span className="text-[0.65rem] uppercase tracking-[.3em] font-light text-white">DETALLES</span>
+                                                                <ChevronDown className={`w-3 h-3 transition-transform duration-300 ${isRiskPanelOpen ? 'rotate-180' : ''}`} style={{ color: tacticalColor }} />
+                                                            </div>
                                                         </div>
                                                     </motion.div>
                                                 );
@@ -772,25 +778,34 @@ const Dashboard: React.FC = () => {
                                         <motion.div
                                             className="w-full border border-[rgba(74,85,120,0.55)] bg-white/[0.03] backdrop-blur-md p-6 flex flex-col items-center shadow-[0_18px_50px_rgba(0,0,0,0.18)] relative overflow-hidden opacity-60 pointer-events-none"
                                         >
-                                            <div className="relative w-full opacity-40 mb-4">
-                                                <div className="h-10 w-full relative">
-                                                    <div className="absolute top-[5px] right-[5px] flex items-center justify-center w-8 h-8 border border-[#8a9fca]/30 bg-white/10 backdrop-blur-md rounded-md z-20">
-                                                        <ChevronDown className="w-4 h-4 text-[#8a9fca]" />
-                                                    </div>
-                                                </div>
-                                                <div className="flex items-center justify-center gap-2 mt-2 w-full px-4">
-                                                    <Shield className="w-4 h-4 text-[#8a9fca] flex-shrink-0" />
-                                                    <h3 className="text-[.72rem] font-semibold tracking-[.15em] text-white uppercase whitespace-nowrap">PROTOCOLO DE ENTRENAMIENTO</h3>
+                                            {/* Cabecera con Título y Línea */}
+                                            <div className="w-full pt-4 pb-2 border-b border-white/10 mb-6 px-6">
+                                                <div className="flex items-center justify-center gap-2">
+                                                    <Shield className="w-4 h-4 flex-shrink-0 text-[#8a9fca]" />
+                                                    <h3 className="text-[.72rem] font-semibold tracking-[.2em] text-white uppercase text-center">PROTOCOLO DE ENTRENAMIENTO</h3>
                                                 </div>
                                             </div>
 
-                                            <div className="flex flex-col items-center justify-center my-6">
-                                                <span className="text-[4.5rem] font-extralight leading-none text-[#6b7490]">
-                                                    0
-                                                </span>
-                                                <span className="text-[.98rem] font-light text-[#c5cae0] uppercase mt-4 tracking-widest text-center whitespace-nowrap">
-                                                    DE 12 LECTURAS
-                                                </span>
+                                            {/* Etiqueta de Contexto Superior */}
+                                            <div className="bg-white/5 border border-white/10 px-4 py-1 rounded-sm mb-4">
+                                                <span className="text-[0.65rem] uppercase tracking-[.25em] text-[#c5cae0] font-light">SESIONES DE ENTRENAMIENTO</span>
+                                            </div>
+
+                                            {/* Núcleo Circular (Radar) */}
+                                            <div className="relative">
+                                                <div className="w-32 h-32 rounded-full border border-[#8a9fca]/20 flex items-center justify-center relative overflow-hidden backdrop-blur-sm bg-white/[0.02]">
+                                                    <span className="text-[4rem] font-extralight text-[#6b7490]">
+                                                        0
+                                                    </span>
+                                                </div>
+                                            </div>
+
+                                            {/* Pie de Panel: Botón DETALLES */}
+                                            <div className="w-full mt-6 px-4">
+                                                <div className="w-full py-2 border border-white/10 bg-white/5 rounded-md flex items-center justify-center gap-2 opacity-40">
+                                                    <span className="text-[0.65rem] uppercase tracking-[.3em] font-light text-white">DETALLES</span>
+                                                    <ChevronDown className="w-3 h-3 text-[#8a9fca]" />
+                                                </div>
                                             </div>
                                         </motion.div>
 
