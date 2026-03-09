@@ -726,19 +726,16 @@ const Dashboard: React.FC = () => {
                                                         whileHover={{ scale: 1.005 }}
                                                         whileTap={{ scale: 0.99 }}
                                                     >
-                                                        <div className="flex items-start justify-between w-full p-4 pb-0">
-                                                            {/* Columna Izquierda (Equilibrio) */}
-                                                            <div className="w-8" />
-
-                                                            {/* Columna Central (Título) */}
-                                                            <div className="flex-1 flex items-center justify-center gap-2 px-4 min-w-0">
-                                                                <Target className="w-4 h-4 flex-shrink-0" style={{ color: tacticalColor }} />
-                                                                <h3 className="text-[.72rem] font-semibold tracking-[.15em] text-white uppercase whitespace-nowrap truncate">PROTOCOLO DE NEUTRALIZACIÓN</h3>
+                                                        <div className="relative w-full p-4 pb-0">
+                                                            {/* Pill Absoluta 5px/5px */}
+                                                            <div className="absolute top-[5px] right-[5px] flex items-center justify-center w-8 h-8 border backdrop-blur-md rounded-md transition-all group-hover:bg-white/20 bg-white/10 z-20" style={{ borderColor: `${tacticalColor}44` }}>
+                                                                {isRiskPanelOpen ? <ChevronUp className="w-4 h-4" style={{ color: tacticalColor }} /> : <ChevronDown className="w-4 h-4" style={{ color: tacticalColor }} />}
                                                             </div>
 
-                                                            {/* Columna Derecha (Pill) */}
-                                                            <div className="flex items-center justify-center w-8 h-8 border backdrop-blur-md rounded-md transition-all group-hover:bg-white/20 bg-white/10" style={{ borderColor: `${tacticalColor}44` }}>
-                                                                {isRiskPanelOpen ? <ChevronUp className="w-4 h-4" style={{ color: tacticalColor }} /> : <ChevronDown className="w-4 h-4" style={{ color: tacticalColor }} />}
+                                                            {/* Contenedor de Título Centrado con protección lateral */}
+                                                            <div className="flex items-center justify-center gap-2 px-10 min-w-0">
+                                                                <Target className="w-4 h-4 flex-shrink-0" style={{ color: tacticalColor }} />
+                                                                <h3 className="text-[.72rem] font-semibold tracking-[.15em] text-white uppercase whitespace-nowrap truncate">PROTOCOLO DE NEUTRALIZACIÓN</h3>
                                                             </div>
                                                         </div>
 
@@ -773,14 +770,13 @@ const Dashboard: React.FC = () => {
                                         <motion.div
                                             className="w-full border border-[rgba(74,85,120,0.55)] bg-white/[0.03] backdrop-blur-md p-6 flex flex-col items-center shadow-[0_18px_50px_rgba(0,0,0,0.18)] relative overflow-hidden opacity-60 pointer-events-none"
                                         >
-                                            <div className="flex items-start justify-between w-full p-4 pb-0 opacity-40">
-                                                <div className="w-8" />
-                                                <div className="flex-1 flex items-center justify-center gap-2 px-4 min-w-0">
+                                            <div className="relative w-full p-4 pb-0 opacity-40">
+                                                <div className="absolute top-[5px] right-[5px] flex items-center justify-center w-8 h-8 border border-[#8a9fca]/30 bg-white/10 backdrop-blur-md rounded-md z-20">
+                                                    <ChevronDown className="w-4 h-4 text-[#8a9fca]" />
+                                                </div>
+                                                <div className="flex items-center justify-center gap-2 px-10 min-w-0">
                                                     <Shield className="w-4 h-4 text-[#8a9fca] flex-shrink-0" />
                                                     <h3 className="text-[.72rem] font-semibold tracking-[.15em] text-white uppercase whitespace-nowrap truncate">PROTOCOLO DE ENTRENAMIENTO</h3>
-                                                </div>
-                                                <div className="flex items-center justify-center w-8 h-8 border border-[#8a9fca]/30 bg-white/10 backdrop-blur-md rounded-md">
-                                                    <ChevronDown className="w-4 h-4 text-[#8a9fca]" />
                                                 </div>
                                             </div>
 

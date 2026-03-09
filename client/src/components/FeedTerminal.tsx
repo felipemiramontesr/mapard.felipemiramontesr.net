@@ -94,14 +94,13 @@ const FeedTerminal: React.FC<FeedTerminalProps> = ({ email }) => {
                 whileHover={{ scale: 1.005 }}
                 whileTap={{ scale: 0.99 }}
             >
-                <div className="flex items-start justify-between w-full p-4 pb-0">
-                    <div className="w-8" />
-                    <div className="flex-1 flex items-center justify-center gap-2 px-4 min-w-0">
+                <div className="relative w-full p-4 pb-0">
+                    <div className="absolute top-[5px] right-[5px] flex items-center justify-center w-8 h-8 border border-ops-warning/30 bg-white/10 backdrop-blur-md rounded-md transition-all group-hover:bg-white/20 z-20">
+                        {isFeedOpen ? <ChevronUp className="w-4 h-4 text-ops-warning" /> : <ChevronDown className="w-4 h-4 text-ops-warning" />}
+                    </div>
+                    <div className="flex items-center justify-center gap-2 px-10 min-w-0">
                         <Globe className="w-4 h-4 text-ops-warning flex-shrink-0" />
                         <h3 className="text-[.72rem] font-semibold tracking-[.15em] text-white uppercase whitespace-nowrap truncate">PROTOCOLO INFORMATIVO</h3>
-                    </div>
-                    <div className="flex items-center justify-center w-8 h-8 border border-ops-warning/30 bg-white/10 backdrop-blur-md rounded-md transition-all group-hover:bg-white/20">
-                        {isFeedOpen ? <ChevronUp className="w-4 h-4 text-ops-warning" /> : <ChevronDown className="w-4 h-4 text-ops-warning" />}
                     </div>
                 </div>
 
