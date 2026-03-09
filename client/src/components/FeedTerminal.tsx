@@ -94,13 +94,15 @@ const FeedTerminal: React.FC<FeedTerminalProps> = ({ email }) => {
                 whileHover={{ scale: 1.005 }}
                 whileTap={{ scale: 0.99 }}
             >
-                <div className="absolute top-4 right-4 flex items-center justify-center w-8 h-8 border border-[#00f3ff]/30 bg-white/10 backdrop-blur-md rounded-md transition-all group-hover:border-[#00f3ff]/60 group-hover:bg-white/20">
-                    {isFeedOpen ? <ChevronUp className="w-4 h-4 text-[#00f3ff]" /> : <ChevronDown className="w-4 h-4 text-[#00f3ff]" />}
-                </div>
-
-                <div className="flex items-center gap-2 mb-2 w-full justify-center px-16">
-                    <Globe className="w-4 h-4 text-ops-warning flex-shrink-0" />
-                    <h3 className="text-[.72rem] font-semibold tracking-[.15em] text-white uppercase whitespace-nowrap">PROTOCOLO INFORMATIVO</h3>
+                <div className="flex items-start justify-between w-full p-4 pb-0">
+                    <div className="w-8" />
+                    <div className="flex-1 flex items-center justify-center gap-2 px-4 min-w-0">
+                        <Globe className="w-4 h-4 text-ops-warning flex-shrink-0" />
+                        <h3 className="text-[.72rem] font-semibold tracking-[.15em] text-white uppercase whitespace-nowrap truncate">PROTOCOLO INFORMATIVO</h3>
+                    </div>
+                    <div className="flex items-center justify-center w-8 h-8 border border-ops-warning/30 bg-white/10 backdrop-blur-md rounded-md transition-all group-hover:bg-white/20">
+                        {isFeedOpen ? <ChevronUp className="w-4 h-4 text-ops-warning" /> : <ChevronDown className="w-4 h-4 text-ops-warning" />}
+                    </div>
                 </div>
 
                 <div className="flex flex-col items-center justify-center my-6">
