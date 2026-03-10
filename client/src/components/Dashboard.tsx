@@ -677,7 +677,7 @@ const Dashboard: React.FC = () => {
                         </div>
 
                         {deltaNew > 0 && (
-                            <div className="w-full max-w-lg mb-6 border border-red-500/50 bg-red-500/10 p-4 rounded-lg animate-pulse backdrop-blur-sm self-center">
+                            <div className="w-full max-w-lg mb-6 border border-red-500/50 bg-red-500/10 p-4 rounded animate-pulse backdrop-blur-sm self-center">
                                 <div className="flex items-center">
                                     <Target className="text-red-500 mr-3 h-5 w-5" />
                                     <div className="flex-1">
@@ -735,7 +735,7 @@ const Dashboard: React.FC = () => {
                                                         </div>
 
                                                         {/* Etiqueta de Contexto Superior (Box Estandarizado) */}
-                                                        <div className="w-[240px] h-9 bg-white/5 border border-white/10 rounded-sm mb-4 flex items-center justify-center overflow-hidden">
+                                                        <div className="w-[240px] h-9 bg-white/5 border border-white/10 rounded mb-4 flex items-center justify-center overflow-hidden">
                                                             <span className="text-[0.62rem] uppercase tracking-[.3em] text-[#c5cae0] font-light whitespace-nowrap text-center">AMENAZAS ACTIVAS</span>
                                                         </div>
 
@@ -750,7 +750,7 @@ const Dashboard: React.FC = () => {
 
                                                         {/* Pie de Panel: Botón DETALLES (Box Estandarizado) */}
                                                         <div className="w-full mt-6 flex justify-center">
-                                                            <div className="w-[240px] h-9 border border-white/10 bg-white/5 rounded-sm flex items-center justify-center gap-2 transition-all hover:bg-white/10 hover:border-white/20 overflow-hidden" style={{ borderColor: `${tacticalColor}22` }}>
+                                                            <div className="w-[240px] h-9 border border-white/10 bg-white/5 rounded flex items-center justify-center gap-2 transition-all hover:bg-white/10 hover:border-white/20 overflow-hidden" style={{ borderColor: `${tacticalColor}22` }}>
                                                                 <span className="text-[0.62rem] uppercase tracking-[.3em] font-light text-white whitespace-nowrap text-center">DETALLES</span>
                                                                 <ChevronDown className={`w-3 h-3 transition-transform duration-300 ${isRiskPanelOpen ? 'rotate-180' : ''}`} style={{ color: tacticalColor }} />
                                                             </div>
@@ -787,7 +787,7 @@ const Dashboard: React.FC = () => {
                                             </div>
 
                                             {/* Etiqueta de Contexto Superior (Box Estandarizado) */}
-                                            <div className="w-[240px] h-9 bg-white/5 border border-white/10 rounded-sm mb-4 flex items-center justify-center overflow-hidden">
+                                            <div className="w-[240px] h-9 bg-white/5 border border-white/10 rounded mb-4 flex items-center justify-center overflow-hidden">
                                                 <span className="text-[0.62rem] uppercase tracking-[.3em] text-[#c5cae0] font-light whitespace-nowrap text-center">SESIONES DE ENTRENAMIENTO</span>
                                             </div>
 
@@ -802,7 +802,7 @@ const Dashboard: React.FC = () => {
 
                                             {/* Pie de Panel: Botón DETALLES (Box Estandarizado) */}
                                             <div className="w-full mt-6 flex justify-center">
-                                                <div className="w-[240px] h-9 border border-white/10 bg-white/5 rounded-sm flex items-center justify-center gap-2 opacity-40 overflow-hidden">
+                                                <div className="w-[240px] h-9 border border-white/10 bg-white/5 rounded flex items-center justify-center gap-2 opacity-40 overflow-hidden">
                                                     <span className="text-[0.62rem] uppercase tracking-[.3em] font-light text-white whitespace-nowrap text-center">DETALLES</span>
                                                     <ChevronDown className="w-3 h-3 text-[#8a9fca]" />
                                                 </div>

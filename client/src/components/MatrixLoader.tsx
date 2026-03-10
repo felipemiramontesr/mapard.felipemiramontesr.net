@@ -84,7 +84,7 @@ const MatrixLoader: React.FC = () => {
                     <h1 className="text-3xl font-black tracking-[0.3em] text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]">
                         MAPARD
                     </h1>
-                    <div className="flex items-center gap-2 bg-black/80 px-4 py-1 border border-ops-radioactive/50 rounded-sm">
+                    <div className="flex items-center gap-2 bg-black/80 px-4 py-1 border border-ops-radioactive/50 rounded">
                         <div className="w-2 h-2 bg-ops-radioactive rounded-full animate-bounce" />
                         <span className="text-ops-radioactive text-xs tracking-widest font-bold">
                             INITIALIZING SYSTEM...

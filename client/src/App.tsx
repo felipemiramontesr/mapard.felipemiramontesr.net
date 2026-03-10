@@ -41,7 +41,7 @@ function App() {
           </div>
 
           <div className="flex items-center gap-2 border border-ops-radioactive/30 px-2 sm:px-3 py-1 bg-ops-radioactive/5 backdrop-blur-sm">
-            <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-sm bg-ops-radioactive animate-[pulse_1.5s_ease-in-out_infinite] shadow-[0_0_10px_rgba(57,255,20,0.4)]" />
+            <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded bg-ops-radioactive animate-[pulse_1.5s_ease-in-out_infinite] shadow-[0_0_10px_rgba(57,255,20,0.4)]" />
             <span className="text-[10px] sm:text-xs font-mono font-bold text-ops-radioactive tracking-widest">SYSTEM ONLINE</span>
           </div>
         </div>

@@ -154,7 +154,7 @@ const RiskNeutralization: React.FC<RiskNeutralizationProps> = ({ findings, onUpd
                             {/* Top Row: Icon/Name (Left) + Chevron (Right Absolute) */}
                             <div className="flex items-start justify-between w-full pr-8">
                                 <div className="flex items-center gap-3 w-full">
-                                    <span className={`p-2 rounded-sm flex-shrink-0 ${vector.isNeutralized ? 'bg-ops-radioactive/10 text-ops-radioactive' : 'bg-ops-danger/10 text-ops-danger'}`}>
+                                    <span className={`p-2 rounded flex-shrink-0 ${vector.isNeutralized ? 'bg-ops-radioactive/10 text-ops-radioactive' : 'bg-ops-danger/10 text-ops-danger'}`}>
                                         {vector.isNeutralized ? <ShieldCheck size={20} /> : <ShieldAlert size={20} />}
                                     </span>
                                     <div className="min-w-0 flex-1">
@@ -166,7 +166,7 @@ const RiskNeutralization: React.FC<RiskNeutralizationProps> = ({ findings, onUpd
                                 </div>
 
                                 {/* Absolute positioned chevron */}
-                                <div className={`absolute top-4 right-4 p-1 rounded-sm bg-ops-accent/10 text-ops-accent border border-ops-accent/20 transition-transform duration-300 ${expandedId === vector.id ? 'rotate-180' : ''}`}>
+                                <div className={`absolute top-4 right-4 p-1 rounded bg-ops-accent/10 text-ops-accent border border-ops-accent/20 transition-transform duration-300 ${expandedId === vector.id ? 'rotate-180' : ''}`}>
                                     <ChevronDown size={18} />
                                 </div>
                             </div>
@@ -183,7 +183,7 @@ const RiskNeutralization: React.FC<RiskNeutralizationProps> = ({ findings, onUpd
                                         toggleNeutralization(vector.id, false);
                                         setExpandedId(vector.id); // Expand when marking as Risk
                                     }}
-                                    className={`flex-1 px-2 py-3 md:px-4 md:py-3 rounded-sm text-[10px] md:text-xs font-bold uppercase tracking-widest transition-all duration-300 max-w-[140px] flex justify-center items-center whitespace-nowrap ${!vector.isNeutralized
+                                    className={`flex-1 px-2 py-3 md:px-4 md:py-3 rounded text-[10px] md:text-xs font-bold uppercase tracking-widest transition-all duration-300 max-w-[140px] flex justify-center items-center whitespace-nowrap ${!vector.isNeutralized
                                         ? 'bg-ops-danger text-white border border-ops-danger'
                                         : 'text-ops-danger border border-ops-danger/30 hover:bg-ops-danger/10'
                                         }`}
@@ -201,7 +201,7 @@ const RiskNeutralization: React.FC<RiskNeutralizationProps> = ({ findings, onUpd
                                             setExpandedId(vector.id);
                                         }
                                     }}
-                                    className={`flex-1 px-2 py-3 md:px-4 md:py-3 rounded-sm text-[10px] md:text-xs font-bold uppercase tracking-widest transition-all duration-300 max-w-[140px] flex justify-center items-center whitespace-nowrap ${vector.isNeutralized
+                                    className={`flex-1 px-2 py-3 md:px-4 md:py-3 rounded text-[10px] md:text-xs font-bold uppercase tracking-widest transition-all duration-300 max-w-[140px] flex justify-center items-center whitespace-nowrap ${vector.isNeutralized
                                         ? 'bg-ops-radioactive text-white border border-ops-radioactive'
                                         : vector.steps.every(s => s.completed)
                                             ? 'text-ops-radioactive border border-ops-radioactive/50 hover:bg-ops-radioactive/10 animate-pulse'
@@ -285,8 +285,8 @@ const RiskNeutralization: React.FC<RiskNeutralizationProps> = ({ findings, onUpd
                                                     exit={{ height: 0, opacity: 0, marginTop: 0 }}
                                                     className="overflow-hidden"
                                                 >
-                                                    <div className="border border-ops-accent/30 bg-ops-accent/10 rounded-lg p-5 relative shadow-[0_0_20px_rgba(138,159,202,0.1)]">
-                                                        <div className="absolute top-0 left-0 w-1 h-full bg-ops-accent rounded-l-lg"></div>
+                                                    <div className="border border-ops-accent/30 bg-ops-accent/10 rounded p-5 relative shadow-[0_0_20px_rgba(138,159,202,0.1)]">
+                                                        <div className="absolute top-0 left-0 w-1 h-full bg-ops-accent rounded-l"></div>
                                                         <h5 className="text-[10px] md:text-xs font-bold text-white mb-3 uppercase tracking-widest flex items-center gap-2">
                                                             <Shield className="w-4 h-4 text-ops-accent" />
                                                             Nota Directiva Táctica
