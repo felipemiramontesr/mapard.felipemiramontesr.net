@@ -7,6 +7,7 @@ import LoginView from './Auth/LoginView';
 import VerificationView from './Auth/VerificationView';
 import RescueVerificationView from './Auth/RescueVerificationView';
 import RescueResetView from './Auth/RescueResetView';
+import TrainingProtocol from './TrainingProtocol';
 import { secureStorage } from '../utils/secureStorage';
 import { format } from 'date-fns';
 import { Target, Shield, ChevronDown, Lock, Fingerprint } from 'lucide-react';
@@ -50,6 +51,8 @@ const Dashboard: React.FC = () => {
     const [findings, setFindings] = useState<Vector[]>([]);
     const [showNeutralization, setShowNeutralization] = useState(false);
     const [isRiskPanelOpen, setIsRiskPanelOpen] = useState(false);
+    const [userRank, setUserRank] = useState<string>('RECLUTA');
+    const [userProgress, setUserProgress] = useState<number>(0);
 
     // AUTH STATE (Phase 22 + Phase 29)
     const [authStep, setAuthStep] = useState<'initial_check' | 'login' | 'verify' | 'rescue_verify' | 'rescue_reset' | 'dashboard'>('initial_check');
@@ -112,7 +115,7 @@ const Dashboard: React.FC = () => {
 
                 // User Sequence: Jump directly to neutralization panel on subsequent entries
                 if (statusData.is_first_analysis_complete) {
-                    setShowNeutralization(true);
+                    setShowNeutralization(false); // Refinement: Start collapsed
                 }
                 setViewMode('terminal');
             } else if (statusData.is_first_analysis_complete) {
@@ -300,7 +303,7 @@ const Dashboard: React.FC = () => {
                         setFindings(statusData.findings || []);
                         setLogs(statusData.logs || []);
                         if (statusData.findings && statusData.findings.length > 0) {
-                            setShowNeutralization(true);
+                            setShowNeutralization(false); // Refinement: Start collapsed
                             setViewMode('terminal');
                         }
                     } else {
@@ -671,6 +674,9 @@ const Dashboard: React.FC = () => {
                                     TARGET LOCKED:
                                 </span>
                             </div>
+                            <span className="text-ops-accent font-bold text-[10px] md:text-xs tracking-[0.2em] border-r border-white/10 pr-3 mr-1">
+                                {userRank}
+                            </span>
                             <span className="text-white font-semibold text-[13px] md:text-sm truncate max-w-full tracking-wide">
                                 {userEmail?.toLowerCase()}
                             </span>
@@ -774,40 +780,13 @@ const Dashboard: React.FC = () => {
                                             </motion.div>
                                         </div>
 
-                                        {/* PANEL 2: PROTOCOLO DE ENTRENAMIENTO (MOCK) */}
-                                        <motion.div
-                                            className="w-full border border-[rgba(74,85,120,0.55)] bg-white/[0.03] backdrop-blur-md p-6 rounded flex flex-col items-center shadow-[0_18px_50px_rgba(0,0,0,0.18)] relative overflow-hidden opacity-60 pointer-events-none"
-                                        >
-                                            {/* Cabecera con Título y Línea */}
-                                            <div className="w-full pt-4 pb-2 border-b border-white/10 mb-6 px-6">
-                                                <div className="flex items-center justify-center gap-2">
-                                                    <Shield className="w-4 h-4 flex-shrink-0 text-[#8a9fca]" />
-                                                    <h3 className="text-[.72rem] font-semibold tracking-[.2em] text-white uppercase text-center">PROTOCOLO DE ENTRENAMIENTO</h3>
-                                                </div>
-                                            </div>
-
-                                            {/* Etiqueta de Contexto Superior (Box Estandarizado) */}
-                                            <div className="w-[240px] h-9 bg-white/5 border border-white/10 rounded mb-4 flex items-center justify-center overflow-hidden">
-                                                <span className="text-[0.62rem] uppercase tracking-[.3em] text-[#c5cae0] font-light whitespace-nowrap text-center">SESIONES DE ENTRENAMIENTO</span>
-                                            </div>
-
-                                            {/* Núcleo Circular (Radar) */}
-                                            <div className="relative">
-                                                <div className="w-32 h-32 rounded-full border border-[#8a9fca]/20 flex items-center justify-center relative overflow-hidden backdrop-blur-sm bg-white/[0.02]">
-                                                    <span className="text-[4rem] font-extralight text-[#6b7490]">
-                                                        0
-                                                    </span>
-                                                </div>
-                                            </div>
-
-                                            {/* Pie de Panel: Botón DETALLES (Box Estandarizado) */}
-                                            <div className="w-full mt-6 flex justify-center">
-                                                <div className="w-[240px] h-9 border border-white/10 bg-white/5 rounded flex items-center justify-center gap-2 opacity-40 overflow-hidden">
-                                                    <span className="text-[0.62rem] uppercase tracking-[.3em] font-light text-white whitespace-nowrap text-center">DETALLES</span>
-                                                    <ChevronDown className="w-3 h-3 text-[#8a9fca]" />
-                                                </div>
-                                            </div>
-                                        </motion.div>
+                                        {/* PANEL 2: PROTOCOLO DE ENTRENAMIENTO ACTIVO */}
+                                        <TrainingProtocol
+                                            onProgressUpdate={(prog, rank) => {
+                                                setUserProgress(prog);
+                                                setUserRank(rank);
+                                            }}
+                                        />
 
                                         {/* PANEL 3: PROTOCOLO INFORMATIVO (Statefull Tactical Feed) */}
                                         <FeedTerminal email={userEmail!} />
