@@ -123,14 +123,14 @@ const RiskNeutralization: React.FC<RiskNeutralizationProps> = ({ findings, onUpd
 
     return (
         <motion.div
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 50 }}
-            className="w-full max-w-4xl mx-auto mt-8 relative z-20 pb-10"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="w-full max-w-4xl mx-auto relative z-20 pb-10"
         >
 
             {/* Vector List */}
-            <div className="flex-grow overflow-y-auto space-y-4 md:space-y-6">
+            <div className="space-y-4 md:space-y-6">
                 {vectors.length === 0 && (
                     <div className="flex flex-col items-center justify-center p-12 text-ops-cyan/50 font-mono text-center border border-ops-cyan/20 bg-ops-cyan/5 shadow-[0_0_20px_rgba(0,243,255,0.1)]">
                         <Shield className="w-16 h-16 mb-4 drop-shadow-[0_0_10px_rgba(0,243,255,0.4)]" />

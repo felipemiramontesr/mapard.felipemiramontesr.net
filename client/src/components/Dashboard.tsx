@@ -765,7 +765,7 @@ const Dashboard: React.FC = () => {
                                                 transition={{ duration: 0.4, ease: [0.04, 0.62, 0.23, 0.98] }}
                                                 className="overflow-hidden w-full flex flex-col"
                                             >
-                                                <div className="pt-2">
+                                                <div className="pt-8">
                                                     <RiskNeutralization
                                                         findings={findings}
                                                         onUpdate={handleNeutralizeUpdate}
