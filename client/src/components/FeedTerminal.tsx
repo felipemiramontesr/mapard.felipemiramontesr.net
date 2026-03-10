@@ -66,11 +66,11 @@ const FeedTerminal: React.FC<FeedTerminalProps> = ({ email }) => {
 
     const getSeverityColor = (severity: string) => {
         switch (severity.toUpperCase()) {
-            case 'CRITICAL': return 'text-ops-danger border-ops-danger shadow-[0_0_10px_rgba(255,51,102,0.3)] bg-ops-danger/10';
-            case 'HIGH': return 'text-ops-warning border-ops-warning shadow-[0_0_10px_rgba(255,170,0,0.2)] bg-ops-warning/10';
+            case 'CRITICAL': return 'border-ops-danger/40 text-ops-danger';
+            case 'HIGH': return 'border-ops-warning/40 text-ops-warning';
             case 'LOW':
             case 'MEDIUM':
-            default: return 'text-ops-accent border-ops-accent bg-ops-accent/5';
+            default: return 'border-ops-border/40 text-ops-accent';
         }
     };
 
@@ -171,23 +171,25 @@ const FeedTerminal: React.FC<FeedTerminalProps> = ({ email }) => {
                                     </div>
 
                                     <motion.div
-                                        className={`relative z-10 w-full p-4 border rounded backdrop-blur-md bg-ops-bg cursor-grab active:cursor-grabbing ${styleClass}`}
+                                        className={`relative z-10 w-full p-5 border rounded bg-white/[0.02] backdrop-blur-md cursor-grab active:cursor-grabbing transition-all duration-300 ${styleClass}`}
                                         whileTap={{ scale: 0.98 }}
                                     >
-                                        <div className="flex justify-between items-start mb-2">
+                                        <div className="flex justify-between items-center mb-4">
                                             <div className="flex items-center gap-2">
-                                                <ShieldAlert className="w-4 h-4" />
-                                                <span className="text-[10px] font-bold tracking-widest uppercase">{item.source}</span>
+                                                <ShieldAlert className="w-4 h-4 flex-shrink-0" />
+                                                <span className="text-[10px] font-bold tracking-[.15em] uppercase">{item.source}</span>
                                             </div>
-                                            <div className="flex items-center gap-1 text-[9px] text-[#e8e8e8]/50 font-mono">
-                                                <Clock className="w-3 h-3" />
-                                                {formatDistanceToNow(new Date(item.timestamp), { addSuffix: true, locale: es })}
+                                            <div className="flex items-center gap-1.5 text-[10px] text-ops-text_dim/60 font-mono">
+                                                <Clock className="w-3.5 h-3.5" />
+                                                <span className="uppercase tracking-tight">en {formatDistanceToNow(new Date(item.timestamp), { locale: es })}</span>
                                             </div>
                                         </div>
-                                        <a href={item.url} target="_blank" rel="noreferrer" className="block mt-1">
-                                            <h4 className="text-white text-sm font-semibold leading-tight hover:underline mb-2">{item.title}</h4>
+                                        <a href={item.url} target="_blank" rel="noreferrer" className="block group/link mb-3">
+                                            <h4 className="text-white text-base font-bold leading-tight tracking-tight group-hover/link:text-ops-accent transition-colors">
+                                                {item.title}
+                                            </h4>
                                         </a>
-                                        <p className="text-xs text-[#8a9fca] leading-relaxed font-light">
+                                        <p className="text-[13px] text-ops-text_dim font-light leading-relaxed">
                                             {item.gemini_summary}
                                         </p>
                                     </motion.div>
