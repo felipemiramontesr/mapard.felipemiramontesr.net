@@ -102,9 +102,9 @@ const FeedTerminal: React.FC<FeedTerminalProps> = ({ email }) => {
                     </div>
                 </div>
 
-                {/* Etiqueta de Contexto Superior */}
-                <div className="bg-white/5 border border-white/10 px-4 py-1 rounded-sm mb-4">
-                    <span className="text-[0.65rem] uppercase tracking-[.25em] text-[#c5cae0] font-light">ALERTAS GLOBALES</span>
+                {/* Etiqueta de Contexto Superior (Box Estandarizado) */}
+                <div className="w-[240px] h-9 bg-white/5 border border-white/10 rounded-sm mb-4 flex items-center justify-center overflow-hidden">
+                    <span className="text-[0.62rem] uppercase tracking-[.3em] text-[#c5cae0] font-light whitespace-nowrap text-center">ALERTAS GLOBALES</span>
                 </div>
 
                 {/* Núcleo Circular (Radar) */}
@@ -116,10 +116,10 @@ const FeedTerminal: React.FC<FeedTerminalProps> = ({ email }) => {
                     </div>
                 </div>
 
-                {/* Pie de Panel: Botón DETALLES */}
-                <div className="w-full mt-6 px-4">
-                    <div className="w-full py-2 border border-white/10 bg-white/5 rounded-md flex items-center justify-center gap-2 transition-all hover:bg-white/10 hover:border-white/20" style={{ borderColor: 'rgba(255,170,0,0.2)' }}>
-                        <span className="text-[0.65rem] uppercase tracking-[.3em] font-light text-white">DETALLES</span>
+                {/* Pie de Panel: Botón DETALLES (Box Estandarizado) */}
+                <div className="w-full mt-6 flex justify-center">
+                    <div className="w-[240px] h-9 border border-white/10 bg-white/5 rounded-sm flex items-center justify-center gap-2 transition-all hover:bg-white/10 hover:border-white/20 overflow-hidden" style={{ borderColor: 'rgba(255,170,0,0.2)' }}>
+                        <span className="text-[0.62rem] uppercase tracking-[.3em] font-light text-white whitespace-nowrap text-center">DETALLES</span>
                         <ChevronDown className={`w-3 h-3 transition-transform duration-300 ${isFeedOpen ? 'rotate-180' : ''} text-ops-warning`} />
                     </div>
                 </div>
