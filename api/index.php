@@ -358,18 +358,9 @@ if (isset($pathParams[1], $pathParams[2]) && $pathParams[1] === 'auth' && $pathP
             exit;
         }
 
-        // 2. Enforce Single-User System (The Target)
-        // Check if ANY user exists in the database.
-        $stmtCount = $pdo->query("SELECT COUNT(*) FROM users");
-        $userCount = $stmtCount->fetchColumn();
-
-        if ($userCount > 0) {
-            // MISMATCH HARDWARE + MISMATCH EMAIL
-            recordFailedAttempt($pdo, $clientIp);
-            http_response_code(403);
-            echo json_encode(["error" => "SISTEMA CERRADO: La cuota de Operadores Maestros (1/1) está llena."]);
-            exit;
-        }
+        // 2. Enforce Multi-User Scalability (Unlimited Operators)
+        // Previously limited to 1/1. Now open for all paid installations.
+        // Hardware binding below ensures 1 device = 1 user integrity.
 
         // 3. System Virgin: Create New User & Bind Device (First Use ONLY)
         $stmt = $pdo->prepare("INSERT INTO users (email_target, password_hash, fa_code, device_id) VALUES (?, ?, ?, ?)");
