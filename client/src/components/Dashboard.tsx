@@ -721,7 +721,7 @@ const Dashboard: React.FC = () => {
                                                 return (
                                                     <motion.div
                                                         onClick={() => setIsRiskPanelOpen(!isRiskPanelOpen)}
-                                                        className="w-full border bg-white/[0.03] backdrop-blur-md p-6 cursor-pointer hover:bg-white/[0.05] transition-colors flex flex-col items-center shadow-[0_18px_50px_rgba(0,0,0,0.18)] relative overflow-hidden group"
+                                                        className="w-full border bg-white/[0.03] backdrop-blur-md p-6 rounded cursor-pointer hover:bg-white/[0.05] transition-colors flex flex-col items-center shadow-[0_18px_50px_rgba(0,0,0,0.18)] relative overflow-hidden group"
                                                         style={{ borderColor: `${tacticalColor}55` }}
                                                         whileHover={{ scale: 1.005 }}
                                                         whileTap={{ scale: 0.99 }}
@@ -776,7 +776,7 @@ const Dashboard: React.FC = () => {
 
                                         {/* PANEL 2: PROTOCOLO DE ENTRENAMIENTO (MOCK) */}
                                         <motion.div
-                                            className="w-full border border-[rgba(74,85,120,0.55)] bg-white/[0.03] backdrop-blur-md p-6 flex flex-col items-center shadow-[0_18px_50px_rgba(0,0,0,0.18)] relative overflow-hidden opacity-60 pointer-events-none"
+                                            className="w-full border border-[rgba(74,85,120,0.55)] bg-white/[0.03] backdrop-blur-md p-6 rounded flex flex-col items-center shadow-[0_18px_50px_rgba(0,0,0,0.18)] relative overflow-hidden opacity-60 pointer-events-none"
                                         >
                                             {/* Cabecera con Título y Línea */}
                                             <div className="w-full pt-4 pb-2 border-b border-white/10 mb-6 px-6">

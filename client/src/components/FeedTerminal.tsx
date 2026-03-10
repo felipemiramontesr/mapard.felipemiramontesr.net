@@ -90,7 +90,7 @@ const FeedTerminal: React.FC<FeedTerminalProps> = ({ email }) => {
         <div className="w-full flex flex-col">
             <motion.div
                 onClick={() => setIsFeedOpen(!isFeedOpen)}
-                className="w-full border border-[rgba(74,85,120,0.55)] bg-white/[0.03] backdrop-blur-md p-6 cursor-pointer hover:bg-white/[0.05] transition-colors flex flex-col items-center shadow-[0_18px_50px_rgba(0,0,0,0.18)] relative overflow-hidden group"
+                className="w-full border border-[rgba(74,85,120,0.55)] bg-white/[0.03] backdrop-blur-md p-6 rounded cursor-pointer hover:bg-white/[0.05] transition-colors flex flex-col items-center shadow-[0_18px_50px_rgba(0,0,0,0.18)] relative overflow-hidden group"
                 whileHover={{ scale: 1.005 }}
                 whileTap={{ scale: 0.99 }}
             >
