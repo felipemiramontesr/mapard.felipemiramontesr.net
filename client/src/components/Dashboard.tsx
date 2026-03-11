@@ -781,8 +781,7 @@ const Dashboard: React.FC = () => {
 
                                         {/* PANEL 2: PROTOCOLO DE ENTRENAMIENTO ACTIVO */}
                                         <TrainingProtocol
-                                            onProgressUpdate={(prog, rank) => {
-                                                setUserProgress(prog);
+                                            onProgressUpdate={(_prog, rank) => {
                                                 setUserRank(rank);
                                             }}
                                         />
