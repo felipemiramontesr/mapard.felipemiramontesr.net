@@ -13,8 +13,11 @@ import { format } from 'date-fns';
 import { ChevronDown, Award, Star, Target, Shield, Fingerprint, Lock, Zap } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { App, type AppState } from '@capacitor/app';
+import { Capacitor } from '@capacitor/core';
 
-const API_BASE = 'https://mapa-rd.felipemiramontesr.net';
+const API_BASE = Capacitor.isNativePlatform()
+    ? 'https://mapard.felipemiramontesr.net'
+    : '';
 
 
 
@@ -151,14 +154,19 @@ const Dashboard: React.FC = () => {
     };
 
 
-    const handleLoginSubmit = async (email: string, pass: string) => {
+    const handleLoginSubmit = async (email: string, pass: string, mode: 'login' | 'signup' = 'signup') => {
         setIsAuthLoading(true);
         setAuthError(null);
         try {
             const res = await fetch(`${API_BASE}/api/auth/setup`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, password: pass, device_id: deviceId, mode: 'setup' })
+                body: JSON.stringify({
+                    email,
+                    password: pass,
+                    device_id: deviceId,
+                    mode: mode === 'login' ? 'login' : 'signup'
+                })
             });
             const data = await res.json();
             if (res.ok) {
@@ -449,7 +457,7 @@ const Dashboard: React.FC = () => {
 
             <main className="flex-grow flex flex-col items-center w-full max-w-4xl mx-auto px-4 md:px-8">
                 {authStep === 'login' && <LoginView onLogin={handleLoginSubmit} onRequestRescue={handleRescueRequest} isLoading={isAuthLoading} error={authError} />}
-                {authStep === 'verify' && <VerificationView email={userEmail || ''} onVerify={handleVerifySubmit} onResend={async () => handleLoginSubmit(userEmail!, '')} isLoading={isAuthLoading} error={authError} />}
+                {authStep === 'verify' && <VerificationView email={userEmail || ''} onVerify={handleVerifySubmit} onResend={async () => handleLoginSubmit(userEmail!, '', 'signup')} isLoading={isAuthLoading} error={authError} />}
                 {authStep === 'rescue_verify' && <RescueVerificationView email={userEmail || ''} onVerify={handleRescueVerify} isLoading={isAuthLoading} error={authError} />}
                 {authStep === 'rescue_reset' && <RescueResetView onReset={handleRescueExecute} isLoading={isAuthLoading} error={authError} />}
 
