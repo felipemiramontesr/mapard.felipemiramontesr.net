@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Shield, Lock, CheckCircle, ChevronDown, Award, Star, Target, Zap } from 'lucide-react';
 
@@ -109,19 +109,19 @@ const TrainingProtocol: React.FC<TrainingProtocolProps> = ({ onProgressUpdate })
     const totalLessons = 48;
     const progress = (completedLessons.length / totalLessons) * 100;
 
-    const getCurrentRank = () => {
+    const getCurrentRank = useCallback(() => {
         if (completedLessons.length >= 48) return "OFICIAL DE ÉLITE";
         if (completedLessons.length >= 36) return "SARGENTO";
         if (completedLessons.length >= 24) return "CABO";
         if (completedLessons.length >= 12) return "RECLUTA AVANZADO";
         return "RECLUTA";
-    };
+    }, [completedLessons.length]);
 
     useEffect(() => {
         if (onProgressUpdate) {
             onProgressUpdate(progress, getCurrentRank());
         }
-    }, [completedLessons, onProgressUpdate, progress]);
+    }, [completedLessons, onProgressUpdate, progress, getCurrentRank]);
 
     const handleLessonComplete = (lessonId: string) => {
         if (!completedLessons.includes(lessonId)) {
@@ -217,8 +217,8 @@ const TrainingProtocol: React.FC<TrainingProtocolProps> = ({ onProgressUpdate })
                                         key={block.id}
                                         onClick={() => setActiveBlock(block.id)}
                                         className={`py-2 rounded border text-[10px] uppercase tracking-tighter transition-all ${activeBlock === block.id
-                                                ? 'bg-ops-accent/20 border-ops-accent text-white font-bold'
-                                                : 'bg-white/5 border-white/10 text-ops-text_dim'
+                                            ? 'bg-ops-accent/20 border-ops-accent text-white font-bold'
+                                            : 'bg-white/5 border-white/10 text-ops-text_dim'
                                             }`}
                                     >
                                         B{block.id}
@@ -250,10 +250,10 @@ const TrainingProtocol: React.FC<TrainingProtocolProps> = ({ onProgressUpdate })
                                                 key={lesson.id}
                                                 onClick={() => isUnlocked && !isCompleted && setShowExam(lesson.id)}
                                                 className={`p-4 border rounded flex items-center justify-between transition-all group ${isCompleted
-                                                        ? 'bg-ops-accent/5 border-ops-accent/30 opacity-100 hover:bg-ops-accent/10 cursor-default'
-                                                        : isUnlocked
-                                                            ? 'bg-white/[0.03] border-white/10 opacity-100 hover:border-ops-accent/50 cursor-pointer'
-                                                            : 'bg-black/20 border-white/5 opacity-40 cursor-not-allowed'
+                                                    ? 'bg-ops-accent/5 border-ops-accent/30 opacity-100 hover:bg-ops-accent/10 cursor-default'
+                                                    : isUnlocked
+                                                        ? 'bg-white/[0.03] border-white/10 opacity-100 hover:border-ops-accent/50 cursor-pointer'
+                                                        : 'bg-black/20 border-white/5 opacity-40 cursor-not-allowed'
                                                     }`}
                                             >
                                                 <div className="flex items-center gap-4">

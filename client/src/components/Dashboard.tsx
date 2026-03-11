@@ -52,7 +52,6 @@ const Dashboard: React.FC = () => {
     const [showNeutralization, setShowNeutralization] = useState(false);
     const [isRiskPanelOpen, setIsRiskPanelOpen] = useState(false);
     const [userRank, setUserRank] = useState<string>('RECLUTA');
-    const [userProgress, setUserProgress] = useState<number>(0);
 
     // AUTH STATE (Phase 22 + Phase 29)
     const [authStep, setAuthStep] = useState<'initial_check' | 'login' | 'verify' | 'rescue_verify' | 'rescue_reset' | 'dashboard'>('initial_check');
