@@ -156,6 +156,13 @@ const TrainingProtocol: React.FC<TrainingProtocolProps> = ({ onProgressUpdate })
                     <div className="absolute bottom-0 left-0 h-[1px] bg-ops-accent/50 transition-all duration-500" style={{ width: `${progress}%` }}></div>
                 </div>
 
+                {/* Medalla de Rango Táctica (Reposicionada debajo del %) */}
+                <div className="w-[260px] flex justify-end pr-1 mb-6 -mt-3">
+                    <div className="w-7 h-7 rounded-full bg-white/5 border border-ops-accent/30 flex items-center justify-center shadow-lg backdrop-blur-sm">
+                        <Award className={`w-3.5 h-3.5 ${progress >= 100 ? 'text-yellow-400' : 'text-ops-accent/70'}`} />
+                    </div>
+                </div>
+
                 {/* Radar de Entrenamiento Central */}
                 <div className="relative group/radar">
                     <div className="w-40 h-40 rounded-full border border-ops-accent/20 flex flex-col items-center justify-center relative overflow-hidden backdrop-blur-sm bg-white/[0.02] transition-all duration-500 group-hover:border-ops-accent/40">
@@ -183,11 +190,6 @@ const TrainingProtocol: React.FC<TrainingProtocolProps> = ({ onProgressUpdate })
                                 transition={{ duration: 1, ease: "easeOut" }}
                             />
                         </svg>
-                    </div>
-
-                    {/* Rank Icons based on progress */}
-                    <div className="absolute -top-2 -right-2 w-8 h-8 rounded-full bg-ops-bg border border-ops-accent/30 flex items-center justify-center shadow-lg">
-                        <Award className={`w-4 h-4 ${progress >= 100 ? 'text-yellow-400' : 'text-ops-accent/50'}`} />
                     </div>
                 </div>
 

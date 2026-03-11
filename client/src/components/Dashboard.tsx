@@ -114,7 +114,7 @@ const Dashboard: React.FC = () => {
 
                 // User Sequence: Jump directly to neutralization panel on subsequent entries
                 if (statusData.is_first_analysis_complete) {
-                    setShowNeutralization(false); // Refinement: Start collapsed
+                    setShowNeutralization(false); // Refinement: Start collapsed for clean HUD
                 }
                 setViewMode('terminal');
             } else if (statusData.is_first_analysis_complete) {
