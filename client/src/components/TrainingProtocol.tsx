@@ -156,11 +156,39 @@ const TrainingProtocol: React.FC<TrainingProtocolProps> = ({ onProgressUpdate })
                     <div className="absolute bottom-0 left-0 h-[1px] bg-ops-accent/50 transition-all duration-500" style={{ width: `${progress}%` }}></div>
                 </div>
 
-                {/* Medalla de Rango Táctica (Reposicionada debajo del %) */}
-                <div className="w-[260px] flex justify-end pr-1 mb-6 -mt-3">
-                    <div className="w-7 h-7 rounded-full bg-white/5 border border-ops-accent/30 flex items-center justify-center shadow-lg backdrop-blur-sm">
-                        <Award className={`w-3.5 h-3.5 ${progress >= 100 ? 'text-yellow-400' : 'text-ops-accent/70'}`} />
-                    </div>
+                {/* Insignia de Grado Dinámica (Reposicionada y Rediseñada) */}
+                <div className="w-[260px] flex justify-end pr-1 mb-12 mt-10">
+                    {(() => {
+                        const rank = getCurrentRank();
+                        const colors: { [key: string]: string } = {
+                            'RECLUTA': 'rgba(138, 159, 202, 0.4)',
+                            'RECLUTA AVANZADO': 'rgba(34, 211, 238, 0.4)',
+                            'CABO': 'rgba(250, 204, 21, 0.4)',
+                            'SARGENTO': 'rgba(251, 146, 60, 0.4)',
+                            'OFICIAL DE ÉLITE': 'rgba(168, 85, 247, 0.5)'
+                        };
+                        const glowColors: { [key: string]: string } = {
+                            'RECLUTA': 'rgba(138, 159, 202, 0.1)',
+                            'RECLUTA AVANZADO': 'rgba(34, 211, 238, 0.1)',
+                            'CABO': 'rgba(250, 204, 21, 0.1)',
+                            'SARGENTO': 'rgba(251, 146, 60, 0.1)',
+                            'OFICIAL DE ÉLITE': 'rgba(168, 85, 247, 0.2)'
+                        };
+
+                        return (
+                            <div className="w-16 h-16 rounded-full bg-white/5 border flex items-center justify-center shadow-[0_0_25px_rgba(0,0,0,0.4)] backdrop-blur-md transition-all duration-500 scale-125 hover:scale-150 cursor-help group/pill"
+                                style={{
+                                    borderColor: colors[rank] || colors['RECLUTA'],
+                                    boxShadow: `0 0 20px ${glowColors[rank] || glowColors['RECLUTA']}`
+                                }}>
+                                {rank === 'RECLUTA' && <Shield className="w-8 h-8 text-ops-accent opacity-80 group-hover/pill:opacity-100 transition-opacity" />}
+                                {rank === 'RECLUTA AVANZADO' && <Zap className="w-8 h-8 text-cyan-400 opacity-80 group-hover/pill:opacity-100 transition-opacity" />}
+                                {rank === 'CABO' && <Target className="w-8 h-8 text-yellow-400 opacity-80 group-hover/pill:opacity-100 transition-opacity" />}
+                                {rank === 'SARGENTO' && <Star className="w-8 h-8 text-orange-400 opacity-80 group-hover/pill:opacity-100 transition-opacity" />}
+                                {rank === 'OFICIAL DE ÉLITE' && <Award className="w-8 h-8 text-purple-400 opacity-80 group-hover/pill:opacity-100 transition-opacity" />}
+                            </div>
+                        );
+                    })()}
                 </div>
 
                 {/* Radar de Entrenamiento Central */}

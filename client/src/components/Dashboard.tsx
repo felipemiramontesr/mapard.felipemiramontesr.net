@@ -10,7 +10,7 @@ import RescueResetView from './Auth/RescueResetView';
 import TrainingProtocol from './TrainingProtocol';
 import { secureStorage } from '../utils/secureStorage';
 import { format } from 'date-fns';
-import { Target, Shield, ChevronDown, Lock, Fingerprint } from 'lucide-react';
+import { Target, Shield, ChevronDown, Lock, Fingerprint, Award, Zap, Star } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Capacitor } from '@capacitor/core';
 import { App, type AppState } from '@capacitor/app';
@@ -673,9 +673,17 @@ const Dashboard: React.FC = () => {
                                     TARGET LOCKED:
                                 </span>
                             </div>
-                            <span className="text-ops-accent font-bold text-[10px] md:text-xs tracking-[0.2em] border-r border-white/10 pr-3 mr-1">
-                                {userRank}
-                            </span>
+                            <div className="flex items-center gap-2">
+                                {userRank === 'RECLUTA' && <Shield className="w-3.5 h-3.5 text-ops-accent" />}
+                                {userRank === 'RECLUTA AVANZADO' && <Zap className="w-3.5 h-3.5 text-cyan-400" />}
+                                {userRank === 'CABO' && <Target className="w-3.5 h-3.5 text-yellow-400" />}
+                                {userRank === 'SARGENTO' && <Star className="w-3.5 h-3.5 text-orange-400" />}
+                                {userRank === 'OFICIAL DE ÉLITE' && <Award className="w-3.5 h-3.5 text-purple-400" />}
+
+                                <span className="text-ops-accent font-bold text-[10px] md:text-xs tracking-[0.2em]">
+                                    {userRank}
+                                </span>
+                            </div>
                             <span className="text-white font-semibold text-[13px] md:text-sm truncate max-w-full tracking-wide">
                                 {userEmail?.toLowerCase()}
                             </span>
@@ -713,7 +721,7 @@ const Dashboard: React.FC = () => {
                                         isVisible={true}
                                         onReset={!isScanning && !isFirstAnalysisComplete ? handleReset : undefined}
                                         resetLabel={!isFirstAnalysisComplete ? "EJECUTAR ANÁLISIS" : undefined}
-                                        onNeutralize={isFirstAnalysisComplete ? () => { setShowNeutralization(true); setIsRiskPanelOpen(true); } : undefined}
+                                        onNeutralize={isFirstAnalysisComplete ? () => { setShowNeutralization(true); setIsRiskPanelOpen(false); } : undefined}
                                         findingsCount={findings.length}
                                     />
                                 ) : (
