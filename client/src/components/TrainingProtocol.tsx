@@ -157,65 +157,67 @@ const TrainingProtocol: React.FC<TrainingProtocolProps> = ({ onProgressUpdate })
                 </div>
 
                 {/* Insignia de Grado Dinámica (Reposicionada y Rediseñada) */}
-                <div className="w-[260px] flex justify-end pr-1 mb-12 mt-10">
-                    {(() => {
-                        const rank = getCurrentRank();
-                        const colors: { [key: string]: string } = {
-                            'RECLUTA': 'rgba(138, 159, 202, 0.4)',
-                            'RECLUTA AVANZADO': 'rgba(34, 211, 238, 0.4)',
-                            'CABO': 'rgba(250, 204, 21, 0.4)',
-                            'SARGENTO': 'rgba(251, 146, 60, 0.4)',
-                            'OFICIAL DE ÉLITE': 'rgba(168, 85, 247, 0.5)'
-                        };
-                        const glowColors: { [key: string]: string } = {
-                            'RECLUTA': 'rgba(138, 159, 202, 0.1)',
-                            'RECLUTA AVANZADO': 'rgba(34, 211, 238, 0.1)',
-                            'CABO': 'rgba(250, 204, 21, 0.1)',
-                            'SARGENTO': 'rgba(251, 146, 60, 0.1)',
-                            'OFICIAL DE ÉLITE': 'rgba(168, 85, 247, 0.2)'
-                        };
+                {/* Radar de Entrenamiento Central Homologado (212px) */}
+                <div className="relative group/radar mt-4 mb-4">
+                    {/* Insignia de Grado Dinámica (Solapada Absoluta - 44px) */}
+                    <div className="absolute top-0 right-0 -mr-2 -mt-2 z-20">
+                        {(() => {
+                            const rank = getCurrentRank();
+                            const colors: { [key: string]: string } = {
+                                'RECLUTA': 'rgba(138, 159, 202, 0.4)',
+                                'RECLUTA AVANZADO': 'rgba(34, 211, 238, 0.4)',
+                                'CABO': 'rgba(250, 204, 21, 0.4)',
+                                'SARGENTO': 'rgba(251, 146, 60, 0.4)',
+                                'OFICIAL DE ÉLITE': 'rgba(168, 85, 247, 0.5)'
+                            };
+                            const glowColors: { [key: string]: string } = {
+                                'RECLUTA': 'rgba(138, 159, 202, 0.1)',
+                                'RECLUTA AVANZADO': 'rgba(34, 211, 238, 0.1)',
+                                'CABO': 'rgba(250, 204, 21, 0.1)',
+                                'SARGENTO': 'rgba(251, 146, 60, 0.1)',
+                                'OFICIAL DE ÉLITE': 'rgba(168, 85, 247, 0.2)'
+                            };
 
-                        return (
-                            <div className="w-16 h-16 rounded-full bg-white/5 border flex items-center justify-center shadow-[0_0_25px_rgba(0,0,0,0.4)] backdrop-blur-md transition-all duration-500 scale-125 hover:scale-150 cursor-help group/pill"
-                                style={{
-                                    borderColor: colors[rank] || colors['RECLUTA'],
-                                    boxShadow: `0 0 20px ${glowColors[rank] || glowColors['RECLUTA']}`
-                                }}>
-                                {rank === 'RECLUTA' && <Shield className="w-8 h-8 text-ops-accent opacity-80 group-hover/pill:opacity-100 transition-opacity" />}
-                                {rank === 'RECLUTA AVANZADO' && <Zap className="w-8 h-8 text-cyan-400 opacity-80 group-hover/pill:opacity-100 transition-opacity" />}
-                                {rank === 'CABO' && <Target className="w-8 h-8 text-yellow-400 opacity-80 group-hover/pill:opacity-100 transition-opacity" />}
-                                {rank === 'SARGENTO' && <Star className="w-8 h-8 text-orange-400 opacity-80 group-hover/pill:opacity-100 transition-opacity" />}
-                                {rank === 'OFICIAL DE ÉLITE' && <Award className="w-8 h-8 text-purple-400 opacity-80 group-hover/pill:opacity-100 transition-opacity" />}
-                            </div>
-                        );
-                    })()}
-                </div>
+                            return (
+                                <div className="w-11 h-11 rounded-full bg-ops-bg border flex items-center justify-center shadow-[0_0_15px_rgba(0,0,0,0.5)] backdrop-blur-md transition-all duration-500 hover:scale-110 cursor-help"
+                                    style={{
+                                        borderColor: colors[rank] || colors['RECLUTA'],
+                                        boxShadow: `0 0 10px ${glowColors[rank] || glowColors['RECLUTA']}`
+                                    }}>
+                                    {rank === 'RECLUTA' && <Shield className="w-5 h-5 text-ops-accent opacity-80" />}
+                                    {rank === 'RECLUTA AVANZADO' && <Zap className="w-5 h-5 text-cyan-400 opacity-80" />}
+                                    {rank === 'CABO' && <Target className="w-5 h-5 text-yellow-400 opacity-80" />}
+                                    {rank === 'SARGENTO' && <Star className="w-5 h-5 text-orange-400 opacity-80" />}
+                                    {rank === 'OFICIAL DE ÉLITE' && <Award className="w-5 h-5 text-purple-400 opacity-80" />}
+                                </div>
+                            );
+                        })()}
+                    </div>
 
-                {/* Radar de Entrenamiento Central */}
-                <div className="relative group/radar">
-                    <div className="w-40 h-40 rounded-full border border-ops-accent/20 flex flex-col items-center justify-center relative overflow-hidden backdrop-blur-sm bg-white/[0.02] transition-all duration-500 group-hover:border-ops-accent/40">
-                        <span className="text-[3.5rem] font-extralight text-white leading-none">
+                    <div className="w-[212px] h-[212px] rounded-full border border-ops-accent/20 flex flex-col items-center justify-center relative overflow-hidden backdrop-blur-sm bg-white/[0.02] transition-all duration-500 group-hover:border-ops-accent/40 shadow-inner">
+                        <span className="text-[4.5rem] font-extralight text-white leading-none tracking-tighter">
                             {completedLessons.length}
                         </span>
-                        <span className="text-[0.5rem] uppercase tracking-[.4em] text-ops-text_dim mt-1">Semanas</span>
+                        <span className="text-[0.6rem] uppercase tracking-[.4em] text-ops-text_dim mt-2">Semanas</span>
 
                         {/* Progress Ring Overlay (SVG) */}
                         <svg className="absolute inset-0 w-full h-full -rotate-90">
                             <circle
-                                cx="80" cy="80" r="78"
+                                cx="106" cy="106" r="104"
                                 fill="none"
-                                stroke="rgba(138, 159, 202, 0.1)"
-                                strokeWidth="2"
+                                stroke="rgba(138, 159, 202, 0.05)"
+                                strokeWidth="1"
                             />
                             <motion.circle
-                                cx="80" cy="80" r="78"
+                                cx="106" cy="106" r="104"
                                 fill="none"
-                                stroke="rgba(138, 159, 202, 0.6)"
-                                strokeWidth="2"
-                                strokeDasharray="490"
-                                initial={{ strokeDashoffset: 490 }}
-                                animate={{ strokeDashoffset: 490 - (4.9 * progress) }}
-                                transition={{ duration: 1, ease: "easeOut" }}
+                                stroke="rgba(138, 159, 202, 0.4)"
+                                strokeWidth="4"
+                                strokeDasharray={2 * Math.PI * 104}
+                                initial={{ strokeDashoffset: 2 * Math.PI * 104 }}
+                                animate={{ strokeDashoffset: 2 * Math.PI * 104 * (1 - progress / 100) }}
+                                transition={{ duration: 1.5, ease: "easeOut" }}
+                                strokeLinecap="round"
                             />
                         </svg>
                     </div>
