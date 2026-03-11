@@ -22,9 +22,10 @@ export interface FeedItem {
 
 interface FeedTerminalProps {
     email: string;
+    tacticalColor?: string;
 }
 
-const FeedTerminal: React.FC<FeedTerminalProps> = ({ email }) => {
+const FeedTerminal: React.FC<FeedTerminalProps> = ({ email, tacticalColor }) => {
     const [feed, setFeed] = useState<FeedItem[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
@@ -91,15 +92,14 @@ const FeedTerminal: React.FC<FeedTerminalProps> = ({ email }) => {
             <motion.div
                 onClick={() => setIsFeedOpen(!isFeedOpen)}
                 className="w-full border border-[rgba(74,85,120,0.55)] bg-white/[0.03] backdrop-blur-md p-6 rounded cursor-pointer hover:bg-white/[0.05] transition-colors flex flex-col items-center shadow-[0_18px_50px_rgba(0,0,0,0.18)] relative overflow-hidden group"
+                style={{ borderColor: `${tacticalColor || '#eab308'}44` }}
                 whileHover={{ scale: 1.005 }}
                 whileTap={{ scale: 0.99 }}
             >
-                {/* Cabecera con Título y Línea */}
-                <div className="w-full pt-4 pb-2 border-b border-white/10 mb-6 px-6">
-                    <div className="flex items-center justify-center gap-2">
-                        <Globe className="w-4 h-4 flex-shrink-0 text-ops-warning" />
-                        <h3 className="text-[.72rem] font-semibold tracking-[.2em] text-white uppercase text-center">PROTOCOLO INFORMATIVO</h3>
-                    </div>
+                {/* Cabecera con Título y Línea Centrada (Phase 11) */}
+                <div className="w-full pt-4 pb-2 border-b border-white/10 mb-6 flex items-center justify-center gap-2">
+                    <Globe className="w-4 h-4 flex-shrink-0" style={{ color: tacticalColor || '#eab308' }} />
+                    <h3 className="text-[.72rem] font-semibold tracking-[.2em] text-white uppercase text-center">INTELIGENCIA TÁCTICA</h3>
                 </div>
 
                 {/* Etiqueta de Contexto Superior (Box Estandarizado) */}

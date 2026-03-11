@@ -28,7 +28,11 @@ interface Log {
     timestamp: string;
 }
 
-const Dashboard: React.FC = () => {
+interface DashboardProps {
+    onRankUpdate?: (rank: { name: string; color: string; icon: string }) => void;
+}
+
+const Dashboard: React.FC<DashboardProps> = ({ onRankUpdate }) => {
     // UI CONTROL STATE
     const [viewMode, setViewMode] = useState<'form' | 'terminal' | 'neutralization'>('form');
     const [isScanning, setIsScanning] = useState(false);
@@ -88,6 +92,7 @@ const Dashboard: React.FC = () => {
                 const biometricEnabled = await secureStorage.get('biometric_enabled');
                 if (biometricEnabled === 'true') {
                     setIsBiometricLocked(true);
+                    setUserEmail(email); // Keep track for post-auth
                 } else {
                     setUserEmail(email);
                     await loadDashboardData(email);
@@ -293,6 +298,12 @@ const Dashboard: React.FC = () => {
         true
     );
 
+    useEffect(() => {
+        if (onRankUpdate) {
+            onRankUpdate(currentRank);
+        }
+    }, [currentRank.name, currentRank.color, onRankUpdate]);
+
     // --- UI HELPERS ---
     const addLog = (message: string, type: Log['type'] = 'info') => {
         setLogs(currentLogs => {
@@ -420,7 +431,13 @@ const Dashboard: React.FC = () => {
                                     setIsBiometricLocked(false);
                                     setFailedAttempts(0);
                                     await secureStorage.remove('biometric_failed_attempts');
-                                    setAuthStep('dashboard');
+                                    // REFINAMIENTO (Phase 11): Cargar datos tras éxito biométrico
+                                    if (userEmail) {
+                                        await loadDashboardData(userEmail);
+                                        setAuthStep('dashboard');
+                                    } else {
+                                        setAuthStep('login');
+                                    }
                                 } else {
                                     const newFails = failedAttempts + 1;
                                     setFailedAttempts(newFails);
@@ -463,19 +480,13 @@ const Dashboard: React.FC = () => {
 
                 {authStep === 'dashboard' && (
                     <>
-                        {/* HUD Superior */}
-                        <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col md:flex-row items-center justify-center text-center gap-1 md:gap-3 border px-6 py-4 bg-white/5 backdrop-blur-xl rounded mb-6 w-full shadow-2xl" style={{ borderColor: `${currentRank.color}44` }}>
-                            <div className="flex items-center gap-3">
-                                <div className="flex items-center gap-2 px-3 py-1 rounded bg-black/40 border border-white/5 shadow-inner">
-                                    {currentRank.icon === 'Award' && <Award className="w-5 h-5" style={{ color: currentRank.color }} />}
-                                    {currentRank.icon === 'Star' && <Star className="w-5 h-5" style={{ color: currentRank.color }} />}
-                                    {currentRank.icon === 'Target' && <Target className="w-5 h-5" style={{ color: currentRank.color }} />}
-                                    {currentRank.icon === 'Shield' && <Shield className="w-5 h-5" style={{ color: currentRank.color }} />}
-                                    <span className="font-black text-sm md:text-lg tracking-[0.25em]" style={{ color: currentRank.color }}>{currentRank.name}</span>
-                                </div>
+                        {/* HUD Superior Refinado (Phase 11) */}
+                        <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col items-center justify-center text-center gap-1 border px-6 py-4 bg-white/5 backdrop-blur-xl rounded mb-6 w-full shadow-2xl" style={{ borderColor: `${currentRank.color}44` }}>
+                            <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-black/40 border-2 border-dashed shadow-inner mb-2" style={{ borderColor: `${currentRank.color}66` }}>
+                                <Lock className="w-3.5 h-3.5" style={{ color: currentRank.color }} />
+                                <span className="font-black text-[10px] sm:text-xs tracking-[0.4em] uppercase" style={{ color: currentRank.color }}>EMAIL LOCKED</span>
                             </div>
-                            <div className="hidden md:block h-6 w-[1px] bg-white/10 mx-2" />
-                            <span className="text-white font-mono text-xs md:text-sm truncate opacity-80">{userEmail?.toLowerCase()}</span>
+                            <span className="text-white font-mono text-sm sm:text-base tracking-wider opacity-90">{userEmail?.toLowerCase()}</span>
                         </motion.div>
 
                         {deltaNew > 0 && (
@@ -501,13 +512,12 @@ const Dashboard: React.FC = () => {
                                         {/* PANEL 1: NEUTRALIZACIÓN */}
                                         <div className="w-full flex flex-col">
                                             {(() => {
-                                                const activeCount = findings.filter(f => !f.isNeutralized).length;
-                                                const tacticalColor = getTacticalColor(activeCount, findings.length);
+                                                const tacticalColor = currentRank.color; // Homologado (Phase 11)
                                                 return (
                                                     <motion.div onClick={() => setIsRiskPanelOpen(!isRiskPanelOpen)} className="w-full border bg-white/[0.03] p-6 rounded cursor-pointer hover:bg-white/[0.05] flex flex-col items-center relative group" style={{ borderColor: `${tacticalColor}55` }}>
                                                         <div className="w-full pt-4 pb-2 border-b border-white/10 mb-6 flex items-center justify-center gap-2">
                                                             <Target className="w-4 h-4" style={{ color: tacticalColor }} />
-                                                            <h3 className="text-[.72rem] font-semibold tracking-[.2em] text-white">PROTOCOLO DE NEUTRALIZACIÓN</h3>
+                                                            <h3 className="text-[.72rem] font-semibold tracking-[.2em] text-white text-center uppercase">PROTOCOLO DE NEUTRALIZACIÓN</h3>
                                                         </div>
                                                         <div className="relative w-[212px] h-[212px] rounded-full flex items-center justify-center bg-white/[0.02] mb-4">
                                                             <svg className="absolute inset-0 w-full h-full -rotate-90">
@@ -609,18 +619,16 @@ const Dashboard: React.FC = () => {
                                                     </button>
                                                 </motion.div>
                                             ) : (
-                                                <TrainingProtocol
+                                                <TrainingProtocol 
+                                                    onProgressUpdate={(p) => setCompletedLessons(Math.round((p / 100) * totalLessons))} 
                                                     isGraduated={isGraduated}
-                                                    onProgressUpdate={(prog: number) => {
-                                                        const lessonsCount = Math.round((prog / 100) * totalLessons);
-                                                        setCompletedLessons(lessonsCount);
-                                                    }}
+                                                    tacticalColor={currentRank.color}
                                                 />
                                             )}
                                         </div>
 
                                         {/* PANEL 3: INFORMATIVO */}
-                                        <FeedTerminal email={userEmail!} />
+                                        <FeedTerminal email={userEmail!} tacticalColor={currentRank.color} />
                                     </div>
                                 )}
                             </div>

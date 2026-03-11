@@ -65,7 +65,7 @@ const StatusTerminal: React.FC<StatusTerminalProps> = ({ logs, isVisible, onRese
             {/* Content Area - Single Line Centered */}
             <div className="flex-grow flex flex-col items-center justify-center p-6 space-y-4 relative">
                 <AnimatePresence mode="wait">
-                    {logs.map((log) => (
+                    {logs.length > 0 && [logs[0]].map((log) => (
                         <motion.div
                             key={log.id}
                             initial={{ opacity: 0, scale: 0.95 }}
@@ -91,7 +91,7 @@ const StatusTerminal: React.FC<StatusTerminalProps> = ({ logs, isVisible, onRese
             {/* Footer de Acciones (Fijo al fondo) */}
             {isCompleted && (onReset || onNeutralize) && (
                 <div className="p-4 border-t border-white/10 bg-white/5 flex-none z-20 space-y-3">
-                    {(onReset && (hasError || isCompleted)) && (
+                    {(onReset && (hasError || (isCompleted && findingsCount === 0))) && (
                         <button
                             onClick={(e) => {
                                 e.preventDefault();

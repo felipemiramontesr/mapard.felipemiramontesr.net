@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Shield, Lock, CheckCircle, ChevronDown, Award, Star, Target } from 'lucide-react';
+import { Shield, Lock, CheckCircle, ChevronDown } from 'lucide-react';
 
 interface Lesson {
     id: string;
@@ -98,9 +98,10 @@ const CURRICULUM: Block[] = [
 interface TrainingProtocolProps {
     onProgressUpdate?: (progress: number, rank: string) => void;
     isGraduated?: boolean;
+    tacticalColor?: string;
 }
 
-const TrainingProtocol: React.FC<TrainingProtocolProps> = ({ onProgressUpdate, isGraduated }) => {
+const TrainingProtocol: React.FC<TrainingProtocolProps> = ({ onProgressUpdate, isGraduated, tacticalColor }) => {
     const [activeBlock, setActiveBlock] = useState(1);
     const [completedLessons, setCompletedLessons] = useState<string[]>([]);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -119,6 +120,7 @@ const TrainingProtocol: React.FC<TrainingProtocolProps> = ({ onProgressUpdate, i
     };
 
     const currentRank = getRankData(progress);
+    const themeColor = tacticalColor || currentRank.color;
 
     useEffect(() => {
         if (onProgressUpdate) {
@@ -137,16 +139,14 @@ const TrainingProtocol: React.FC<TrainingProtocolProps> = ({ onProgressUpdate, i
             <motion.div
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
                 className="w-full border border-[rgba(74,85,120,0.55)] bg-white/[0.03] backdrop-blur-md p-6 rounded cursor-pointer hover:bg-white/[0.05] transition-colors flex flex-col items-center shadow-[0_18px_50px_rgba(0,0,0,0.18)] relative overflow-hidden group"
-                style={{ borderColor: `${currentRank.color}44` }}
+                style={{ borderColor: `${themeColor}44` }}
                 whileHover={{ scale: 1.005 }}
                 whileTap={{ scale: 0.99 }}
             >
                 {/* Cabecera */}
-                <div className="w-full pt-4 pb-2 border-b border-white/10 mb-6 px-6">
-                    <div className="flex items-center justify-center gap-2">
-                        <Shield className="w-4 h-4 flex-shrink-0" style={{ color: currentRank.color }} />
-                        <h3 className="text-[.72rem] font-semibold tracking-[.2em] text-white uppercase text-center">PROTOCOLO DE ENTRENAMIENTO</h3>
-                    </div>
+                <div className="w-full pt-4 pb-2 border-b border-white/10 mb-6 flex items-center justify-center gap-2">
+                    <Shield className="w-4 h-4 flex-shrink-0" style={{ color: themeColor }} />
+                    <h3 className="text-[.72rem] font-semibold tracking-[.2em] text-white uppercase text-center">PROTOCOLO DE ENTRENAMIENTO</h3>
                 </div>
 
                 {/* Radar Homologado 212px */}
@@ -159,37 +159,27 @@ const TrainingProtocol: React.FC<TrainingProtocolProps> = ({ onProgressUpdate, i
                                 stroke={currentRank.color} strokeWidth="8"
                                 strokeDasharray={2 * Math.PI * 98}
                                 initial={{ strokeDashoffset: 2 * Math.PI * 98 }}
-                                animate={{ strokeDashoffset: 2 * Math.PI * 98 * (1 - (progress / 100)) }}
-                                transition={{ duration: 1.5, ease: "easeOut" }}
-                                strokeLinecap="round"
-                                style={{ filter: `drop-shadow(0 0 8px ${currentRank.color}88)` }}
-                            />
-                        </svg>
-                        <div className="flex flex-col items-center">
-                            <span className="text-5xl font-black font-mono tracking-tighter" style={{ color: currentRank.color, textShadow: `0 0 20px ${currentRank.glow}` }}>
-                                {Math.round(progress)}%
-                            </span>
-                            <span className="text-[10px] text-white/40 uppercase tracking-[0.2em] font-bold mt-1">Status</span>
-                        </div>
-                        {/* Insignia Dinámica */}
-                        <div className="absolute top-0 right-0 -mr-2 -mt-2 z-20 transition-transform duration-500 group-hover/radar:scale-110">
-                            <div className="w-12 h-12 rounded-full bg-ops-bg border-2 flex items-center justify-center shadow-xl backdrop-blur-md"
-                                style={{ borderColor: currentRank.color, boxShadow: `0 0 15px ${currentRank.glow}` }}>
-                                {currentRank.icon === 'Shield' && <Shield className="w-6 h-6" style={{ color: currentRank.color }} />}
-                                {currentRank.icon === 'Target' && <Target className="w-6 h-6" style={{ color: currentRank.color }} />}
-                                {currentRank.icon === 'Star' && <Star className="w-6 h-6" style={{ color: currentRank.color }} />}
-                                {currentRank.icon === 'Award' && <Award className="w-6 h-6" style={{ color: currentRank.color }} />}
-                            </div>
-                        </div>
+                            animate={{ strokeDashoffset: 2 * Math.PI * 98 * (1 - (progress / 100)) }}
+                            transition={{ duration: 1.5, ease: "easeOut" }}
+                            strokeLinecap="round"
+                            style={{ filter: `drop-shadow(0 0 8px ${themeColor}88)` }}
+                        />
+                    </svg>
+                    <div className="flex flex-col items-center">
+                        <span className="text-5xl font-black font-mono tracking-tighter" style={{ color: themeColor, textShadow: `0 0 20px ${currentRank.glow}` }}>
+                            {Math.round(progress)}%
+                        </span>
+                        <span className="text-[10px] text-white/40 uppercase tracking-[0.2em] font-bold mt-1">Status</span>
                     </div>
                 </div>
+            </div>
 
                 {/* Botón Detalles */}
                 <div className="w-full mt-6 flex justify-center">
                     <div className="w-[240px] h-9 border border-white/10 bg-white/5 rounded flex items-center justify-center gap-2 transition-all hover:bg-white/10 overflow-hidden"
-                        style={{ borderColor: `${currentRank.color}33` }}>
+                        style={{ borderColor: `${themeColor}33` }}>
                         <span className="text-[0.62rem] uppercase tracking-[.3em] font-light text-white whitespace-nowrap">DETALLES CURRICULARES</span>
-                        <ChevronDown className={`w-3 h-3 transition-transform duration-300 ${isMenuOpen ? 'rotate-180' : ''}`} style={{ color: currentRank.color }} />
+                        <ChevronDown className={`w-3 h-3 transition-transform duration-300 ${isMenuOpen ? 'rotate-180' : ''}`} style={{ color: themeColor }} />
                     </div>
                 </div>
             </motion.div>

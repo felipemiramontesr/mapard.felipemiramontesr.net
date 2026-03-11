@@ -1,4 +1,4 @@
-import { Shield } from 'lucide-react';
+import { Shield, Award, Star, Target } from 'lucide-react';
 import Dashboard from './components/Dashboard';
 import MatrixLoader from './components/MatrixLoader';
 import { useEffect, useState } from 'react';
@@ -7,6 +7,7 @@ import { StatusBar } from '@capacitor/status-bar';
 
 function App() {
   const [isLoading] = useState(false);
+  const [userRank, setUserRank] = useState<{ name: string; color: string; icon: string } | null>(null);
 
   useEffect(() => {
 
@@ -40,16 +41,26 @@ function App() {
             <span className="text-xl sm:text-2xl font-black tracking-widest text-white mapard-logo">MAPARD</span>
           </div>
 
-          <div className="flex items-center gap-2 border border-ops-radioactive/30 px-2 sm:px-3 py-1 bg-ops-radioactive/5 backdrop-blur-sm">
-            <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded bg-ops-radioactive animate-[pulse_1.5s_ease-in-out_infinite] shadow-[0_0_10px_rgba(57,255,20,0.4)]" />
-            <span className="text-[10px] sm:text-xs font-mono font-bold text-ops-radioactive tracking-widest">SYSTEM ONLINE</span>
-          </div>
+          {userRank ? (
+            <div className="flex items-center gap-2 border px-3 py-1 bg-black/40 backdrop-blur-sm" style={{ borderColor: `${userRank.color}44` }}>
+              {userRank.icon === 'Award' && <Award className="w-4 h-4" style={{ color: userRank.color }} />}
+              {userRank.icon === 'Star' && <Star className="w-4 h-4" style={{ color: userRank.color }} />}
+              {userRank.icon === 'Target' && <Target className="w-4 h-4" style={{ color: userRank.color }} />}
+              {userRank.icon === 'Shield' && <Shield className="w-4 h-4" style={{ color: userRank.color }} />}
+              <span className="text-[10px] font-mono font-bold tracking-[0.2em] uppercase" style={{ color: userRank.color }}>{userRank.name}</span>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2 border border-ops-radioactive/30 px-2 sm:px-3 py-1 bg-ops-radioactive/5 backdrop-blur-sm">
+              <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded bg-ops-radioactive animate-[pulse_1.5s_ease-in-out_infinite] shadow-[0_0_10px_rgba(57,255,20,0.4)]" />
+              <span className="text-[10px] sm:text-xs font-mono font-bold text-ops-radioactive tracking-widest">SYSTEM ONLINE</span>
+            </div>
+          )}
         </div>
       </header>
 
       {/* Main Content (Centered, Allow Scroll) */}
       <main className="flex-grow flex flex-col px-4 pt-4 pb-16 overflow-y-auto w-full z-10 relative">
-        <Dashboard />
+        <Dashboard onRankUpdate={setUserRank} />
       </main>
 
       {/* Footer (Fixed Absolute Bottom) */}
