@@ -150,15 +150,6 @@ const Dashboard: React.FC = () => {
         }
     };
 
-    const syncBackgroundContext = async (email: string, checksum: string) => {
-        try {
-            await fetch(`${API_BASE}/api/user/sync-context`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, checksum, device_id: deviceId })
-            });
-        } catch (e) { console.error("Context sync failed", e); }
-    };
 
     const handleLoginSubmit = async (email: string, pass: string) => {
         setIsAuthLoading(true);
@@ -343,8 +334,9 @@ const Dashboard: React.FC = () => {
                     }
                 } catch (e) { console.error(e); }
             }, 2000);
-        } catch (e: any) {
-            addLog(`ERROR: ${e.message}`, 'error');
+        } catch (e) {
+            const error = e as Error;
+            addLog(`ERROR: ${error.message}`, 'error');
             setIsScanning(false);
         }
     };
