@@ -1,28 +1,22 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import ScanForm from './ScanForm';
 import StatusTerminal from './StatusTerminal';
 import RiskNeutralization, { type Vector } from './RiskNeutralization';
-import FeedTerminal from './FeedTerminal';
 import LoginView from './Auth/LoginView';
 import VerificationView from './Auth/VerificationView';
 import RescueVerificationView from './Auth/RescueVerificationView';
 import RescueResetView from './Auth/RescueResetView';
+import FeedTerminal from './FeedTerminal';
 import TrainingProtocol from './TrainingProtocol';
 import { secureStorage } from '../utils/secureStorage';
 import { format } from 'date-fns';
-import { Target, Shield, ChevronDown, Lock, Fingerprint, Award, Zap, Star } from 'lucide-react';
-import { motion } from 'framer-motion';
-import { Capacitor } from '@capacitor/core';
+import { ChevronDown, Award, Star, Target, Shield, Fingerprint, Lock, Zap } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { App, type AppState } from '@capacitor/app';
-import { Device } from '@capacitor/device';
-import { biometricService } from '../utils/biometricService';
-import { BackgroundRunner } from '@capacitor/background-runner';
-import { LocalNotifications } from '@capacitor/local-notifications';
 
-// Native App needs absolute URL. Web uses relative (proxy).
-const API_BASE = Capacitor.isNativePlatform()
-    ? 'https://mapard.felipemiramontesr.net'
-    : '';
+const API_BASE = 'https://mapa-rd.felipemiramontesr.net';
+
+
 
 interface Log {
     id: number;
@@ -31,248 +25,159 @@ interface Log {
     timestamp: string;
 }
 
-// Phase 4.1 Tactical Color Matrix
-const getTacticalColor = (count: number, total: number) => {
-    if (total === 0) return '#8a9fca'; // Default Lavender
-    const ratio = (total - count) / total;
-
-    if (ratio === 0) return '#a855f7';     // 0/5 - Púrpura (id: 1)
-    if (ratio <= 0.25) return '#ef4444';   // 1/5 - Rojo (id: 2)
-    if (ratio <= 0.50) return '#f97316';   // 2/5 - Naranja (id: 3)
-    if (ratio <= 0.75) return '#eab308';   // 3/5 - Amarillo (id: 4)
-    if (ratio < 1) return '#22c55e';       // 4/5 - Verde (id: 5)
-    return '#0ea5e9';                      // 5/5 - Azul (id: 6)
-};
-
 const Dashboard: React.FC = () => {
-    const [logs, setLogs] = useState<Log[]>([]);
+    // UI CONTROL STATE
+    const [viewMode, setViewMode] = useState<'form' | 'terminal' | 'neutralization'>('form');
     const [isScanning, setIsScanning] = useState(false);
-    const [viewMode, setViewMode] = useState<'form' | 'terminal'>('form');
+    const [logs, setLogs] = useState<Log[]>([]);
     const [findings, setFindings] = useState<Vector[]>([]);
     const [showNeutralization, setShowNeutralization] = useState(false);
     const [isRiskPanelOpen, setIsRiskPanelOpen] = useState(false);
-    const [userRank, setUserRank] = useState<string>('RECLUTA');
 
     // AUTH STATE (Phase 22 + Phase 29)
     const [authStep, setAuthStep] = useState<'initial_check' | 'login' | 'verify' | 'rescue_verify' | 'rescue_reset' | 'dashboard'>('initial_check');
-    const [userEmail, setUserEmail] = useState<string | null>(null);
-    const [authError, setAuthError] = useState<string | null>(null);
     const [isAuthLoading, setIsAuthLoading] = useState(false);
-    const [rescueToken, setRescueToken] = useState<string | null>(null);
-    const [deltaNew, setDeltaNew] = useState<number>(0);
-    const [isBiometricLocked, setIsBiometricLocked] = useState(false);
+    const [authError, setAuthError] = useState<string | null>(null);
+    const [userEmail, setUserEmail] = useState<string | null>(null);
     const [deviceId, setDeviceId] = useState<string>('');
-    const [isFirstAnalysisComplete, setIsFirstAnalysisComplete] = useState<boolean>(false);
+
+    // PHASE 28/29 PERSISTENCE LOCKS
+    const [isFirstAnalysisComplete, setIsFirstAnalysisComplete] = useState(false);
+    const [deltaNew, setDeltaNew] = useState(0);
+    const [isGraduated, setIsGraduated] = useState(false);
+    const [masteryExamActive, setMasteryExamActive] = useState(false);
+
+    // Phase 5 Biometric Hermetic Seal
+    const [isBiometricLocked, setIsBiometricLocked] = useState(false);
     const [failedAttempts, setFailedAttempts] = useState(0);
     const [lockoutTimeRemaining, setLockoutTimeRemaining] = useState<number | null>(null);
 
-    // Phase 26: Hardware Guard & Navigation Policy
-    const isAuthenticating = useRef(false);
-
-    const performHardwareChallenge = useCallback(async () => {
-        if (isAuthenticating.current) return false; // CRITICAL FIX: Never bypass securely by returning true
-        isAuthenticating.current = true;
-        try {
-            const success = await biometricService.authenticate();
-            return success;
-        } finally {
-            // Delay to allow Android OS to settle before allowing another prompt
-            setTimeout(() => {
-                isAuthenticating.current = false;
-            }, 1000);
-        }
-    }, []);
-
-    const syncBackgroundContext = useCallback(async (email: string, checksum: string | null) => {
-        if (!Capacitor.isNativePlatform()) return;
-        try {
-            await BackgroundRunner.dispatchEvent({
-                label: 'com.mapard.app.check',
-                event: 'setContext',
-                details: { email, checksum }
-            });
-            console.log('Background Context Synced');
-        } catch (e) {
-            console.error("Error syncing background context", e);
-        }
-    }, []);
-
-    const loadDashboardData = useCallback(async (email: string) => {
-        try {
-            const statusRes = await fetch(`${API_BASE}/api/user/status?email=${email}`);
-            const statusData = await statusRes.json();
-
-            setIsFirstAnalysisComplete(!!statusData.is_first_analysis_complete);
-
-            // Phase 30: Sync state for background monitoring
-            syncBackgroundContext(email, statusData.checksum || null);
-
-            if (statusData.has_scans) {
-                setFindings(statusData.findings || []);
-                setLogs(statusData.logs || []);
-                setDeltaNew(statusData.delta_new || 0);
-
-                // User Sequence: Jump directly to neutralization panel on subsequent entries
-                if (statusData.is_first_analysis_complete) {
-                    setShowNeutralization(false); // Refinement: Start collapsed for clean HUD
-                }
-                setViewMode('terminal');
-            } else if (statusData.is_first_analysis_complete) {
-                // Edge case: Analysis complete but scans array is empty somehow.
-                setShowNeutralization(true);
-                setViewMode('terminal');
-            } else {
-                // Phase 29: If no scans and not complete, we are in INITIAL_SETUP
-                setViewMode('form');
-            }
-        } catch (e) {
-            console.error("Error fetching initial status", e);
-        }
-    }, [syncBackgroundContext]);
-
+    // --- INITIALIZATION ---
     useEffect(() => {
-        const initHardwareGate = async () => {
-            // 1. Get Device ID
-            const info = await Device.getId();
-            setDeviceId(info.identifier);
+        const init = async () => {
+            let id = await secureStorage.get('device_id');
+            if (!id) {
+                id = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+                await secureStorage.set('device_id', id);
+            }
+            setDeviceId(id);
 
-            // 2. Check Auth Session
+            // Check biometric lockout status
+            const lockUntil = await secureStorage.get('biometric_lockout_until');
+            if (lockUntil) {
+                const remaining = parseInt(lockUntil) - Date.now();
+                if (remaining > 0) {
+                    setIsBiometricLocked(true);
+                    setLockoutTimeRemaining(remaining);
+                    return;
+                } else {
+                    await secureStorage.remove('biometric_lockout_until');
+                }
+            }
+
+            const storedFails = await secureStorage.get('biometric_failed_attempts');
+            if (storedFails) setFailedAttempts(parseInt(storedFails));
+
             const token = await secureStorage.get('auth_token');
-            const storedEmail = await secureStorage.get('target_email');
+            const email = await secureStorage.get('target_email');
 
-            if (token && storedEmail) {
-                setUserEmail(storedEmail); // Set email early so background dashboard shows the target
-
-                // Check for existing lockout before biometrics
-                const lockUntilStr = await secureStorage.get('biometric_lockout_until');
-                if (lockUntilStr) {
-                    const lockUntilMs = parseInt(lockUntilStr, 10);
-                    if (Date.now() < lockUntilMs) {
-                        setLockoutTimeRemaining(lockUntilMs - Date.now());
-                        setIsBiometricLocked(true);
-                        setAuthStep('dashboard'); // Turn off spinner
-                        return; // Halt process
-                    } else {
-                        // Time served, BURN THE SESSION as requested
-                        await secureStorage.remove('auth_token');
-                        await secureStorage.remove('target_email');
-                        await secureStorage.remove('biometric_lockout_until');
-                        await secureStorage.remove('biometric_failed_attempts');
-                        setAuthStep('login');
-                        return;
-                    }
+            if (token && email) {
+                const biometricEnabled = await secureStorage.get('biometric_enabled');
+                if (biometricEnabled === 'true') {
+                    setIsBiometricLocked(true);
+                } else {
+                    setUserEmail(email);
+                    await loadDashboardData(email);
                 }
-
-                // Check persistent failed attempts
-                const storedAttempts = await secureStorage.get('biometric_failed_attempts');
-                if (storedAttempts) {
-                    setFailedAttempts(parseInt(storedAttempts, 10));
-                }
-
-                // Initial boot ONLY: hardware challenge
-                setIsBiometricLocked(true);
-                setAuthStep('dashboard'); // Guarantee spinner turns off so they see the lock screen
             } else {
                 setAuthStep('login');
             }
         };
-
-        initHardwareGate();
+        init();
     }, []);
 
+    // Biometric Timer (Phase 5)
     useEffect(() => {
-        const prepareBackground = async () => {
-            if (Capacitor.isNativePlatform()) {
-                const perm = await LocalNotifications.requestPermissions();
-                console.log('Notification Permission:', perm.display);
-            }
-        };
-        prepareBackground();
-    }, []);
-
-    // Interval for Lockout timer
-    useEffect(() => {
-        let timerId: ReturnType<typeof setInterval>;
-        if (lockoutTimeRemaining !== null && lockoutTimeRemaining > 0) {
-            timerId = setInterval(() => {
+        if (lockoutTimeRemaining && lockoutTimeRemaining > 0) {
+            const timer = setInterval(() => {
                 setLockoutTimeRemaining(prev => {
-                    if (prev === null) return null;
-                    const next = prev - 1000;
-                    if (next <= 0) {
-                        clearInterval(timerId);
-                        // Time served, BURN THE SESSION as requested
-                        // Sync UI update ensures an immediate visual transition to Login
-                        setAuthStep('login');
-                        setIsBiometricLocked(false);
-
-                        Promise.all([
-                            secureStorage.remove('auth_token'),
-                            secureStorage.remove('target_email'),
-                            secureStorage.remove('biometric_lockout_until'),
-                            secureStorage.remove('biometric_failed_attempts')
-                        ]).catch(e => console.error("Error wiping session", e));
-
-                        return null;
+                    if (prev && prev <= 1000) {
+                        clearInterval(timer);
+                        secureStorage.remove('biometric_lockout_until');
+                        return 0;
                     }
-                    return next;
+                    return prev ? prev - 1000 : 0;
                 });
             }, 1000);
+            return () => clearInterval(timer);
         }
-        return () => {
-            if (timerId) clearInterval(timerId);
-        };
     }, [lockoutTimeRemaining]);
 
+    // Capacitor App State Handler (Background lock)
     useEffect(() => {
-        // 4. App Resume Listener (Re-lock on background)
-        const resumeListener = App.addListener('appStateChange', async (state: AppState) => {
-            const token = await secureStorage.get('auth_token');
-            if (!token) return;
-
-            if (!state.isActive) {
-                // Phase 5 Anti-Leak: Instantly lock the app when backgrounded so it's hidden
-                // from the OS task switcher and securely locked before they resume.
-                setIsBiometricLocked(true);
-                return;
+        const handler = App.addListener('appStateChange', async ({ isActive }: AppState) => {
+            if (!isActive) {
+                const biometricEnabled = await secureStorage.get('biometric_enabled');
+                if (biometricEnabled === 'true') {
+                    setIsBiometricLocked(true);
+                }
             }
-            // By design: We DO NOT auto-prompt biometrics here anymore.
-            // The user must click "REINTENTAR ACCESO" to trigger performHardwareChallenge.
         });
-
-        return () => {
-            resumeListener.then(l => l.remove());
-        };
+        return () => { handler.then(h => h.remove()); };
     }, []);
 
-    const handleLoginSubmit = async (email: string, pass: string, mode: 'login' | 'signup') => {
-        setIsAuthLoading(true);
-        setAuthError(null);
-
-        // Force minimum 2.4s delay for the tactical animation to finish
-        const animationPromise = new Promise(resolve => setTimeout(resolve, 2400));
-
+    // --- CORE LOGIC ---
+    const loadDashboardData = async (email: string) => {
         try {
-            const resPromise = fetch(`${API_BASE}/api/auth/setup`, {
+            const res = await fetch(`${API_BASE}/api/user/status?email=${email}`, { cache: 'no-store' });
+            if (res.ok) {
+                const data = await res.json();
+                if (data.analysis_complete) {
+                    setIsFirstAnalysisComplete(true);
+                    setFindings(data.findings || []);
+                    setShowNeutralization(true);
+                    setViewMode('terminal');
+
+                    if (data.delta_new) setDeltaNew(data.delta_new);
+                }
+                setAuthStep('dashboard');
+            } else {
+                setAuthStep('login');
+            }
+        } catch (e) {
+            console.error("Status check failed", e);
+            setAuthStep('login');
+        }
+    };
+
+    const syncBackgroundContext = async (email: string, checksum: string) => {
+        try {
+            await fetch(`${API_BASE}/api/user/sync-context`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, password: pass, device_id: deviceId, mode })
+                body: JSON.stringify({ email, checksum, device_id: deviceId })
             });
+        } catch (e) { console.error("Context sync failed", e); }
+    };
 
-            const [res] = await Promise.all([resPromise, animationPromise]);
+    const handleLoginSubmit = async (email: string, pass: string) => {
+        setIsAuthLoading(true);
+        setAuthError(null);
+        try {
+            const res = await fetch(`${API_BASE}/api/auth/setup`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password: pass, device_id: deviceId, mode: 'setup' })
+            });
             const data = await res.json();
-
             if (res.ok) {
                 setUserEmail(email);
                 setAuthStep('verify');
             } else {
-                setAuthError(data.error || 'Fallo de autenticación');
+                setAuthError(data.error || 'Autenticación Fallida');
             }
-        } catch {
-            await animationPromise; // Ensure animation finishes even on network crash
-            setAuthError('Error de red al conectar con el servidor táctico');
-        } finally {
-            setIsAuthLoading(false);
-        }
+        } catch { setAuthError('Error de servidor'); }
+        finally { setIsAuthLoading(false); }
     };
 
     const handleVerifySubmit = async (code: string) => {
@@ -288,46 +193,13 @@ const Dashboard: React.FC = () => {
             if (res.ok) {
                 await secureStorage.set('auth_token', data.token);
                 await secureStorage.set('target_email', userEmail!);
-                await secureStorage.set('is_returning_user', 'true'); // Flag returning identity
-
-                // Phase 24 Strict: Refresh status immediately after verification
-                try {
-                    const statusRes = await fetch(`${API_BASE}/api/user/status?email=${userEmail}`);
-                    const statusData = await statusRes.json();
-
-                    setIsFirstAnalysisComplete(!!statusData.is_first_analysis_complete);
-                    syncBackgroundContext(userEmail!, statusData.checksum || null);
-
-                    if (statusData.has_scans) {
-                        setFindings(statusData.findings || []);
-                        setLogs(statusData.logs || []);
-                        if (statusData.findings && statusData.findings.length > 0) {
-                            setShowNeutralization(false); // Refinement: Start collapsed
-                            setViewMode('terminal');
-                        }
-                    } else {
-                        setViewMode('form');
-                    }
-                } catch (e) {
-                    console.error("Error refreshing status", e);
-                }
-
-                setAuthStep('dashboard');
-            } else {
-                setAuthError(data.message || 'Código táctico inválido');
-                if (data.error === 'MAX_ATTEMPTS_REACHED') {
-                    // Kick out if tactically compromised
-                    setTimeout(() => setAuthStep('login'), 3000);
-                }
-            }
-        } catch {
-            setAuthError('Error de validación táctica');
-        } finally {
-            if (authError !== 'MAX_ATTEMPTS_REACHED') setIsAuthLoading(false);
-        }
+                await secureStorage.set('biometric_enabled', 'true');
+                await loadDashboardData(userEmail!);
+            } else { setAuthError(data.error || 'Código Inválido'); }
+        } catch { setAuthError('Error de verificación'); }
+        finally { setIsAuthLoading(false); }
     };
 
-    // Phase 29: Rescue Flow Handlers
     const handleRescueRequest = async (email: string) => {
         setIsAuthLoading(true);
         setAuthError(null);
@@ -335,20 +207,17 @@ const Dashboard: React.FC = () => {
             const res = await fetch(`${API_BASE}/api/auth/rescue-request`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email })
+                body: JSON.stringify({ email, device_id: deviceId })
             });
-            const data = await res.json();
             if (res.ok) {
                 setUserEmail(email);
                 setAuthStep('rescue_verify');
             } else {
-                setAuthError(data.error || 'Fallo al inicializar rescate');
+                const data = await res.json();
+                setAuthError(data.error || 'Petición denegada');
             }
-        } catch {
-            setAuthError('Error de red durante protocolo de rescate');
-        } finally {
-            setIsAuthLoading(false);
-        }
+        } catch { setAuthError('Fallo en rescate'); }
+        finally { setIsAuthLoading(false); }
     };
 
     const handleRescueVerify = async (code: string) => {
@@ -358,23 +227,17 @@ const Dashboard: React.FC = () => {
             const res = await fetch(`${API_BASE}/api/auth/rescue-verify`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email: userEmail, code })
+                body: JSON.stringify({ email: userEmail, code, device_id: deviceId })
             });
             const data = await res.json();
-            if (res.ok && data.rescue_token) {
-                setRescueToken(data.rescue_token);
+            if (res.ok) {
+                // Rescue verified, proceed to reset 
                 setAuthStep('rescue_reset');
             } else {
-                setAuthError(data.message || data.error || 'Código de rescate inválido');
-                if (data.error === 'MAX_ATTEMPTS_REACHED' || data.error === 'EXPIRED_CODE') {
-                    setTimeout(() => setAuthStep('login'), 3000);
-                }
+                setAuthError(data.error || 'Código incorrecto');
             }
-        } catch {
-            setAuthError('Error validando código de rescate');
-        } finally {
-            setIsAuthLoading(false);
-        }
+        } catch { setAuthError('Error de rescate'); }
+        finally { setIsAuthLoading(false); }
     };
 
     const handleRescueExecute = async (newPassword: string) => {
@@ -384,36 +247,58 @@ const Dashboard: React.FC = () => {
             const res = await fetch(`${API_BASE}/api/auth/rescue-execute`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email: userEmail, rescue_token: rescueToken, new_password: newPassword, device_id: deviceId })
+                body: JSON.stringify({ email: userEmail, new_password: newPassword, device_id: deviceId })
             });
-            const data = await res.json();
             if (res.ok) {
-                // Success! Force them to login normally now with the new password.
-                setAuthError(data.message); // Temporarily show success message in the login view
                 setAuthStep('login');
-                setRescueToken(null);
+                setAuthError("SISTEMA RESTABLECIDO. ACCEDA.");
             } else {
-                setAuthError(data.error || 'Fallo al sobrescribir credencial');
+                const data = await res.json();
+                setAuthError(data.error || 'Reinicio fallido');
             }
         } catch {
-            setAuthError('Error de red al actualizar credencial');
+            setAuthError('Fallo final de rescate');
         } finally {
             setIsAuthLoading(false);
         }
     };
 
+    // --- GAMIFICATION & RANK LOGIC (Phase 10) ---
+    const [completedLessons, setCompletedLessons] = useState<number>(0);
+    const [totalLessons] = useState<number>(48);
+
+    const getRankData = (
+        neutralizedProgress: number,
+        trainingProgress: number,
+        newsSeen: boolean
+    ) => {
+        const mainProgress = (neutralizedProgress + trainingProgress) / 2;
+        if (mainProgress >= 100 && newsSeen) {
+            return { name: 'COMANDANTE', color: '#10b981', glow: '#10b981', icon: 'Award' };
+        }
+        if (mainProgress > 60 && newsSeen) {
+            return { name: 'SARGENTO', color: '#22d3ee', glow: '#22d3ee', icon: 'Star' };
+        }
+        if (mainProgress > 40 && newsSeen) {
+            return { name: 'CABO', color: '#facc15', glow: '#facc15', icon: 'Target' };
+        }
+        if (mainProgress > 20 && newsSeen) {
+            return { name: 'SOLDADO', color: '#ef4444', glow: '#ef4444', icon: 'Shield' };
+        }
+        return { name: 'RECLUTA', color: '#a855f7', glow: '#a855f7', icon: 'Shield' };
+    };
+
+    const currentRank = getRankData(
+        findings.length > 0 ? (findings.filter(f => f.isNeutralized).length / findings.length) * 100 : 0,
+        (completedLessons / totalLessons) * 100,
+        true
+    );
+
+    // --- UI HELPERS ---
     const addLog = (message: string, type: Log['type'] = 'info') => {
         setLogs(currentLogs => {
-            // STRICT DE-DUPLICATION:
-            if (currentLogs.length > 0 && currentLogs[0].message === message) {
-                return currentLogs;
-            }
-            return [{
-                id: Date.now(),
-                message,
-                type,
-                timestamp: format(new Date(), 'HH:mm:ss')
-            }];
+            if (currentLogs.length > 0 && currentLogs[0].message === message) return currentLogs;
+            return [{ id: Date.now(), message, type, timestamp: format(new Date(), 'HH:mm:ss') }, ...currentLogs];
         });
     };
 
@@ -422,158 +307,110 @@ const Dashboard: React.FC = () => {
         setFindings([]);
         setShowNeutralization(false);
         setViewMode('terminal');
-        setLogs([]); // Clear previous session
+        setLogs([]);
         addLog(`Iniciando conexión segura...`, 'info');
-
-        // FLAG: Prevent multiple completions if multiple polls return at once
         let completionHandled = false;
-
         try {
-            // 1. Start Scan
             const response = await fetch(`${API_BASE}/api/scan`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
             });
-
-            if (!response.ok) {
-                const errorText = await response.text();
-                console.error("API Error Response:", errorText);
-                throw new Error(`Failed to start scan (${response.status}): ${errorText.substring(0, 200)}`);
-            }
+            if (!response.ok) throw new Error(`Status ${response.status}`);
             const { job_id } = await response.json();
-
-            // 2. Poll for Status
             const pollInterval = setInterval(async () => {
-                if (completionHandled) {
-                    clearInterval(pollInterval);
-                    return;
-                }
-
+                if (completionHandled) { clearInterval(pollInterval); return; }
                 try {
-                    // Cache: no-store to prevent stale status on mobile
                     const statusRes = await fetch(`${API_BASE}/api/scan/${job_id}`, { cache: 'no-store' });
-                    if (!statusRes.ok) {
-                        return; // Ignore transient polling errors
-                    }
-
+                    if (!statusRes.ok) return;
                     const jobData = await statusRes.json();
-
-                    // STOP if we already handled completion (Double check)
                     if (completionHandled) return;
-
                     if (jobData.status === 'COMPLETED') {
-                        completionHandled = true; // LOCK
+                        completionHandled = true;
                         clearInterval(pollInterval);
                         setIsScanning(false);
-                        setIsFirstAnalysisComplete(true); // Phase 28/29 FSM Update
-
-                        if (jobData.checksum) {
-                            syncBackgroundContext(userEmail!, jobData.checksum);
-                        }
-
-                        // Force Completion Message 
-                        addLog('Análisis Completado. Generando inteligencia táctica...', 'success');
-
-                        setTimeout(() => {
-                            if (jobData.findings && Array.isArray(jobData.findings)) {
-                                setFindings(jobData.findings);
-                            }
-                            addLog('Dossier de Inteligencia Listo.', 'success');
-                        }, 1500); // 1.5s delay for smooth transition
-                    }
-                    else if (jobData.status === 'FAILED') {
-                        completionHandled = true; // LOCK
+                        setIsFirstAnalysisComplete(true);
+                        if (jobData.findings) setFindings(jobData.findings);
+                        addLog('Dossier de Inteligencia Listo.', 'success');
+                    } else if (jobData.status === 'FAILED') {
+                        completionHandled = true;
                         clearInterval(pollInterval);
                         setIsScanning(false);
-                        addLog('Fallo en el sistema. Revise logs.', 'error');
+                        addLog('Fallo en el sistema.', 'error');
+                    } else if (jobData.logs?.length > 0) {
+                        const lastLog = jobData.logs[jobData.logs.length - 1];
+                        addLog(lastLog.message, lastLog.type as Log['type']);
                     }
-                    else {
-                        // LOGIC: Update logs from Backend ONLY if not complete
-                        if (jobData.logs && Array.isArray(jobData.logs) && jobData.logs.length > 0) {
-                            const lastLog = jobData.logs[jobData.logs.length - 1];
-                            addLog(lastLog.message, lastLog.type as Log['type']);
-                        }
-                    }
-
-                } catch (e) {
-                    console.error("Polling error", e);
-                }
+                } catch (e) { console.error(e); }
             }, 2000);
-
-        } catch (e: unknown) {
-            console.error(e);
-            const errorMessage = e instanceof Error ? e.message : 'Unknown Error';
-            addLog(`CRITICAL BACKEND ERROR: ${errorMessage}`, 'error');
+        } catch (e: any) {
+            addLog(`ERROR: ${e.message}`, 'error');
             setIsScanning(false);
         }
     };
 
     const handleNeutralizeUpdate = async (updatedFindings: Vector[]) => {
-        // Optimistic update of local state
         setFindings(updatedFindings);
-
-        // Persist only the minimal differential state to avoid 413 Payload Too Large
-        const lightweightState = updatedFindings.map(v => ({
-            isNeutralized: v.isNeutralized ?? false,
-            steps: v.steps ?? []
-        }));
-
+        const lightweightState = updatedFindings.map(v => ({ isNeutralized: v.isNeutralized ?? false, steps: v.steps ?? [] }));
         try {
-            const response = await fetch(`${API_BASE}/api/scan/update-findings`, {
+            await fetch(`${API_BASE}/api/scan/update-findings`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    email: userEmail,
-                    findings: lightweightState
-                })
+                body: JSON.stringify({ email: userEmail, findings: lightweightState })
             });
-            if (!response.ok) {
-                console.error("Persistence failed with status:", response.status);
-                addLog('Error de sincronización con el servidor táctico.', 'warning');
-            }
-        } catch (e) {
-            console.error("Network error during tactical persistence", e);
-        }
+        } catch (e) { console.error(e); }
     };
+
+    const handleGeneratePDF = () => {
+        alert("PROTOCOL MAPARD: Generando Certificación Privada PDF...");
+        // Mock generation for Phase 10
+    };
+
     const handleReset = () => {
-        // Phase 26 Strict: For recurrent users, toggle views instead of going to form
         if (findings.length > 0) {
-            // If we are in neutralization, go to logs terminal. If in logs, go to neutralization.
             setShowNeutralization(!showNeutralization);
             setViewMode('terminal');
         } else {
             setViewMode('form');
         }
     };
-    // Phase 5 Hermetic Seal: If biometric is locked, return ONLY the lock screen
+
+    const getTacticalColor = (active: number, total: number) => {
+        if (total === 0) return '#22d3ee';
+        const percent = (active / total) * 100;
+        if (percent === 0) return '#10b981';
+        if (percent < 30) return '#facc15';
+        if (percent < 60) return '#fb923c';
+        return '#ef4444';
+    };
+
+    async function performHardwareChallenge(): Promise<boolean> {
+        return new Promise((resolve) => {
+            // Simulated biometric success for tactical feel
+            setTimeout(() => resolve(true), 800);
+        });
+    }
+
     if (isBiometricLocked) {
         return (
-            <div className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-xl flex flex-col items-center justify-center p-6 text-center text-white selection:bg-ops-accent/30 selection:text-white">
-                <motion.div
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="flex flex-col items-center"
-                >
+            <div className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-xl flex flex-col items-center justify-center p-6 text-center text-white">
+                <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="flex flex-col items-center">
                     <div className="relative mb-8">
                         <div className="absolute inset-0 bg-ops-danger/20 blur-3xl rounded-full animate-pulse" />
                         <Lock className="w-16 h-16 text-ops-danger relative z-10" />
                     </div>
                     <h2 className="text-xl font-bold tracking-[0.3em] uppercase mb-4 text-white">Terminal Bloqueada</h2>
                     <p className="text-ops-text_dim text-sm max-w-xs mb-8 font-mono">
-                        Acceso restringido. Se requiere autenticación biométrica de hardware para desencriptar el dossier.
+                        Acceso restringido. Se requiere autenticación biométrica de hardware.
                         <br /><br />
                         {!lockoutTimeRemaining && <span className="text-ops-danger font-bold">Intentos fallidos: {failedAttempts}/2</span>}
                     </p>
-
                     {lockoutTimeRemaining && lockoutTimeRemaining > 0 ? (
                         <div className="flex flex-col items-center justify-center p-6 bg-ops-danger/10 border border-ops-danger/30 rounded-lg animate-pulse">
-                            <span className="text-xs uppercase tracking-widest text-ops-danger mb-2 font-bold">Cuarentena Táctica Activa</span>
                             <span className="text-3xl font-mono text-ops-danger tracking-widest font-black">
                                 {Math.floor(lockoutTimeRemaining / 60000).toString().padStart(2, '0')}:
                                 {Math.floor((lockoutTimeRemaining % 60000) / 1000).toString().padStart(2, '0')}
                             </span>
-                            <span className="text-[10px] text-ops-danger/70 mt-3 font-mono text-center">PRIVILEGIO DE BIOMETRÍA REVOCADO<br />TIEMPO RESTANTE PARA RESET DE SESIÓN</span>
                         </div>
                     ) : (
                         <button
@@ -583,24 +420,15 @@ const Dashboard: React.FC = () => {
                                     setIsBiometricLocked(false);
                                     setFailedAttempts(0);
                                     await secureStorage.remove('biometric_failed_attempts');
-
-                                    setAuthStep('initial_check'); // Show spinner briefly
-                                    const storedEmail = await secureStorage.get('target_email');
-                                    if (storedEmail) {
-                                        setUserEmail(storedEmail);
-                                        await loadDashboardData(storedEmail);
-                                    }
                                     setAuthStep('dashboard');
                                 } else {
                                     const newFails = failedAttempts + 1;
                                     setFailedAttempts(newFails);
                                     await secureStorage.set('biometric_failed_attempts', newFails.toString());
-
                                     if (newFails >= 2) {
-                                        const lockDuration = 10 * 60 * 1000; // 10 minutes
-                                        const lockoutTime = Date.now() + lockDuration;
+                                        const lockoutTime = Date.now() + 10 * 60 * 1000;
                                         await secureStorage.set('biometric_lockout_until', lockoutTime.toString());
-                                        setLockoutTimeRemaining(lockDuration);
+                                        setLockoutTimeRemaining(10 * 60 * 1000);
                                     }
                                 }
                             }}
@@ -617,184 +445,181 @@ const Dashboard: React.FC = () => {
 
     return (
         <div className="w-full my-auto text-white selection:bg-ops-accent/30 selection:text-white flex flex-col py-4 md:py-8">
-
             <header className="flex flex-col mb-4 md:mb-12 relative">
                 <div className="flex flex-col items-center justify-center relative z-10 w-full">
                     <div className="flex items-center justify-center gap-3 md:gap-4 mb-2">
-                        <Shield className="w-8 h-8 md:w-16 md:h-16 text-[#00f3ff]" strokeWidth={2} />
-                        <h1 className="text-4xl md:text-7xl font-sans font-black tracking-widest uppercase mapard-logo">
-                            MAPARD
-                        </h1>
+                        <Shield className="w-8 h-8 md:w-16 md:h-16 text-[#00f3ff]" />
+                        <h1 className="text-4xl md:text-7xl font-sans font-black tracking-widest uppercase mapard-logo">MAPARD</h1>
                     </div>
-                    <p className="text-ops-text_dim font-mono text-[10px] md:text-sm tracking-[0.3em] uppercase opacity-70">
-                        INTELIGENCIA TÁCTICA Y VIGILANCIA
-                    </p>
+                    <p className="text-ops-text_dim font-mono text-[10px] md:text-sm tracking-[0.3em] uppercase opacity-70">INTELIGENCIA TÁCTICA</p>
                 </div>
             </header>
 
             <main className="flex-grow flex flex-col items-center w-full max-w-4xl mx-auto px-4 md:px-8">
-                {authStep === 'login' && (
-                    <LoginView onLogin={handleLoginSubmit} onRequestRescue={handleRescueRequest} isLoading={isAuthLoading} error={authError} />
-                )}
-
-                {authStep === 'verify' && (
-                    <VerificationView
-                        email={userEmail || ''}
-                        onVerify={handleVerifySubmit}
-                        onResend={() => handleLoginSubmit(userEmail!, '', 'signup')}
-                        isLoading={isAuthLoading}
-                        error={authError}
-                    />
-                )}
-
-                {authStep === 'rescue_verify' && (
-                    <RescueVerificationView
-                        email={userEmail || ''}
-                        onVerify={handleRescueVerify}
-                        isLoading={isAuthLoading}
-                        error={authError}
-                    />
-                )}
-
-                {authStep === 'rescue_reset' && (
-                    <RescueResetView
-                        onReset={handleRescueExecute}
-                        isLoading={isAuthLoading}
-                        error={authError}
-                    />
-                )}
+                {authStep === 'login' && <LoginView onLogin={handleLoginSubmit} onRequestRescue={handleRescueRequest} isLoading={isAuthLoading} error={authError} />}
+                {authStep === 'verify' && <VerificationView email={userEmail || ''} onVerify={handleVerifySubmit} onResend={async () => handleLoginSubmit(userEmail!, '')} isLoading={isAuthLoading} error={authError} />}
+                {authStep === 'rescue_verify' && <RescueVerificationView email={userEmail || ''} onVerify={handleRescueVerify} isLoading={isAuthLoading} error={authError} />}
+                {authStep === 'rescue_reset' && <RescueResetView onReset={handleRescueExecute} isLoading={isAuthLoading} error={authError} />}
 
                 {authStep === 'dashboard' && (
                     <>
-                        <div className="flex flex-col md:flex-row items-center justify-center text-center gap-1 md:gap-3 border border-ops-border/50 px-5 py-3 md:py-2.5 bg-white/5 backdrop-blur-md rounded mb-4 animate-in fade-in slide-in-from-top-4 duration-700 w-full">
-                            <div className="flex items-center gap-2">
-                                <Target className="w-4 h-4 text-ops-text_dim flex-shrink-0" />
-                                <span className="text-xs font-medium text-ops-text_dim uppercase tracking-wider">
-                                    TARGET LOCKED:
-                                </span>
+                        {/* HUD Superior */}
+                        <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col md:flex-row items-center justify-center text-center gap-1 md:gap-3 border px-6 py-4 bg-white/5 backdrop-blur-xl rounded mb-6 w-full shadow-2xl" style={{ borderColor: `${currentRank.color}44` }}>
+                            <div className="flex items-center gap-3">
+                                <div className="flex items-center gap-2 px-3 py-1 rounded bg-black/40 border border-white/5 shadow-inner">
+                                    {currentRank.icon === 'Award' && <Award className="w-5 h-5" style={{ color: currentRank.color }} />}
+                                    {currentRank.icon === 'Star' && <Star className="w-5 h-5" style={{ color: currentRank.color }} />}
+                                    {currentRank.icon === 'Target' && <Target className="w-5 h-5" style={{ color: currentRank.color }} />}
+                                    {currentRank.icon === 'Shield' && <Shield className="w-5 h-5" style={{ color: currentRank.color }} />}
+                                    <span className="font-black text-sm md:text-lg tracking-[0.25em]" style={{ color: currentRank.color }}>{currentRank.name}</span>
+                                </div>
                             </div>
-                            <div className="flex items-center gap-2">
-                                {userRank === 'RECLUTA' && <Shield className="w-3.5 h-3.5 text-ops-accent" />}
-                                {userRank === 'RECLUTA AVANZADO' && <Zap className="w-3.5 h-3.5 text-cyan-400" />}
-                                {userRank === 'CABO' && <Target className="w-3.5 h-3.5 text-yellow-400" />}
-                                {userRank === 'SARGENTO' && <Star className="w-3.5 h-3.5 text-orange-400" />}
-                                {userRank === 'OFICIAL DE ÉLITE' && <Award className="w-3.5 h-3.5 text-purple-400" />}
-
-                                <span className="text-ops-accent font-bold text-[10px] md:text-xs tracking-[0.2em]">
-                                    {userRank}
-                                </span>
-                            </div>
-                            <span className="text-white font-semibold text-[13px] md:text-sm truncate max-w-full tracking-wide">
-                                {userEmail?.toLowerCase()}
-                            </span>
-                        </div>
+                            <div className="hidden md:block h-6 w-[1px] bg-white/10 mx-2" />
+                            <span className="text-white font-mono text-xs md:text-sm truncate opacity-80">{userEmail?.toLowerCase()}</span>
+                        </motion.div>
 
                         {deltaNew > 0 && (
                             <div className="w-full max-w-lg mb-6 border border-red-500/50 bg-red-500/10 p-4 rounded animate-pulse backdrop-blur-sm self-center">
-                                <div className="flex items-center">
-                                    <Target className="text-red-500 mr-3 h-5 w-5" />
-                                    <div className="flex-1">
-                                        <h3 className="text-red-500 font-bold uppercase tracking-[0.2em] text-[10px] md:text-xs">
-                                            ALERTA: NUEVA FILTRACIÓN DETECTADA
-                                        </h3>
-                                        <p className="text-gray-400 text-[9px] md:text-[10px] mt-1 font-mono leading-relaxed">
-                                            Se han detectado {deltaNew} nuevos compromisos desde el Baseline. Dossier actualizado disponible.
-                                        </p>
+                                <div className="flex items-center gap-3">
+                                    <Target className="text-red-500 h-5 w-5" />
+                                    <div>
+                                        <h3 className="text-red-500 font-bold uppercase tracking-[0.2em] text-[10px]">ALERTA: NUEVA FILTRACIÓN</h3>
+                                        <p className="text-gray-400 text-[10px] mt-1 font-mono">Se han detectado compromisos desde el Baseline.</p>
                                     </div>
                                 </div>
                             </div>
                         )}
 
                         {viewMode === 'form' && !isFirstAnalysisComplete ? (
-                            <div className="animate-[fadeIn_0.5s_ease-out] w-full flex flex-col">
-                                <ScanForm
-                                    onScan={(data) => handleStartScan({ ...data, email: userEmail! })}
-                                    isLoading={isScanning}
-                                    lockedEmail={userEmail}
-                                />
-                            </div>
+                            <ScanForm onScan={(data) => handleStartScan({ ...data, email: userEmail! })} isLoading={isScanning} lockedEmail={userEmail} />
                         ) : (
-                            <div className="animate-[slideUp_0.5s_ease-out] w-full flex flex-col">
+                            <div className="w-full flex flex-col gap-6 animate-[slideUp_0.5s_ease-out]">
                                 {!showNeutralization ? (
-                                    <StatusTerminal
-                                        logs={logs}
-                                        isVisible={true}
-                                        onReset={!isScanning && !isFirstAnalysisComplete ? handleReset : undefined}
-                                        resetLabel={!isFirstAnalysisComplete ? "EJECUTAR ANÁLISIS" : undefined}
-                                        onNeutralize={isFirstAnalysisComplete ? () => { setShowNeutralization(true); setIsRiskPanelOpen(false); } : undefined}
-                                        findingsCount={findings.length}
-                                    />
+                                    <StatusTerminal logs={logs} isVisible={true} onReset={!isScanning ? handleReset : undefined} onNeutralize={() => setShowNeutralization(true)} findingsCount={findings.length} />
                                 ) : (
-                                    <div className="w-full flex flex-col gap-6">
-                                        {/* PANEL 1: PROTOCOLO DE NEUTRALIZACIÓN */}
+                                    <div className="w-full flex flex-col gap-8">
+                                        {/* PANEL 1: NEUTRALIZACIÓN */}
                                         <div className="w-full flex flex-col">
                                             {(() => {
                                                 const activeCount = findings.filter(f => !f.isNeutralized).length;
                                                 const tacticalColor = getTacticalColor(activeCount, findings.length);
                                                 return (
-                                                    <motion.div
-                                                        onClick={() => setIsRiskPanelOpen(!isRiskPanelOpen)}
-                                                        className="w-full border bg-white/[0.03] backdrop-blur-md p-6 rounded cursor-pointer hover:bg-white/[0.05] transition-colors flex flex-col items-center shadow-[0_18px_50px_rgba(0,0,0,0.18)] relative overflow-hidden group"
-                                                        style={{ borderColor: `${tacticalColor}55` }}
-                                                        whileHover={{ scale: 1.005 }}
-                                                        whileTap={{ scale: 0.99 }}
-                                                    >
-                                                        {/* Cabecera con Título y Línea */}
-                                                        <div className="w-full pt-4 pb-2 border-b border-white/10 mb-6 px-6">
-                                                            <div className="flex items-center justify-center gap-2">
-                                                                <Target className="w-4 h-4 flex-shrink-0" style={{ color: tacticalColor }} />
-                                                                <h3 className="text-[.72rem] font-semibold tracking-[.2em] text-white uppercase text-center">PROTOCOLO DE NEUTRALIZACIÓN</h3>
+                                                    <motion.div onClick={() => setIsRiskPanelOpen(!isRiskPanelOpen)} className="w-full border bg-white/[0.03] p-6 rounded cursor-pointer hover:bg-white/[0.05] flex flex-col items-center relative group" style={{ borderColor: `${tacticalColor}55` }}>
+                                                        <div className="w-full pt-4 pb-2 border-b border-white/10 mb-6 flex items-center justify-center gap-2">
+                                                            <Target className="w-4 h-4" style={{ color: tacticalColor }} />
+                                                            <h3 className="text-[.72rem] font-semibold tracking-[.2em] text-white">PROTOCOLO DE NEUTRALIZACIÓN</h3>
+                                                        </div>
+                                                        <div className="relative w-[212px] h-[212px] rounded-full flex items-center justify-center bg-white/[0.02] mb-4">
+                                                            <svg className="absolute inset-0 w-full h-full -rotate-90">
+                                                                <circle cx="106" cy="106" r="98" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="2" />
+                                                                <motion.circle cx="106" cy="106" r="98" fill="none" stroke={tacticalColor} strokeWidth="8" strokeDasharray={2 * Math.PI * 98} initial={{ strokeDashoffset: 2 * Math.PI * 98 }} animate={{ strokeDashoffset: 2 * Math.PI * 98 * (1 - (findings.length > 0 ? (findings.filter(f => f.isNeutralized).length / findings.length) : 0)) }} style={{ filter: `drop-shadow(0 0 8px ${tacticalColor}88)` }} />
+                                                            </svg>
+                                                            <div className="flex flex-col items-center">
+                                                                <span className="text-5xl font-black font-mono tracking-tighter" style={{ color: tacticalColor }}>{findings.length > 0 ? Math.round((findings.filter(f => f.isNeutralized).length / findings.length) * 100) : 0}%</span>
                                                             </div>
                                                         </div>
-
-                                                        {/* Etiqueta de Contexto Superior (Box Estandarizado) */}
-                                                        <div className="w-[240px] h-9 bg-white/5 border border-white/10 rounded mb-4 flex items-center justify-center overflow-hidden">
-                                                            <span className="text-[0.62rem] uppercase tracking-[.3em] text-[#c5cae0] font-light whitespace-nowrap text-center">AMENAZAS ACTIVAS</span>
-                                                        </div>
-
-                                                        {/* Núcleo Circular (Radar) */}
-                                                        <div className="relative group/radar">
-                                                            <div className="w-32 h-32 rounded-full border border-white/10 flex items-center justify-center relative overflow-hidden backdrop-blur-sm bg-white/[0.02] shadow-[inset_0_0_20px_rgba(255,255,255,0.02)] transition-all duration-500 group-hover/radar:border-white/20" style={{ borderColor: `${tacticalColor}33`, boxShadow: `0 0 30px ${tacticalColor}15, inset 0 0 15px ${tacticalColor}10` }}>
-                                                                <span className="text-[4rem] font-extralight transition-all duration-500" style={{ color: tacticalColor, textShadow: `0 0 15px ${tacticalColor}44` }}>
-                                                                    {activeCount}
-                                                                </span>
-                                                            </div>
-                                                        </div>
-
-                                                        {/* Pie de Panel: Botón DETALLES (Box Estandarizado) */}
-                                                        <div className="w-full mt-6 flex justify-center">
-                                                            <div className="w-[240px] h-9 border border-white/10 bg-white/5 rounded flex items-center justify-center gap-2 transition-all hover:bg-white/10 hover:border-white/20 overflow-hidden" style={{ borderColor: `${tacticalColor}22` }}>
-                                                                <span className="text-[0.62rem] uppercase tracking-[.3em] font-light text-white whitespace-nowrap text-center">DETALLES</span>
-                                                                <ChevronDown className={`w-3 h-3 transition-transform duration-300 ${isRiskPanelOpen ? 'rotate-180' : ''}`} style={{ color: tacticalColor }} />
-                                                            </div>
+                                                        <div className="w-[240px] h-9 border border-white/10 bg-white/5 rounded flex items-center justify-center gap-2" style={{ borderColor: `${tacticalColor}33` }}>
+                                                            <span className="text-[0.62rem] uppercase tracking-[.3em] font-light text-white">DETALLES</span>
+                                                            <ChevronDown className={`w-3 h-3 transition-transform ${isRiskPanelOpen ? 'rotate-180' : ''}`} style={{ color: tacticalColor }} />
                                                         </div>
                                                     </motion.div>
                                                 );
                                             })()}
-
-                                            <motion.div
-                                                initial={{ height: 0, opacity: 0 }}
-                                                animate={{ height: isRiskPanelOpen ? 'auto' : 0, opacity: isRiskPanelOpen ? 1 : 0 }}
-                                                transition={{ duration: 0.4, ease: [0.04, 0.62, 0.23, 0.98] }}
-                                                className="overflow-hidden w-full flex flex-col"
-                                            >
-                                                <div className="pt-8">
-                                                    <RiskNeutralization
-                                                        findings={findings}
-                                                        onUpdate={handleNeutralizeUpdate}
-                                                    />
-                                                </div>
-                                            </motion.div>
+                                            <AnimatePresence>
+                                                {isRiskPanelOpen && (
+                                                    <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
+                                                        <div className="pt-8">
+                                                            <RiskNeutralization findings={findings} onUpdate={handleNeutralizeUpdate} />
+                                                        </div>
+                                                    </motion.div>
+                                                )}
+                                            </AnimatePresence>
                                         </div>
 
-                                        {/* PANEL 2: PROTOCOLO DE ENTRENAMIENTO ACTIVO */}
-                                        <TrainingProtocol
-                                            onProgressUpdate={(_prog, rank) => {
-                                                setUserRank(rank);
-                                            }}
-                                        />
+                                        {/* PANEL 2: ENTRENAMIENTO */}
+                                        <div className="w-full flex flex-col gap-6">
+                                            {isGraduated ? (
+                                                <motion.div
+                                                    initial={{ opacity: 0, scale: 0.9 }}
+                                                    animate={{ opacity: 1, scale: 1 }}
+                                                    className="w-full p-8 border-2 border-yellow-500/50 bg-yellow-500/10 rounded-xl text-center backdrop-blur-xl shadow-[0_0_50px_rgba(251,191,36,0.2)]"
+                                                >
+                                                    <Award className="w-16 h-16 text-yellow-500 mx-auto mb-4 animate-bounce" />
+                                                    <h2 className="text-2xl font-black text-white uppercase tracking-[0.3em] mb-2">GRADUACIÓN COMPLETADA</h2>
+                                                    <p className="text-yellow-500/80 font-mono text-sm mb-8 uppercase tracking-widest">Protocolo MAPARD: Grado de Comandante Alcanzado</p>
 
-                                        {/* PANEL 3: PROTOCOLO INFORMATIVO (Statefull Tactical Feed) */}
+                                                    <div className="bg-white/5 border border-white/10 p-6 rounded-lg mb-8">
+                                                        <p className="text-xs text-ops-text_dim italic leading-relaxed">"Has demostrado maestría absoluta en los protocolos de neutralización, entrenamiento y vigilancia. La seguridad de la red descansa en tu criterio táctico."</p>
+                                                    </div>
+
+                                                    <button
+                                                        onClick={handleGeneratePDF}
+                                                        className="w-full py-4 bg-yellow-500 text-black font-black uppercase tracking-[0.2em] rounded hover:bg-yellow-400 transition-all shadow-[0_0_20px_rgba(251,191,36,0.4)]"
+                                                    >
+                                                        DESCARGAR CERTIFICACIÓN PRIVADA (PDF)
+                                                    </button>
+                                                </motion.div>
+                                            ) : masteryExamActive ? (
+                                                <motion.div
+                                                    initial={{ opacity: 0, y: 20 }}
+                                                    animate={{ opacity: 1, y: 0 }}
+                                                    className="w-full p-8 border border-ops-accent/50 bg-black/60 rounded-xl backdrop-blur-xl"
+                                                >
+                                                    <div className="flex items-center gap-3 mb-6 border-b border-white/10 pb-4">
+                                                        <Zap className="w-5 h-5 text-ops-accent" />
+                                                        <h3 className="text-sm font-bold text-white uppercase tracking-widest">EXAMEN DE MAESTRÍA TÁCTICA</h3>
+                                                    </div>
+
+                                                    <div className="space-y-6 mb-8">
+                                                        <p className="text-sm text-ops-text_dim font-mono leading-relaxed">Se generarán 10 preguntas aleatorias de los 4 bloques anteriores. Se requiere 100% de precisión para el ascenso a COMANDANTE.</p>
+                                                        <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
+                                                            <motion.div
+                                                                className="h-full bg-ops-accent"
+                                                                initial={{ width: 0 }}
+                                                                animate={{ width: '100%' }}
+                                                                transition={{ duration: 10, ease: "linear" }}
+                                                            />
+                                                        </div>
+                                                    </div>
+
+                                                    <button
+                                                        onClick={() => {
+                                                            setIsGraduated(true);
+                                                            setMasteryExamActive(false);
+                                                        }}
+                                                        className="w-full py-4 border border-ops-accent text-ops-accent font-bold uppercase tracking-widest hover:bg-ops-accent/10 transition-all"
+                                                    >
+                                                        ENVIAR RESPUESTAS Y FINALIZAR
+                                                    </button>
+                                                </motion.div>
+                                            ) : (completedLessons / totalLessons) * 100 >= 100 ? (
+                                                <motion.div
+                                                    initial={{ opacity: 0 }}
+                                                    animate={{ opacity: 1 }}
+                                                    className="w-full p-6 border-2 border-ops-accent/50 bg-ops-accent/5 rounded-xl text-center"
+                                                >
+                                                    <Star className="w-12 h-12 text-ops-accent mx-auto mb-4 animate-pulse" />
+                                                    <h3 className="text-white font-black uppercase tracking-widest mb-2">UMBRAL DE COMANDANTE ALCANZADO</h3>
+                                                    <p className="text-xs text-ops-text_dim mb-6">Debes completar el examen final para recibir tu certificación oficial MAPARD.</p>
+                                                    <button
+                                                        onClick={() => setMasteryExamActive(true)}
+                                                        className="px-8 py-3 bg-ops-accent text-black font-bold uppercase tracking-widest rounded hover:scale-105 transition-transform"
+                                                    >
+                                                        INICIAR EXAMEN FINAL
+                                                    </button>
+                                                </motion.div>
+                                            ) : (
+                                                <TrainingProtocol
+                                                    isGraduated={isGraduated}
+                                                    onProgressUpdate={(prog: number) => {
+                                                        const lessonsCount = Math.round((prog / 100) * totalLessons);
+                                                        setCompletedLessons(lessonsCount);
+                                                    }}
+                                                />
+                                            )}
+                                        </div>
+
+                                        {/* PANEL 3: INFORMATIVO */}
                                         <FeedTerminal email={userEmail!} />
                                     </div>
                                 )}

@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Shield, Lock, CheckCircle, ChevronDown, Award, Star, Target, Zap } from 'lucide-react';
+import { Shield, Lock, CheckCircle, ChevronDown, Award, Star, Target } from 'lucide-react';
 
 interface Lesson {
     id: string;
@@ -39,7 +39,7 @@ const CURRICULUM: Block[] = [
     {
         id: 2,
         name: "El Arte del Engaño",
-        rank: "CABO",
+        rank: "SOLDADO",
         lessons: [
             { id: "2-1", week: 13, title: "Phishing: Identificación de Fraude" },
             { id: "2-2", week: 14, title: "Smishing y Vishing" },
@@ -58,7 +58,7 @@ const CURRICULUM: Block[] = [
     {
         id: 3,
         name: "Privacidad y Datos",
-        rank: "SARGENTO",
+        rank: "CABO",
         lessons: [
             { id: "3-1", week: 25, title: "Huella Digital: Rastro de Datos" },
             { id: "3-2", week: 26, title: "Cookies y Rastreadores" },
@@ -77,7 +77,7 @@ const CURRICULUM: Block[] = [
     {
         id: 4,
         name: "Conceptos Avanzados",
-        rank: "OFICIAL DE ÉLITE",
+        rank: "SARGENTO",
         lessons: [
             { id: "4-1", week: 37, title: "¿Qué es un Firewall?" },
             { id: "4-2", week: 38, title: "Dark Web vs Deep Web" },
@@ -97,36 +97,38 @@ const CURRICULUM: Block[] = [
 
 interface TrainingProtocolProps {
     onProgressUpdate?: (progress: number, rank: string) => void;
+    isGraduated?: boolean;
 }
 
-const TrainingProtocol: React.FC<TrainingProtocolProps> = ({ onProgressUpdate }) => {
+const TrainingProtocol: React.FC<TrainingProtocolProps> = ({ onProgressUpdate, isGraduated }) => {
     const [activeBlock, setActiveBlock] = useState(1);
     const [completedLessons, setCompletedLessons] = useState<string[]>([]);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
-    const [showExam, setShowExam] = useState<string | null>(null);
 
-    // Mock progress calculation
     const totalLessons = 48;
     const progress = (completedLessons.length / totalLessons) * 100;
 
-    const getCurrentRank = useCallback(() => {
-        if (completedLessons.length >= 48) return "OFICIAL DE ÉLITE";
-        if (completedLessons.length >= 36) return "SARGENTO";
-        if (completedLessons.length >= 24) return "CABO";
-        if (completedLessons.length >= 12) return "RECLUTA AVANZADO";
-        return "RECLUTA";
-    }, [completedLessons.length]);
+    // Gamificación Táctica (Fase 10)
+    const getRankData = (prog: number) => {
+        if (isGraduated) return { name: 'COMANDANTE SUPREMO', color: '#fbbf24', glow: 'rgba(251, 191, 36, 0.6)', icon: 'Award' };
+        if (prog >= 100) return { name: 'ASPIRANTE A COMANDANTE', color: '#10b981', glow: 'rgba(16, 185, 129, 0.5)', icon: 'Award' };
+        if (prog > 60) return { name: 'SARGENTO', color: '#22d3ee', glow: 'rgba(34, 211, 238, 0.4)', icon: 'Star' };
+        if (prog > 40) return { name: 'CABO', color: '#facc15', glow: 'rgba(250, 204, 21, 0.4)', icon: 'Target' };
+        if (prog > 20) return { name: 'SOLDADO', color: '#ef4444', glow: '#ef444466', icon: 'Shield' };
+        return { name: 'RECLUTA', color: '#a855f7', glow: 'rgba(168, 85, 247, 0.4)', icon: 'Shield' };
+    };
+
+    const currentRank = getRankData(progress);
 
     useEffect(() => {
         if (onProgressUpdate) {
-            onProgressUpdate(progress, getCurrentRank());
+            onProgressUpdate(progress, currentRank.name);
         }
-    }, [completedLessons, onProgressUpdate, progress, getCurrentRank]);
+    }, [progress, onProgressUpdate, currentRank.name]);
 
     const handleLessonComplete = (lessonId: string) => {
         if (!completedLessons.includes(lessonId)) {
             setCompletedLessons(prev => [...prev, lessonId]);
-            setShowExam(null);
         }
     };
 
@@ -135,130 +137,74 @@ const TrainingProtocol: React.FC<TrainingProtocolProps> = ({ onProgressUpdate })
             <motion.div
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
                 className="w-full border border-[rgba(74,85,120,0.55)] bg-white/[0.03] backdrop-blur-md p-6 rounded cursor-pointer hover:bg-white/[0.05] transition-colors flex flex-col items-center shadow-[0_18px_50px_rgba(0,0,0,0.18)] relative overflow-hidden group"
+                style={{ borderColor: `${currentRank.color}44` }}
                 whileHover={{ scale: 1.005 }}
                 whileTap={{ scale: 0.99 }}
             >
-                {/* Cabecera Táctica */}
+                {/* Cabecera */}
                 <div className="w-full pt-4 pb-2 border-b border-white/10 mb-6 px-6">
                     <div className="flex items-center justify-center gap-2">
-                        <Shield className="w-4 h-4 flex-shrink-0 text-ops-accent" />
+                        <Shield className="w-4 h-4 flex-shrink-0" style={{ color: currentRank.color }} />
                         <h3 className="text-[.72rem] font-semibold tracking-[.2em] text-white uppercase text-center">PROTOCOLO DE ENTRENAMIENTO</h3>
                     </div>
                 </div>
 
-                {/* Status de Rango */}
-                <div className="w-[260px] h-10 bg-white/5 border border-white/10 rounded mb-4 flex items-center px-4 justify-between overflow-hidden relative">
-                    <div className="flex items-center gap-2">
-                        <Star className="w-3 h-3 text-ops-accent" />
-                        <span className="text-[0.62rem] uppercase tracking-[.25em] text-[#c5cae0] font-bold">{getCurrentRank()}</span>
-                    </div>
-                    <span className="text-[0.62rem] font-mono text-ops-accent">{Math.round(progress)}%</span>
-                    <div className="absolute bottom-0 left-0 h-[1px] bg-ops-accent/50 transition-all duration-500" style={{ width: `${progress}%` }}></div>
-                </div>
-
-                {/* Insignia de Grado Dinámica (Reposicionada y Rediseñada) */}
-                {/* Radar de Entrenamiento Central Homologado (212px) */}
-                <div className="relative group/radar mt-4 mb-4">
-                    {/* Insignia de Grado Dinámica (Solapada Absoluta - 44px) */}
-                    <div className="absolute top-0 right-0 -mr-2 -mt-2 z-20">
-                        {(() => {
-                            const rank = getCurrentRank();
-                            const colors: { [key: string]: string } = {
-                                'RECLUTA': 'rgba(138, 159, 202, 0.4)',
-                                'RECLUTA AVANZADO': 'rgba(34, 211, 238, 0.4)',
-                                'CABO': 'rgba(250, 204, 21, 0.4)',
-                                'SARGENTO': 'rgba(251, 146, 60, 0.4)',
-                                'OFICIAL DE ÉLITE': 'rgba(168, 85, 247, 0.5)'
-                            };
-                            const glowColors: { [key: string]: string } = {
-                                'RECLUTA': 'rgba(138, 159, 202, 0.1)',
-                                'RECLUTA AVANZADO': 'rgba(34, 211, 238, 0.1)',
-                                'CABO': 'rgba(250, 204, 21, 0.1)',
-                                'SARGENTO': 'rgba(251, 146, 60, 0.1)',
-                                'OFICIAL DE ÉLITE': 'rgba(168, 85, 247, 0.2)'
-                            };
-
-                            return (
-                                <div className="w-11 h-11 rounded-full bg-ops-bg border flex items-center justify-center shadow-[0_0_15px_rgba(0,0,0,0.5)] backdrop-blur-md transition-all duration-500 hover:scale-110 cursor-help"
-                                    style={{
-                                        borderColor: colors[rank] || colors['RECLUTA'],
-                                        boxShadow: `0 0 10px ${glowColors[rank] || glowColors['RECLUTA']}`
-                                    }}>
-                                    {rank === 'RECLUTA' && <Shield className="w-5 h-5 text-ops-accent opacity-80" />}
-                                    {rank === 'RECLUTA AVANZADO' && <Zap className="w-5 h-5 text-cyan-400 opacity-80" />}
-                                    {rank === 'CABO' && <Target className="w-5 h-5 text-yellow-400 opacity-80" />}
-                                    {rank === 'SARGENTO' && <Star className="w-5 h-5 text-orange-400 opacity-80" />}
-                                    {rank === 'OFICIAL DE ÉLITE' && <Award className="w-5 h-5 text-purple-400 opacity-80" />}
-                                </div>
-                            );
-                        })()}
-                    </div>
-
-                    <div className="w-[212px] h-[212px] rounded-full border border-ops-accent/20 flex flex-col items-center justify-center relative overflow-hidden backdrop-blur-sm bg-white/[0.02] transition-all duration-500 group-hover:border-ops-accent/40 shadow-inner">
-                        <span className="text-[4.5rem] font-extralight text-white leading-none tracking-tighter">
-                            {completedLessons.length}
-                        </span>
-                        <span className="text-[0.6rem] uppercase tracking-[.4em] text-ops-text_dim mt-2">Semanas</span>
-
-                        {/* Progress Ring Overlay (SVG) */}
+                {/* Radar Homologado 212px */}
+                <div className="relative group/radar mb-4">
+                    <div className="w-[212px] h-[212px] rounded-full flex items-center justify-center relative backdrop-blur-sm bg-white/[0.02]">
                         <svg className="absolute inset-0 w-full h-full -rotate-90">
-                            <circle
-                                cx="106" cy="106" r="104"
-                                fill="none"
-                                stroke="rgba(138, 159, 202, 0.05)"
-                                strokeWidth="1"
-                            />
+                            <circle cx="106" cy="106" r="98" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="2" />
                             <motion.circle
-                                cx="106" cy="106" r="104"
-                                fill="none"
-                                stroke="rgba(138, 159, 202, 0.4)"
-                                strokeWidth="4"
-                                strokeDasharray={2 * Math.PI * 104}
-                                initial={{ strokeDashoffset: 2 * Math.PI * 104 }}
-                                animate={{ strokeDashoffset: 2 * Math.PI * 104 * (1 - progress / 100) }}
+                                cx="106" cy="106" r="98" fill="none"
+                                stroke={currentRank.color} strokeWidth="8"
+                                strokeDasharray={2 * Math.PI * 98}
+                                initial={{ strokeDashoffset: 2 * Math.PI * 98 }}
+                                animate={{ strokeDashoffset: 2 * Math.PI * 98 * (1 - (progress / 100)) }}
                                 transition={{ duration: 1.5, ease: "easeOut" }}
                                 strokeLinecap="round"
+                                style={{ filter: `drop-shadow(0 0 8px ${currentRank.color}88)` }}
                             />
                         </svg>
+                        <div className="flex flex-col items-center">
+                            <span className="text-5xl font-black font-mono tracking-tighter" style={{ color: currentRank.color, textShadow: `0 0 20px ${currentRank.glow}` }}>
+                                {Math.round(progress)}%
+                            </span>
+                            <span className="text-[10px] text-white/40 uppercase tracking-[0.2em] font-bold mt-1">Status</span>
+                        </div>
+                        {/* Insignia Dinámica */}
+                        <div className="absolute top-0 right-0 -mr-2 -mt-2 z-20 transition-transform duration-500 group-hover/radar:scale-110">
+                            <div className="w-12 h-12 rounded-full bg-ops-bg border-2 flex items-center justify-center shadow-xl backdrop-blur-md"
+                                style={{ borderColor: currentRank.color, boxShadow: `0 0 15px ${currentRank.glow}` }}>
+                                {currentRank.icon === 'Shield' && <Shield className="w-6 h-6" style={{ color: currentRank.color }} />}
+                                {currentRank.icon === 'Target' && <Target className="w-6 h-6" style={{ color: currentRank.color }} />}
+                                {currentRank.icon === 'Star' && <Star className="w-6 h-6" style={{ color: currentRank.color }} />}
+                                {currentRank.icon === 'Award' && <Award className="w-6 h-6" style={{ color: currentRank.color }} />}
+                            </div>
+                        </div>
                     </div>
                 </div>
 
                 {/* Botón Detalles */}
-                <div className="w-full mt-8 flex justify-center">
-                    <div className="w-[240px] h-9 border border-white/10 bg-white/5 rounded flex items-center justify-center gap-2 transition-all hover:bg-white/10 overflow-hidden">
-                        <span className="text-[0.62rem] uppercase tracking-[.3em] font-light text-white">DESPLEGAR CURRÍCULO</span>
-                        <ChevronDown className={`w-3 h-3 transition-transform duration-300 ${isMenuOpen ? 'rotate-180' : ''} text-ops-accent`} />
+                <div className="w-full mt-6 flex justify-center">
+                    <div className="w-[240px] h-9 border border-white/10 bg-white/5 rounded flex items-center justify-center gap-2 transition-all hover:bg-white/10 overflow-hidden"
+                        style={{ borderColor: `${currentRank.color}33` }}>
+                        <span className="text-[0.62rem] uppercase tracking-[.3em] font-light text-white whitespace-nowrap">DETALLES CURRICULARES</span>
+                        <ChevronDown className={`w-3 h-3 transition-transform duration-300 ${isMenuOpen ? 'rotate-180' : ''}`} style={{ color: currentRank.color }} />
                     </div>
                 </div>
             </motion.div>
 
-            {/* Panel de Lecciones Expandible */}
             <AnimatePresence>
                 {isMenuOpen && (
-                    <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: 'auto', opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        className="overflow-hidden w-full"
-                    >
+                    <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden w-full">
                         <div className="pt-6 flex flex-col gap-6">
-                            {/* Bloques Trimestrales (Tabs) */}
                             <div className="grid grid-cols-4 gap-2 px-1">
                                 {CURRICULUM.map(block => (
-                                    <button
-                                        key={block.id}
-                                        onClick={() => setActiveBlock(block.id)}
-                                        className={`py-2 rounded border text-[10px] uppercase tracking-tighter transition-all ${activeBlock === block.id
-                                            ? 'bg-ops-accent/20 border-ops-accent text-white font-bold'
-                                            : 'bg-white/5 border-white/10 text-ops-text_dim'
-                                            }`}
-                                    >
+                                    <button key={block.id} onClick={(e) => { e.stopPropagation(); setActiveBlock(block.id); }} className={`py-2 rounded border text-[10px] uppercase tracking-tighter transition-all ${activeBlock === block.id ? 'bg-ops-accent/20 border-ops-accent text-white font-bold' : 'bg-white/5 border-white/10 text-ops-text_dim'}`}>
                                         B{block.id}
                                     </button>
                                 ))}
                             </div>
-
-                            {/* Detalle del Bloque Activo */}
                             <div className="flex flex-col gap-3">
                                 <div className="flex justify-between items-end px-2 border-l-2 border-ops-accent pl-4">
                                     <div className="flex flex-col">
@@ -267,105 +213,23 @@ const TrainingProtocol: React.FC<TrainingProtocolProps> = ({ onProgressUpdate })
                                     </div>
                                     <span className="text-[10px] text-ops-text_dim/60 font-mono">SEMANAS {CURRICULUM[activeBlock - 1].lessons[0].week}-{CURRICULUM[activeBlock - 1].lessons[11].week}</span>
                                 </div>
-
-                                {/* Grid de Lecciones (Matte Tactical Style) */}
                                 <div className="grid grid-cols-1 gap-2 mt-2">
                                     {CURRICULUM[activeBlock - 1].lessons.map((lesson, idx) => {
                                         const isCompleted = completedLessons.includes(lesson.id);
-                                        // A lesson is unlocked if it's the first one, or the previous one is completed
-                                        const isUnlocked = idx === 0 && activeBlock === 1
-                                            ? true
-                                            : completedLessons.length >= (activeBlock - 1) * 12 + idx;
-
+                                        const isUnlocked = idx === 0 && activeBlock === 1 ? true : completedLessons.length >= (activeBlock - 1) * 12 + idx;
                                         return (
-                                            <div
-                                                key={lesson.id}
-                                                onClick={() => isUnlocked && !isCompleted && setShowExam(lesson.id)}
-                                                className={`p-4 border rounded flex items-center justify-between transition-all group ${isCompleted
-                                                    ? 'bg-ops-accent/5 border-ops-accent/30 opacity-100 hover:bg-ops-accent/10 cursor-default'
-                                                    : isUnlocked
-                                                        ? 'bg-white/[0.03] border-white/10 opacity-100 hover:border-ops-accent/50 cursor-pointer'
-                                                        : 'bg-black/20 border-white/5 opacity-40 cursor-not-allowed'
-                                                    }`}
-                                            >
+                                            <div key={lesson.id} onClick={(e) => { e.stopPropagation(); if (isUnlocked && !isCompleted) handleLessonComplete(lesson.id); }} className={`p-4 border rounded flex items-center justify-between transition-all ${isCompleted ? 'bg-ops-success/10 border-ops-success/30' : isUnlocked ? 'bg-white/5 border-white/10 hover:border-ops-accent/40' : 'bg-black/20 border-white/5 opacity-50 cursor-not-allowed'}`}>
                                                 <div className="flex items-center gap-4">
-                                                    <div className="w-8 h-8 rounded border border-white/10 flex items-center justify-center font-mono text-[10px] text-ops-text_dim group-hover:border-ops-accent/50 group-hover:text-white transition-colors">
-                                                        {lesson.week}
-                                                    </div>
-                                                    <div className="flex flex-col gap-0.5">
-                                                        <span className={`text-xs font-bold leading-tight ${isCompleted ? 'text-ops-accent' : isUnlocked ? 'text-white' : 'text-ops-text_dim'}`}>
-                                                            {lesson.title}
-                                                        </span>
-                                                        <span className="text-[9px] uppercase tracking-widest text-ops-text_dim/60">
-                                                            S{lesson.week} • EVALUACIÓN TÁCTICA
-                                                        </span>
-                                                    </div>
+                                                    <span className="text-[10px] font-mono text-ops-text_dim/40 w-6">{lesson.week}</span>
+                                                    <span className={`text-xs uppercase tracking-wide font-medium ${isCompleted ? 'text-ops-success' : 'text-white/80'}`}>{lesson.title}</span>
                                                 </div>
-
-                                                <div className="flex items-center">
-                                                    {isCompleted ? (
-                                                        <CheckCircle className="w-4 h-4 text-ops-accent" />
-                                                    ) : isUnlocked ? (
-                                                        <Zap className="w-4 h-4 text-ops-accent/40 group-hover:text-ops-accent group-hover:animate-pulse transition-all" />
-                                                    ) : (
-                                                        <Lock className="w-3.5 h-3.5 text-white/20" />
-                                                    )}
-                                                </div>
+                                                {isCompleted ? <CheckCircle className="w-4 h-4 text-ops-success" /> : !isUnlocked ? <Lock className="w-3.5 h-3.5 text-white/20" /> : <div className="w-4 h-4 rounded-full border border-white/20" />}
                                             </div>
                                         );
                                     })}
                                 </div>
                             </div>
                         </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
-
-            {/* Modal de Examen Gamificado (The Scorpion Test) */}
-            <AnimatePresence>
-                {showExam && (
-                    <motion.div
-                        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-50 flex items-center justify-center p-6 backdrop-blur-xl bg-black/80"
-                    >
-                        <motion.div
-                            initial={{ scale: 0.9, y: 20 }}
-                            animate={{ scale: 1, y: 0 }}
-                            className="w-full max-w-md bg-[#0a0e27] border border-ops-accent rounded p-8 shadow-[0_0_100px_rgba(138,159,202,0.15)] relative overflow-hidden"
-                        >
-                            {/* Scanline overlay */}
-                            <div className="absolute inset-0 pointer-events-none opacity-5 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.5)_50%)] bg-[length:100%_4px]"></div>
-
-                            <div className="relative z-10 flex flex-col items-center text-center">
-                                <div className="w-16 h-16 rounded-full border-2 border-ops-accent flex items-center justify-center mb-6">
-                                    <Target className="w-8 h-8 text-ops-accent animate-pulse" />
-                                </div>
-
-                                <span className="text-[10px] font-mono text-ops-accent tracking-[.3em] uppercase mb-2">Evaluación del Operador</span>
-                                <h2 className="text-xl font-bold text-white uppercase tracking-tight mb-4">Misión de Validación S{showExam.split('-')[1]}</h2>
-
-                                <div className="w-full bg-white/5 border border-white/10 rounded p-6 mb-8 text-left">
-                                    <p className="text-sm text-ops-text_secondary leading-relaxed italic">
-                                        "Para desbloquear el siguiente nivel, debes demostrar dominio total sobre el tema. Un error corromperá la conexión."
-                                    </p>
-                                </div>
-
-                                <div className="flex flex-col w-full gap-3">
-                                    <button
-                                        onClick={() => handleLessonComplete(showExam)}
-                                        className="w-full py-4 bg-ops-accent text-ops-bg font-bold uppercase tracking-[.2em] text-xs rounded hover:bg-white transition-all shadow-lg"
-                                    >
-                                        INICIAR EXAMEN (3/3)
-                                    </button>
-                                    <button
-                                        onClick={() => setShowExam(null)}
-                                        className="w-full py-4 border border-white/10 text-ops-text_dim font-bold uppercase tracking-[.2em] text-xs rounded hover:border-white transition-all"
-                                    >
-                                        ABORTAR MISIÓN
-                                    </button>
-                                </div>
-                            </div>
-                        </motion.div>
                     </motion.div>
                 )}
             </AnimatePresence>

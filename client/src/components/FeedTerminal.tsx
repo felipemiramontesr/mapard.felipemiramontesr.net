@@ -107,12 +107,34 @@ const FeedTerminal: React.FC<FeedTerminalProps> = ({ email }) => {
                     <span className="text-[0.62rem] uppercase tracking-[.3em] text-[#c5cae0] font-light whitespace-nowrap text-center">ALERTAS GLOBALES</span>
                 </div>
 
-                {/* Núcleo Circular (Radar) */}
-                <div className="relative group/radar">
-                    <div className={`w-32 h-32 rounded-full border ${feed.length > 0 ? 'border-ops-warning/30' : 'border-white/10'} flex items-center justify-center relative overflow-hidden backdrop-blur-sm bg-white/[0.02] transition-all duration-500 group-hover/radar:border-white/20`} style={feed.length > 0 ? { boxShadow: `0 0 30px rgba(255,170,0,0.15), inset 0 0 15px rgba(255,170,0,0.1)` } : {}}>
-                        <span className={`text-[4rem] font-extralight transition-all duration-500 ${feed.length > 0 ? 'text-ops-warning' : 'text-[#6b7490]'}`} style={feed.length > 0 ? { textShadow: `0 0 15px rgba(255,170,0,0.4)` } : {}}>
-                            {feed.length}
-                        </span>
+                {/* Núcleo Circular (Radar 212px - Homologado) */}
+                <div className="relative group/radar mb-4">
+                    <div className="w-[212px] h-[212px] rounded-full flex items-center justify-center relative backdrop-blur-sm bg-white/[0.02]">
+                        <svg className="absolute inset-0 w-full h-full -rotate-90">
+                            <circle
+                                cx="106" cy="106" r="98"
+                                fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="2"
+                            />
+                            <motion.circle
+                                cx="106" cy="106" r="98"
+                                fill="none"
+                                stroke="#fb923c"
+                                strokeWidth="8"
+                                strokeDasharray={2 * Math.PI * 98}
+                                initial={{ strokeDashoffset: 2 * Math.PI * 98 }}
+                                animate={{ strokeDashoffset: 2 * Math.PI * 98 * (1 - (feed.length > 0 ? 0.35 : 0)) }}
+                                transition={{ duration: 1.5, ease: "easeOut" }}
+                                strokeLinecap="round"
+                                style={{ filter: 'drop-shadow(0 0 8px rgba(251, 146, 60, 0.5))' }}
+                            />
+                        </svg>
+
+                        <div className="flex flex-col items-center">
+                            <span className={`text-5xl font-black transition-all duration-500 font-mono tracking-tighter ${feed.length > 0 ? 'text-orange-400' : 'text-[#6b7490]'}`} style={feed.length > 0 ? { textShadow: `0 0 20px rgba(251, 146, 60, 0.4)` } : {}}>
+                                {feed.length}
+                            </span>
+                            <span className="text-[10px] text-white/40 uppercase tracking-[0.2em] font-bold mt-1">Alertas</span>
+                        </div>
                     </div>
                 </div>
 
