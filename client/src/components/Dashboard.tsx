@@ -302,7 +302,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onRankUpdate }) => {
         if (onRankUpdate) {
             onRankUpdate(currentRank);
         }
-    }, [currentRank.name, currentRank.color, onRankUpdate]);
+    }, [currentRank, onRankUpdate]);
 
     // --- UI HELPERS ---
     const addLog = (message: string, type: Log['type'] = 'info') => {
@@ -386,14 +386,6 @@ const Dashboard: React.FC<DashboardProps> = ({ onRankUpdate }) => {
         }
     };
 
-    const getTacticalColor = (active: number, total: number) => {
-        if (total === 0) return '#22d3ee';
-        const percent = (active / total) * 100;
-        if (percent === 0) return '#10b981';
-        if (percent < 30) return '#facc15';
-        if (percent < 60) return '#fb923c';
-        return '#ef4444';
-    };
 
     async function performHardwareChallenge(): Promise<boolean> {
         return new Promise((resolve) => {
