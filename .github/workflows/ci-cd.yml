@@ -17,9 +17,7 @@ jobs:
   # ------------------------------------------------------------------
   quality-backend:
     name: 🐘 Backend Quality (PHPUnit/PHPCS)
-    runs-on: ubuntu-latest
-    env:
-      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v6
       with:
@@ -27,8 +25,6 @@ jobs:
     
     - name: Setup PHP
       uses: shivammathur/setup-php@v2
-      env:
-        FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
       with:
         php-version: '8.2'
         extensions: mbstring, intl, gd, xml, dom, json, fileinfo, curl, zip
@@ -56,9 +52,7 @@ jobs:
 
   quality-frontend:
     name: ⚛️ Frontend Quality (Build Check)
-    runs-on: ubuntu-latest
-    env:
-      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v6
       with:
@@ -92,9 +86,7 @@ jobs:
   deploy:
     name: 🚀 Deploy to Hostinger
     needs: [quality-backend, quality-frontend] # <--- THE GUARD
-    runs-on: ubuntu-latest
-    env:
-      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+    runs-on: ubuntu-24.04
     if: github.ref == 'refs/heads/main'
     
     steps:
@@ -110,8 +102,6 @@ jobs:
 
       - name: 🐘 Setup PHP
         uses: shivammathur/setup-php@v2
-        env:
-          FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
         with:
           php-version: '8.2'
           extensions: mbstring, intl, gd, xml, dom, json, fileinfo, curl, zip
@@ -181,8 +171,6 @@ jobs:
       # ------------------------------------------------------------------
       - name: 📂 Ship it! (FTP)
         uses: SamKirkland/FTP-Deploy-Action@v4.3.6
-        env:
-          FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
         with:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USER }}
@@ -206,9 +194,7 @@ jobs:
   build-android:
     name: 📱 Build Android APK
     needs: [quality-backend, quality-frontend]
-    runs-on: ubuntu-latest
-    env:
-      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+    runs-on: ubuntu-24.04
     if: github.ref == 'refs/heads/main'
 
     steps:
