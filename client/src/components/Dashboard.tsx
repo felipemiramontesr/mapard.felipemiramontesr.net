@@ -9,6 +9,7 @@ import RescueResetView from './Auth/RescueResetView';
 import FeedTerminal from './FeedTerminal';
 import TrainingProtocol from './TrainingProtocol';
 import { secureStorage } from '../utils/secureStorage';
+import { biometricService } from '../utils/biometricService';
 import { format } from 'date-fns';
 import { ChevronDown, Award, Star, Target, Shield, Fingerprint, Lock, Zap } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -144,9 +145,11 @@ const Dashboard: React.FC<DashboardProps> = ({ onRankUpdate }) => {
                     setIsFirstAnalysisComplete(true);
                     setFindings(data.findings || []);
                     setShowNeutralization(true);
-                    setViewMode('terminal');
+                    setViewMode('terminal'); // <--- FORCE TERMINAL VIEW
 
                     if (data.delta_new) setDeltaNew(data.delta_new);
+                } else {
+                    setViewMode('form'); // Fallback to form for new users
                 }
                 setAuthStep('dashboard');
             } else {
@@ -388,10 +391,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onRankUpdate }) => {
 
 
     async function performHardwareChallenge(): Promise<boolean> {
-        return new Promise((resolve) => {
-            // Simulated biometric success for tactical feel
-            setTimeout(() => resolve(true), 800);
-        });
+        return await biometricService.authenticate('MAPARD SECURITY: Se requiere validación biométrica para acceder al Dossier.');
     }
 
     if (isBiometricLocked) {
@@ -423,12 +423,11 @@ const Dashboard: React.FC<DashboardProps> = ({ onRankUpdate }) => {
                                     setIsBiometricLocked(false);
                                     setFailedAttempts(0);
                                     await secureStorage.remove('biometric_failed_attempts');
-                                    // REFINAMIENTO (Phase 11): Cargar datos tras éxito biométrico
+                                    // REFINAMIENTO (Phase 11): Cargar datos tras éxito biométrico y asegurar ruta
                                     if (userEmail) {
-                                        await loadDashboardData(userEmail);
-                                        setAuthStep('dashboard');
+                                        await loadDashboardData(userEmail); // This sets dashboard state and viewMode
                                     } else {
-                                        setAuthStep('login');
+                                        setAuthStep('dashboard'); // Fallback if no email (unlikely)
                                     }
                                 } else {
                                     const newFails = failedAttempts + 1;
