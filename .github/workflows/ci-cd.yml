@@ -19,16 +19,17 @@ jobs:
     name: 🐘 Backend Quality (PHPUnit/PHPCS)
     runs-on: ubuntu-24.04
     steps:
+    
     - uses: actions/checkout@v6
       with:
         persist-credentials: false
     
-    - name: Setup PHP
-      uses: shivammathur/setup-php@v2
-      with:
-        php-version: '8.2'
-        extensions: mbstring, intl, gd, xml, dom, json, fileinfo, curl, zip
-        coverage: none
+    - name: Setup PHP (Native)
+      run: |
+        sudo add-apt-repository -y ppa:ondrej/php
+        sudo apt-get update
+        sudo apt-get install -y php8.2-cli php8.2-mbstring php8.2-intl php8.2-gd php8.2-xml php8.2-curl php8.2-zip
+        sudo update-alternatives --set php /usr/bin/php8.2
 
     - name: Create Dummy Config (For Testing)
       run: |
@@ -100,12 +101,12 @@ jobs:
         with:
           node-version: 22
 
-      - name: 🐘 Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.2'
-          extensions: mbstring, intl, gd, xml, dom, json, fileinfo, curl, zip
-          coverage: none
+      - name: Setup PHP (Native)
+        run: |
+          sudo add-apt-repository -y ppa:ondrej/php
+          sudo apt-get update
+          sudo apt-get install -y php8.2-cli php8.2-mbstring php8.2-intl php8.2-gd php8.2-xml php8.2-curl php8.2-zip
+          sudo update-alternatives --set php /usr/bin/php8.2
 
       - name: 🔨 Build Frontend
         run: |
@@ -167,26 +168,16 @@ jobs:
           ls -R deploy_package
 
       # ------------------------------------------------------------------
-      # 4. DEPLOY TO HOSTINGER (FTPS)
+      # 4. DEPLOY TO HOSTINGER (LFTP)
       # ------------------------------------------------------------------
-      - name: 📂 Ship it! (FTP)
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.6
-        with:
-          server: ${{ secrets.FTP_SERVER }}
-          username: ${{ secrets.FTP_USER }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          local-dir: ./deploy_package/
-          server-dir: ./
-          protocol: ftp 
-          port: 21
-          timeout: 600000 # 10 minutes
-          log-level: verbose
-          security: loose
-          state-name: .ftp-deploy-sync-force-v1.json
-          dry-run: false        
-          exclude: |
-            **/.git*
-            **/node_modules/**
+      - name: 📂 Ship it! (lftp)
+        env:
+          FTP_SERVER: ${{ secrets.FTP_SERVER }}
+          FTP_USER: ${{ secrets.FTP_USER }}
+          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+        run: |
+          sudo apt-get update && sudo apt-get install -y lftp
+          lftp -e "set ftp:ssl-allow no; open -u $FTP_USER,$FTP_PASSWORD $FTP_SERVER; mirror -R -x \".git*\" -x \"node_modules/*\" deploy_package/ ./; quit"
 
   # ------------------------------------------------------------------
   # STAGE 3: ANDROID BUILD (Parallel)
