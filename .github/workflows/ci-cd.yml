@@ -19,7 +19,7 @@ jobs:
     - uses: actions/checkout@v5
     
     - name: Setup PHP
-      uses: shivammathur/setup-php@v2.36.0
+      uses: shivammathur/setup-php@v2
       env:
         FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
       with:
@@ -94,7 +94,7 @@ jobs:
           node-version: 22
 
       - name: 🐘 Setup PHP
-        uses: shivammathur/setup-php@v2.36.0
+        uses: shivammathur/setup-php@v2
         env:
           FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
         with:
