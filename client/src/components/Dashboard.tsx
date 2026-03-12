@@ -506,22 +506,32 @@ const Dashboard: React.FC<DashboardProps> = ({ onRankUpdate }) => {
                                                 const tacticalColor = currentRank.color; // Homologado (Phase 11)
                                                 return (
                                                     <motion.div onClick={() => setIsRiskPanelOpen(!isRiskPanelOpen)} className="w-full border bg-white/[0.03] p-6 rounded cursor-pointer hover:bg-white/[0.05] flex flex-col items-center relative group" style={{ borderColor: `${tacticalColor}55` }}>
-                                                        <div className="w-full pt-4 pb-2 border-b border-white/10 mb-6 flex items-center justify-center gap-2">
-                                                            <Target className="w-4 h-4" style={{ color: tacticalColor }} />
-                                                            <h3 className="text-[.72rem] font-semibold tracking-[.2em] text-white text-center uppercase">PROTOCOLO DE NEUTRALIZACIÓN</h3>
+                                                        {/* Nivel 1: Título Homologado */}
+                                                        <div className="w-full pt-4 pb-2 border-b border-white/10 mb-6 flex items-center justify-center gap-2 overflow-hidden">
+                                                            <Target className="w-4 h-4 flex-shrink-0" style={{ color: tacticalColor }} />
+                                                            <h3 className="text-[11px] font-bold tracking-[.15em] text-white text-center uppercase whitespace-nowrap">PROTOCOLO DE NEUTRALIZACIÓN</h3>
                                                         </div>
+
+                                                        {/* Nivel 2: Status Box Homologado */}
+                                                        <div className="w-[240px] h-9 bg-white/5 border border-white/10 rounded-sm mb-4 flex items-center justify-center overflow-hidden">
+                                                            <span className="text-[9px] uppercase tracking-[.25em] text-white/70 font-light">ESTATUS OPERATIVO</span>
+                                                        </div>
+
+                                                        {/* Nivel 3: Radar 212px */}
                                                         <div className="relative w-[212px] h-[212px] rounded-full flex items-center justify-center bg-white/[0.02] mb-4">
                                                             <svg className="absolute inset-0 w-full h-full -rotate-90">
                                                                 <circle cx="106" cy="106" r="98" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="2" />
-                                                                <motion.circle cx="106" cy="106" r="98" fill="none" stroke={tacticalColor} strokeWidth="8" strokeDasharray={2 * Math.PI * 98} initial={{ strokeDashoffset: 2 * Math.PI * 98 }} animate={{ strokeDashoffset: 2 * Math.PI * 98 * (1 - (findings.length > 0 ? (findings.filter(f => f.isNeutralized).length / findings.length) : 0)) }} style={{ filter: `drop-shadow(0 0 8px ${tacticalColor}88)` }} />
+                                                                <motion.circle cx="106" cy="106" r="98" fill="none" stroke={tacticalColor} strokeWidth="8" strokeDasharray={2 * Math.PI * 98} initial={{ strokeDashoffset: 2 * Math.PI * 98 }} animate={{ strokeDashoffset: 2 * Math.PI * 98 * (1 - (findings.length > 0 ? (findings.filter(f => f.isNeutralized).length / findings.length) : 0)) }} style={{ filter: `drop-shadow(0 0 8px ${tacticalColor}88)` }} transition={{ duration: 1.5, ease: "easeOut" }} strokeLinecap="round" />
                                                             </svg>
                                                             <div className="flex flex-col items-center">
-                                                                <span className="text-5xl font-black font-mono tracking-tighter" style={{ color: tacticalColor }}>{findings.length > 0 ? Math.round((findings.filter(f => f.isNeutralized).length / findings.length) * 100) : 0}%</span>
+                                                                <span className="text-5xl font-black font-mono tracking-tighter" style={{ color: tacticalColor, textShadow: `0 0 20px ${tacticalColor}66` }}>{findings.length > 0 ? Math.round((findings.filter(f => f.isNeutralized).length / findings.length) * 100) : 0}%</span>
                                                             </div>
                                                         </div>
-                                                        <div className="w-[240px] h-9 border border-white/10 bg-white/5 rounded flex items-center justify-center gap-2" style={{ borderColor: `${tacticalColor}33` }}>
-                                                            <span className="text-[0.62rem] uppercase tracking-[.3em] font-light text-white">DETALLES</span>
-                                                            <ChevronDown className={`w-3 h-3 transition-transform ${isRiskPanelOpen ? 'rotate-180' : ''}`} style={{ color: tacticalColor }} />
+
+                                                        {/* Nivel 4: Botón Detalles Homologado */}
+                                                        <div className="w-[240px] h-9 border border-white/10 bg-white/5 rounded flex items-center justify-center gap-2 transition-all group-hover:bg-white/10" style={{ borderColor: `${tacticalColor}33` }}>
+                                                            <span className="text-[9px] uppercase tracking-[.25em] font-light text-white">DETALLES</span>
+                                                            <ChevronDown className={`w-3 h-3 transition-transform duration-300 ${isRiskPanelOpen ? 'rotate-180' : ''}`} style={{ color: tacticalColor }} />
                                                         </div>
                                                     </motion.div>
                                                 );

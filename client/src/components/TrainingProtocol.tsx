@@ -143,13 +143,18 @@ const TrainingProtocol: React.FC<TrainingProtocolProps> = ({ onProgressUpdate, i
                 whileHover={{ scale: 1.005 }}
                 whileTap={{ scale: 0.99 }}
             >
-                {/* Cabecera */}
-                <div className="w-full pt-4 pb-2 border-b border-white/10 mb-6 flex items-center justify-center gap-2">
+                {/* Nivel 1: Título Homologado */}
+                <div className="w-full pt-4 pb-2 border-b border-white/10 mb-6 flex items-center justify-center gap-2 overflow-hidden">
                     <Shield className="w-4 h-4 flex-shrink-0" style={{ color: themeColor }} />
-                    <h3 className="text-[.72rem] font-semibold tracking-[.2em] text-white uppercase text-center">PROTOCOLO DE ENTRENAMIENTO</h3>
+                    <h3 className="text-[11px] font-bold tracking-[.15em] text-white text-center uppercase whitespace-nowrap">PROTOCOLO DE ENTRENAMIENTO</h3>
                 </div>
 
-                {/* Radar Homologado 212px */}
+                {/* Nivel 2: Status Box Homologado */}
+                <div className="w-[240px] h-9 bg-white/5 border border-white/10 rounded-sm mb-4 flex items-center justify-center overflow-hidden">
+                    <span className="text-[9px] uppercase tracking-[.25em] text-white/70 font-light">ESTATUS ACADÉMICO</span>
+                </div>
+
+                {/* Nivel 3: Radar 212px */}
                 <div className="relative group/radar mb-4">
                     <div className="w-[212px] h-[212px] rounded-full flex items-center justify-center relative backdrop-blur-sm bg-white/[0.02]">
                         <svg className="absolute inset-0 w-full h-full -rotate-90">
@@ -159,26 +164,25 @@ const TrainingProtocol: React.FC<TrainingProtocolProps> = ({ onProgressUpdate, i
                                 stroke={currentRank.color} strokeWidth="8"
                                 strokeDasharray={2 * Math.PI * 98}
                                 initial={{ strokeDashoffset: 2 * Math.PI * 98 }}
-                            animate={{ strokeDashoffset: 2 * Math.PI * 98 * (1 - (progress / 100)) }}
-                            transition={{ duration: 1.5, ease: "easeOut" }}
-                            strokeLinecap="round"
-                            style={{ filter: `drop-shadow(0 0 8px ${themeColor}88)` }}
-                        />
-                    </svg>
-                    <div className="flex flex-col items-center">
-                        <span className="text-5xl font-black font-mono tracking-tighter" style={{ color: themeColor, textShadow: `0 0 20px ${currentRank.glow}` }}>
-                            {Math.round(progress)}%
-                        </span>
-                        <span className="text-[10px] text-white/40 uppercase tracking-[0.2em] font-bold mt-1">Status</span>
+                                animate={{ strokeDashoffset: 2 * Math.PI * 98 * (1 - (progress / 100)) }}
+                                transition={{ duration: 1.5, ease: "easeOut" }}
+                                strokeLinecap="round"
+                                style={{ filter: `drop-shadow(0 0 8px ${themeColor}88)` }}
+                            />
+                        </svg>
+                        <div className="flex flex-col items-center">
+                            <span className="text-5xl font-black font-mono tracking-tighter" style={{ color: themeColor, textShadow: `0 0 20px ${currentRank.glow}` }}>
+                                {Math.round(progress)}%
+                            </span>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-                {/* Botón Detalles */}
+                {/* Nivel 4: Botón Detalles Homologado */}
                 <div className="w-full mt-6 flex justify-center">
                     <div className="w-[240px] h-9 border border-white/10 bg-white/5 rounded flex items-center justify-center gap-2 transition-all hover:bg-white/10 overflow-hidden"
                         style={{ borderColor: `${themeColor}33` }}>
-                        <span className="text-[0.62rem] uppercase tracking-[.3em] font-light text-white whitespace-nowrap">DETALLES CURRICULARES</span>
+                        <span className="text-[9px] uppercase tracking-[.25em] font-light text-white">DETALLES CURRICULARES</span>
                         <ChevronDown className={`w-3 h-3 transition-transform duration-300 ${isMenuOpen ? 'rotate-180' : ''}`} style={{ color: themeColor }} />
                     </div>
                 </div>

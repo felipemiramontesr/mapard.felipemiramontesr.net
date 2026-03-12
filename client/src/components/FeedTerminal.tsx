@@ -96,18 +96,18 @@ const FeedTerminal: React.FC<FeedTerminalProps> = ({ email, tacticalColor }) => 
                 whileHover={{ scale: 1.005 }}
                 whileTap={{ scale: 0.99 }}
             >
-                {/* Cabecera con Título y Línea Centrada (Phase 11) */}
-                <div className="w-full pt-4 pb-2 border-b border-white/10 mb-6 flex items-center justify-center gap-2">
+                {/* Nivel 1: Título Homologado */}
+                <div className="w-full pt-4 pb-2 border-b border-white/10 mb-6 flex items-center justify-center gap-2 overflow-hidden">
                     <Globe className="w-4 h-4 flex-shrink-0" style={{ color: tacticalColor || '#eab308' }} />
-                    <h3 className="text-[.72rem] font-semibold tracking-[.2em] text-white uppercase text-center">INTELIGENCIA TÁCTICA</h3>
+                    <h3 className="text-[11px] font-bold tracking-[.15em] text-white text-center uppercase whitespace-nowrap">INTELIGENCIA TÁCTICA</h3>
                 </div>
 
-                {/* Etiqueta de Contexto Superior (Box Estandarizado) */}
-                <div className="w-[240px] h-9 bg-white/5 border border-white/10 rounded mb-4 flex items-center justify-center overflow-hidden">
-                    <span className="text-[0.62rem] uppercase tracking-[.3em] text-[#c5cae0] font-light whitespace-nowrap text-center">ALERTAS GLOBALES</span>
+                {/* Nivel 2: Status Box Homologado */}
+                <div className="w-[240px] h-9 bg-white/5 border border-white/10 rounded-sm mb-4 flex items-center justify-center overflow-hidden">
+                    <span className="text-[9px] uppercase tracking-[.25em] text-white/70 font-light text-center">ALERTAS GLOBALES</span>
                 </div>
 
-                {/* Núcleo Circular (Radar 212px - Homologado) */}
+                {/* Nivel 3: Radar 212px (Color Sincronizado) */}
                 <div className="relative group/radar mb-4">
                     <div className="w-[212px] h-[212px] rounded-full flex items-center justify-center relative backdrop-blur-sm bg-white/[0.02]">
                         <svg className="absolute inset-0 w-full h-full -rotate-90">
@@ -118,31 +118,30 @@ const FeedTerminal: React.FC<FeedTerminalProps> = ({ email, tacticalColor }) => 
                             <motion.circle
                                 cx="106" cy="106" r="98"
                                 fill="none"
-                                stroke="#fb923c"
+                                stroke={tacticalColor || '#fb923c'}
                                 strokeWidth="8"
                                 strokeDasharray={2 * Math.PI * 98}
                                 initial={{ strokeDashoffset: 2 * Math.PI * 98 }}
                                 animate={{ strokeDashoffset: 2 * Math.PI * 98 * (1 - (feed.length > 0 ? 0.35 : 0)) }}
                                 transition={{ duration: 1.5, ease: "easeOut" }}
                                 strokeLinecap="round"
-                                style={{ filter: 'drop-shadow(0 0 8px rgba(251, 146, 60, 0.5))' }}
+                                style={{ filter: `drop-shadow(0 0 8px ${tacticalColor || '#fb923c'}88)` }}
                             />
                         </svg>
 
                         <div className="flex flex-col items-center">
-                            <span className={`text-5xl font-black transition-all duration-500 font-mono tracking-tighter ${feed.length > 0 ? 'text-orange-400' : 'text-[#6b7490]'}`} style={feed.length > 0 ? { textShadow: `0 0 20px rgba(251, 146, 60, 0.4)` } : {}}>
+                            <span className="text-5xl font-black font-mono tracking-tighter" style={{ color: tacticalColor || '#fb923c', textShadow: `0 0 20px ${tacticalColor || '#fb923c'}66` }}>
                                 {feed.length}
                             </span>
-                            <span className="text-[10px] text-white/40 uppercase tracking-[0.2em] font-bold mt-1">Alertas</span>
                         </div>
                     </div>
                 </div>
 
-                {/* Pie de Panel: Botón DETALLES (Box Estandarizado) */}
+                {/* Nivel 4: Botón Detalles Homologado */}
                 <div className="w-full mt-6 flex justify-center">
-                    <div className="w-[240px] h-9 border border-white/10 bg-white/5 rounded flex items-center justify-center gap-2 transition-all hover:bg-white/10 hover:border-white/20 overflow-hidden" style={{ borderColor: 'rgba(255,170,0,0.2)' }}>
-                        <span className="text-[0.62rem] uppercase tracking-[.3em] font-light text-white whitespace-nowrap text-center">DETALLES</span>
-                        <ChevronDown className={`w-3 h-3 transition-transform duration-300 ${isFeedOpen ? 'rotate-180' : ''} text-ops-warning`} />
+                    <div className="w-[240px] h-9 border border-white/10 bg-white/5 rounded flex items-center justify-center gap-2 transition-all hover:bg-white/10 overflow-hidden" style={{ borderColor: `${tacticalColor || '#eab308'}33` }}>
+                        <span className="text-[9px] uppercase tracking-[.25em] font-light text-white whitespace-nowrap text-center">DETALLES</span>
+                        <ChevronDown className={`w-3 h-3 transition-transform duration-300 ${isFeedOpen ? 'rotate-180' : ''}`} style={{ color: tacticalColor || '#eab308' }} />
                     </div>
                 </div>
             </motion.div>
