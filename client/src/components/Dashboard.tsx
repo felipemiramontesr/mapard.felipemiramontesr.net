@@ -141,7 +141,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onRankUpdate }) => {
             const res = await fetch(`${API_BASE}/api/user/status?email=${email}`, { cache: 'no-store' });
             if (res.ok) {
                 const data = await res.json();
-                if (data.analysis_complete) {
+                if (data.is_first_analysis_complete) {
                     setIsFirstAnalysisComplete(true);
                     setFindings(data.findings || []);
                     setShowNeutralization(true);
