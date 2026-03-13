@@ -30,18 +30,18 @@ const VerificationView: React.FC<VerificationViewProps> = ({ email, onVerify, on
                 <p className="text-[10px] md:text-xs text-ops-text_dim uppercase tracking-widest leading-relaxed">
                     SE HA ENVIADO UN CÓDIGO TÁCTICO AL CORREO DEL OBJETIVO:
                     <br />
-                    <span className="text-[#00f3ff] font-bold block mt-1 tracking-wider lowercase">{email.toLowerCase()}</span>
+                    <span className="text-ops-accent font-bold block mt-1 tracking-wider whitespace-nowrap lowercase">{email.toLowerCase()}</span>
                 </p>
 
                 <form onSubmit={handleSubmit} className="space-y-6">
-                    <div className="relative group">
+                    <div className="relative group w-[180px] md:w-[260px] mx-auto">
                         <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 text-ops-border w-5 h-5 group-focus-within:text-[#00f3ff] transition-colors" />
                         <input
                             type="text"
                             maxLength={6}
                             required
                             autoFocus
-                            className="input-field pl-10 md:pl-12 text-lg md:text-2xl text-center font-mono py-4 tracking-[0.2em] md:tracking-[0.5em] text-[#00f3ff] drop-shadow-[0_0_8px_rgba(0,243,255,0.4)]"
+                            className="input-field pl-12 md:pl-16 text-lg md:text-2xl text-left font-mono py-4 tracking-[0.2em] md:tracking-[0.5em] text-[#00f3ff] drop-shadow-[0_0_8px_rgba(0,243,255,0.4)]"
                             placeholder="000000"
                             value={code}
                             onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
