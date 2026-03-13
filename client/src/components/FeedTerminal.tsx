@@ -65,14 +65,12 @@ const FeedTerminal: React.FC<FeedTerminalProps> = ({ email, tacticalColor }) => 
         }
     };
 
-    const getSeverityColor = (severity: string) => {
-        switch (severity.toUpperCase()) {
-            case 'CRITICAL': return 'border-ops-danger/40 text-ops-danger';
-            case 'HIGH': return 'border-ops-warning/40 text-ops-warning';
-            case 'LOW':
-            case 'MEDIUM':
-            default: return 'border-ops-border/40 text-ops-accent';
-        }
+    const getCardStyle = () => {
+        const baseColor = tacticalColor || '#8a9fca';
+        return {
+            borderColor: `${baseColor}44`,
+            background: `linear-gradient(135deg, ${baseColor}08 0%, rgba(255,255,255,0.02) 100%)`,
+        };
     };
 
     const [isFeedOpen, setIsFeedOpen] = useState(false);
@@ -166,7 +164,9 @@ const FeedTerminal: React.FC<FeedTerminalProps> = ({ email, tacticalColor }) => 
                         )}
 
                         {feed.map(item => {
-                            const styleClass = getSeverityColor(item.severity);
+                            const cardStyle = getCardStyle();
+                            const accentColor = tacticalColor || '#8a9fca';
+                            
                             return (
                                 <motion.div
                                     key={item.id}
@@ -192,13 +192,14 @@ const FeedTerminal: React.FC<FeedTerminalProps> = ({ email, tacticalColor }) => 
                                     </div>
 
                                     <motion.div
-                                        className={`relative z-10 w-full p-5 border rounded bg-white/[0.02] backdrop-blur-md cursor-grab active:cursor-grabbing transition-all duration-300 ${styleClass}`}
+                                        className="relative z-10 w-full p-5 border rounded backdrop-blur-md cursor-grab active:cursor-grabbing transition-all duration-300"
+                                        style={cardStyle}
                                         whileTap={{ scale: 0.98 }}
                                     >
                                         <div className="flex justify-between items-center mb-4">
                                             <div className="flex items-center gap-2">
-                                                <ShieldAlert className="w-4 h-4 flex-shrink-0" />
-                                                <span className="text-[10px] font-bold tracking-[.15em] uppercase">{item.source}</span>
+                                                <ShieldAlert className="w-4 h-4 flex-shrink-0" style={{ color: accentColor }} />
+                                                <span className="text-[10px] font-bold tracking-[.15em] uppercase" style={{ color: accentColor }}>{item.source}</span>
                                             </div>
                                             <div className="flex items-center gap-1.5 text-[10px] text-ops-text_dim/60 font-mono">
                                                 <Clock className="w-3.5 h-3.5" />
@@ -206,7 +207,7 @@ const FeedTerminal: React.FC<FeedTerminalProps> = ({ email, tacticalColor }) => 
                                             </div>
                                         </div>
                                         <a href={item.url} target="_blank" rel="noreferrer" className="block group/link mb-3">
-                                            <h4 className="text-white text-base font-bold leading-tight tracking-tight group-hover/link:text-ops-accent transition-colors">
+                                            <h4 className="text-white text-base font-bold leading-tight tracking-tight group-hover/link:opacity-80 transition-opacity">
                                                 {item.title}
                                             </h4>
                                         </a>
