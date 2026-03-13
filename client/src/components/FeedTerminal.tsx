@@ -99,7 +99,7 @@ const FeedTerminal: React.FC<FeedTerminalProps> = ({ email, tacticalColor }) => 
                 {/* Nivel 1: Título Homologado */}
                 <div className="w-full pt-4 pb-2 border-b border-white/10 mb-6 flex items-center justify-center gap-2 overflow-hidden">
                     <Globe className="w-4 h-4 flex-shrink-0" style={{ color: tacticalColor || '#eab308' }} />
-                    <h3 className="text-[11px] font-bold tracking-[.15em] text-white text-center uppercase whitespace-nowrap">INTELIGENCIA TÁCTICA</h3>
+                    <h3 className="text-[10px] font-bold tracking-[.1em] text-white text-center uppercase whitespace-nowrap">INTELIGENCIA TÁCTICA</h3>
                 </div>
 
                 {/* Nivel 2: Status Box Homologado */}
