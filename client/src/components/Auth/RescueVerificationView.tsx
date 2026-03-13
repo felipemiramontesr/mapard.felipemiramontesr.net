@@ -26,11 +26,14 @@ const RescueVerificationView: React.FC<RescueVerificationViewProps> = ({ email, 
             </h2>
 
             <div className="px-6 text-center space-y-4">
-                <p className="text-[10px] md:text-xs text-ops-text_dim uppercase tracking-widest leading-relaxed">
-                    SE HA ENVIADO UN CÓDIGO DE EMERGENCIA AL CORREO DEL OBJETIVO:
-                    <br />
-                    <span className="text-ops-accent font-bold block mt-1 tracking-wider whitespace-nowrap lowercase">{email.toLowerCase()}</span>
-                </p>
+                <div className="py-6 space-y-3">
+                    <p className="text-[10px] md:text-xs text-ops-text_dim uppercase tracking-widest leading-relaxed">
+                        SE HA ENVIADO UN CÓDIGO DE EMERGENCIA AL CORREO DEL OBJETIVO:
+                    </p>
+                    <span className="text-ops-accent font-mono text-sm sm:text-base font-bold block tracking-wider whitespace-nowrap lowercase underline decoration-ops-accent/20 underline-offset-8">
+                        {email.toLowerCase()}
+                    </span>
+                </div>
 
                 <form onSubmit={handleSubmit} className="space-y-6">
                     <div className="relative group w-[180px] md:w-[260px] mx-auto">

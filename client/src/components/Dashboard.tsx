@@ -472,8 +472,8 @@ const Dashboard: React.FC<DashboardProps> = ({ onRankUpdate }) => {
                 {authStep === 'dashboard' && (
                     <>
                         {/* HUD Superior Refinado (Phase 11) */}
-                        <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col items-center justify-center text-center gap-1 border bg-white/5 backdrop-blur-xl rounded mb-6 w-full shadow-2xl" style={{ borderColor: `${currentRank.color}44` }}>
-                            <div className="flex items-center gap-2 px-4 py-1.5 rounded border shadow-inner mb-2" style={{ borderColor: `${currentRank.color}66` }}>
+                        <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col items-center justify-center text-center gap-1 border bg-white/5 backdrop-blur-xl rounded mb-6 w-full shadow-2xl py-10" style={{ borderColor: `${currentRank.color}44` }}>
+                            <div className="flex items-center gap-2 px-4 py-1.5 rounded border shadow-inner mb-4" style={{ borderColor: `${currentRank.color}66` }}>
                                 <Lock className="w-3.5 h-3.5" style={{ color: currentRank.color }} />
                                 <span className="font-black text-[10px] sm:text-xs tracking-[0.4em] uppercase" style={{ color: currentRank.color }}>EMAIL LOCKED</span>
                             </div>
