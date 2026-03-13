@@ -69,7 +69,8 @@ const FeedTerminal: React.FC<FeedTerminalProps> = ({ email, tacticalColor }) => 
         const baseColor = tacticalColor || '#8a9fca';
         return {
             borderColor: `${baseColor}44`,
-            background: `linear-gradient(135deg, ${baseColor}08 0%, rgba(255,255,255,0.02) 100%)`,
+            // background: `linear-gradient(135deg, ${baseColor}08 0%, rgba(255,255,255,0.02) 100%)`, // ELIMINADO: Demasiado transparente
+            background: 'rgba(255, 255, 255, 0.03)', // HOMOLOGADO CON PANELES
         };
     };
 
@@ -185,10 +186,16 @@ const FeedTerminal: React.FC<FeedTerminalProps> = ({ email, tacticalColor }) => 
                                     }}
                                     className="relative w-full group touch-pan-y block"
                                 >
-                                    {/* Background clear indicator */}
-                                    <div className="absolute inset-0 bg-ops-success/20 border border-ops-success/30 rounded flex items-center justify-between px-6 z-0">
-                                        <span className="text-ops-success font-bold text-xs uppercase tracking-widest">Archivar</span>
-                                        <span className="text-ops-success font-bold text-xs uppercase tracking-widest">Archivar</span>
+                                    {/* Background clear indicator (SYNCED WITH RANK) */}
+                                    <div 
+                                        className="absolute inset-0 border rounded flex items-center justify-between px-6 z-0"
+                                        style={{ 
+                                            background: `${accentColor}15`, 
+                                            borderColor: `${accentColor}33` 
+                                        }}
+                                    >
+                                        <span className="font-bold text-xs uppercase tracking-widest opacity-40" style={{ color: accentColor }}>Archivar</span>
+                                        <span className="font-bold text-xs uppercase tracking-widest opacity-40" style={{ color: accentColor }}>Archivar</span>
                                     </div>
 
                                     <motion.div
