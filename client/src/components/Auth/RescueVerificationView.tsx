@@ -30,7 +30,7 @@ const RescueVerificationView: React.FC<RescueVerificationViewProps> = ({ email, 
                     <p className="text-[10px] md:text-xs text-ops-text_dim uppercase tracking-widest leading-relaxed">
                         SE HA ENVIADO UN CÓDIGO DE EMERGENCIA AL CORREO DEL OBJETIVO:
                     </p>
-                    <span className="text-ops-accent font-mono text-sm sm:text-base font-bold block tracking-wider whitespace-nowrap lowercase underline decoration-ops-accent/20 underline-offset-8">
+                    <span className="text-ops-accent font-sans text-[clamp(10px,3.5vw,14px)] font-bold block tracking-widest whitespace-nowrap lowercase py-1">
                         {email.toLowerCase()}
                     </span>
                 </div>

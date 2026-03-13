@@ -477,7 +477,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onRankUpdate }) => {
                                 <Lock className="w-3.5 h-3.5" style={{ color: currentRank.color }} />
                                 <span className="font-black text-[10px] sm:text-xs tracking-[0.4em] uppercase" style={{ color: currentRank.color }}>EMAIL LOCKED</span>
                             </div>
-                            <span className="text-ops-accent font-mono text-sm sm:text-base tracking-wider opacity-90 whitespace-nowrap">{userEmail?.toLowerCase()}</span>
+                            <span className="text-ops-accent font-sans text-[clamp(10px,3.5vw,14px)] font-bold tracking-widest opacity-90 whitespace-nowrap lowercase">{userEmail?.toLowerCase()}</span>
                         </motion.div>
 
                         {deltaNew > 0 && (
